@@ -178,7 +178,12 @@ function parseSatellitesData(data) {
 
                     // Create the "对星" link
                     const satelliteLinkContainer = document.getElementById('satelliteLinkContainer');
-                    satelliteLinkContainer.innerHTML = `<a href="https://star.conor.link/find?satelliteId=${noradId}" target="_blank">当前所选卫星即时对星</a>`;
+                    satelliteLinkContainer.innerHTML = `<button id="satelliteLinkButton" style="cursor: pointer;">当前所选卫星即时对星</button>`;
+                    const satelliteLinkButton = document.getElementById('satelliteLinkButton');
+                    satelliteLinkButton.addEventListener('click', () => {
+
+                    window.open(`https://star.conor.link/find?satelliteId=${noradId}`, '_blank');
+                });
                 });
                 dropdown.appendChild(div);
             });
