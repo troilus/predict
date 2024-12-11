@@ -99,6 +99,7 @@
     <input type="checkbox" id="timeFilter">
     <button id="calculatePass">计算过境信息</button>
     <div id="passInfo">过境信息：未计算</div>
+    <div id="satelliteLinkContainer"></div>
 
     <script src="satellite.js"></script>
 
@@ -136,7 +137,7 @@
                 });
         });
 
-        function parseSatellitesData(data) {
+function parseSatellitesData(data) {
             const lines = data.split('\n');
             const satellites = [];
             let currentSatellite = null;
@@ -169,6 +170,13 @@
                 div.addEventListener('click', function() {
                     document.getElementById('dropdownButton').textContent = satellite.name;
                     dropdown.style.display = 'none';
+
+                    // Extract NORAD ID (from the first TLE line)
+                    const noradId = satellite.tle[1].split(' ')[1]; // TLE line 1, second value is the NORAD ID
+
+                    // Create the "对星" link
+                    const satelliteLinkContainer = document.getElementById('satelliteLinkContainer');
+                    satelliteLinkContainer.innerHTML = `<a href="https://star.conor.link/find?satelliteId=${noradId}" target="_blank">卫星即时追踪</a>`;
                 });
                 dropdown.appendChild(div);
             });
