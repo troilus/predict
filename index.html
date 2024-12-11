@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satellite Predict</title>
+    <title>🛰SAT Predict</title>
     <style>
         .custom-dropdown {
             position: relative;
@@ -331,9 +331,9 @@ function formatGroupedPassesToHTML(groupedPasses) {
             <thead>
                 <tr>
                     <th>日期</th>
-                    <th>入境</th>
+                    <th>开始</th>
                     <th>最高</th>
-                    <th>出境</th>
+                    <th>结束</th>
                 </tr>
             </thead>
             <tbody>
@@ -369,7 +369,7 @@ groupedPasses.forEach(pass => {
         <tr class="${rowClass}">
             <td>${entrydate}</td>
             <td>${entryTime}, ${entryAzimuth}</td>
-            <td>${highestTime}, ${highestAzimuth}, ${highestElevation}</td>
+            <td>${highestTime}, ${highestAzimuth},【${highestElevation}】</td>
             <td>${exitTime}, ${exitAzimuth}</td>
         </tr>
     `;
