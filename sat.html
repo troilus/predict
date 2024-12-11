@@ -1,0 +1,337 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Predict</title>
+    <style>
+
+
+/* 19:00~07:00 (夜间) */
+.night {
+
+        background-color: #494953;
+    color: #ffffbc;
+}
+
+/* 其余时间 (白天) */
+.day {
+
+        background-color: #69a7ff;
+    color: #ffffff;
+}
+
+
+
+
+
+
+
+
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #location {
+            margin-top: 10px;
+        }
+        select {
+            margin-top: 10px;
+            width: 200px;
+            height: 30px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button id="getLocation">获取位置</button>
+    <div id="location">经纬度：未获取</div>
+
+    <select id="satelliteDropdown">
+        <option value="">选择卫星</option>
+    </select>
+<label for="timeFilter">仅计算19:00~23:59</label>
+<input type="checkbox" id="timeFilter">
+    <button id="calculatePass">计算过境信息</button>
+    <div id="passInfo">过境信息：未计算</div>
+
+    <!-- Reference the local satellite.js file -->
+    <script src="satellite.js"></script>
+
+    <script>
+        document.getElementById('getLocation').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    document.getElementById('location').textContent = `经纬度：${latitude}, ${longitude}`;
+                }, function(error) {
+                    document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
+                });
+            } else {
+                document.getElementById('location').textContent = '浏览器不支持地理定位。';
+            }
+        });
+
+        window.addEventListener('load', function() {
+
+
+  
+
+
+            fetch('http://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('网络响应失败');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    const satellites = parseSatellitesData(data);
+                    
+                    // Store the satellite data in localStorage as JSON
+                    localStorage.setItem('satellites', JSON.stringify(satellites));
+
+                    // Populate the dropdown with satellite names
+                    const dropdown = document.getElementById('satelliteDropdown');
+                    satellites.forEach(satellite => {
+                        const option = document.createElement('option');
+                        option.value = satellite.name;
+                        option.textContent = satellite.name;
+                        dropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('无法加载文件:', error);
+                });
+        });
+
+        function parseSatellitesData(data) {
+            const lines = data.split('\n');
+            const satellites = [];
+            let currentSatellite = null;
+
+            lines.forEach(line => {
+                if (line.startsWith('1') || line.startsWith('2')) {
+                    if (currentSatellite) {
+                        currentSatellite.tle.push(line);
+                    }
+                } else if (line.trim() !== '') {
+                    if (currentSatellite) {
+                        satellites.push(currentSatellite);
+                    }
+                    currentSatellite = { name: line.trim(), tle: [] };
+                }
+            });
+            
+            // Add the last satellite if exists
+            if (currentSatellite) {
+                satellites.push(currentSatellite);
+            }
+
+            return satellites;
+        }
+
+document.getElementById('calculatePass').addEventListener('click', function() {
+    const satelliteName = document.getElementById('satelliteDropdown').value;
+    const locationText = document.getElementById('location').textContent;
+    const match = locationText.match(/经纬度：([\-0-9.]+), ([\-0-9.]+)/);
+
+    const timeFilterChecked = document.getElementById('timeFilter').checked;
+
+
+
+    if (satelliteName && match) {
+        const latitude = parseFloat(match[1]);
+        const longitude = parseFloat(match[2]);
+        const altitude = 0; // 可设置为实际的高度
+
+        const satellites = JSON.parse(localStorage.getItem('satellites'));
+        const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
+
+        if (!satelliteinfo) {
+            document.getElementById('passInfo').innerHTML = '<p>未找到卫星TLE数据。</p>';
+            return;
+        }
+
+        const satrec = satellite.twoline2satrec(satelliteinfo.tle[0], satelliteinfo.tle[1]);
+        const currentTime = new Date();
+        const passes = calculatePasses(satrec, latitude, longitude, altitude, currentTime, timeFilterChecked);
+
+        const groupedPasses = groupPasses(passes);
+        document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTML(groupedPasses);
+    } else {
+        document.getElementById('passInfo').innerHTML = '<p>请提供卫星和有效的经纬度。</p>';
+    }
+});
+
+
+
+
+
+
+
+function calculatePasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
+    const passes = [];
+    const observerGd = {
+        latitude: satellite.degreesToRadians(latitude),
+        longitude: satellite.degreesToRadians(longitude),
+        height: altitude,
+    };
+
+    // 计算未来 5 天内的所有可能时间点
+    const endTime = new Date(currentTime.getTime() + 3 * 24 * 60 * 60 * 1000);
+    const timeStep = 1 * 1000; // 1分钟步长（单位：毫秒）
+
+    for (let time = currentTime.getTime(); time <= endTime.getTime(); time += timeStep) {
+        const passTime = new Date(time);
+
+        // 计算卫星位置和速度
+        const positionAndVelocity = satellite.propagate(satrec, passTime);
+        if (positionAndVelocity && positionAndVelocity.position) {
+            const gmst = satellite.gstime(passTime);
+
+            // 转换为地理坐标和视角
+            const lookAngles = satellite.ecfToLookAngles(
+                observerGd,
+                satellite.eciToEcf(positionAndVelocity.position, gmst)
+            );
+
+            if (lookAngles) {
+                const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
+
+                // 过滤仰角大于等于 15 度的记录
+                if (elevationDegrees >= 15) {
+                    const pass = {
+                        time: passTime,
+                        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
+                        elevation: elevationDegrees,
+                    };
+
+                    // If the checkbox is checked, only include passes between 19:00 and 23:59
+                    const passHour = passTime.getHours();
+                    if (filterNightTime && (passHour < 19 || passHour >= 24)) {
+                        continue; // Skip this pass if it is outside the 19:00 to 23:59 range
+                    }
+
+                    passes.push(pass);
+
+
+
+
+                }
+            }
+        }
+    }
+    return passes;
+}
+
+
+function groupPasses(passes) {
+    const groupedPasses = [];
+    let currentPass = null;
+
+    passes.forEach((pass, index) => {
+        if (!currentPass) {
+            currentPass = { entry: pass, highest: pass, exit: pass };
+        } else {
+            // 如果时间连续且仰角满足条件，更新当前过境的最高点和出境点
+            const timeDifference = (new Date(pass.time) - new Date(currentPass.exit.time)) / 1000;
+            if (timeDifference <= 600) { // 时间差小于等于10分钟认为是同一次过境
+                currentPass.exit = pass;
+                if (parseFloat(pass.elevation) > parseFloat(currentPass.highest.elevation)) {
+                    currentPass.highest = pass;
+                }
+            } else {
+                // 完成一组数据后存储，并开启新的一次过境
+                groupedPasses.push(currentPass);
+                currentPass = { entry: pass, highest: pass, exit: pass };
+            }
+        }
+
+        // 如果是最后一个点，强制结束当前分组
+        if (index === passes.length - 1 && currentPass) {
+            groupedPasses.push(currentPass);
+        }
+    });
+
+    return groupedPasses;
+}
+
+
+
+
+function formatGroupedPassesToHTML(groupedPasses) {
+    if (groupedPasses.length === 0) {
+        return "<p>未来5天内没有仰角大于等于15度的过境信息。</p>";
+    }
+
+    let html = `
+        <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>入境</th>
+                    <th>最高</th>
+                    <th>出境</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+groupedPasses.forEach(pass => {
+    const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
+    const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+    const entryAzimuth = typeof pass.entry?.azimuth === "number" ? `${pass.entry.azimuth.toFixed(2)}°` : "未知";
+    
+    // Check the time and determine the class for the row
+    const entryHour = new Date(pass.entry.time).getHours();
+    let rowClass = "";
+
+    if (entryHour >= 19 || entryHour < 7) {
+        rowClass = "night";  // 19:00-07:00，灰底白字
+    } else {
+        rowClass = "day";    // 其余时间，蓝底黄字
+    }
+
+
+
+
+
+    const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+    const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
+    const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
+
+    const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+    const exitAzimuth = typeof pass.exit?.azimuth === "number" ? `${pass.exit.azimuth.toFixed(2)}°` : "未知";
+
+    html += `
+        <tr class="${rowClass}">
+            <td>${entrydate}</td>
+            <td>${entryTime}, ${entryAzimuth}</td>
+            <td>${highestTime}, ${highestAzimuth}, ${highestElevation}</td>
+            <td>${exitTime}, ${exitAzimuth}</td>
+        </tr>
+    `;
+
+});
+
+html += `
+    </tbody>
+</table>
+`;
+
+return html;
+
+}
+
+
+
+
+    </script>
+</body>
+</html>
