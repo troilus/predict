@@ -6,106 +6,97 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Document</title>
     <style>
-      /*body {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-      }*/
-       body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            background-color: #f4f4f4;
-            position: relative;
-        }
 
-        #info-bar {
-            width: 100%;
-            background-color: #333;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-size: 14px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
+  body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      position: relative;
+  }
 
-        #canvas-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-            margin: 20px 0;
-        }
+  #info-bar {
+      width: 100%;
+      background-color: #333;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
 
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
+  #canvas-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 20px 0;
+  }
 
-        #current-time {
-            margin-top: 10px;
-            font-size: 16px;
-        }
+  #trajectory-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2; /* Ensure it is above the compass circle */
+  }
+
+  .compass {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: auto;
+  }
+
+.compass-circle {
+    position: absolute;
+    top: 50%;            /* 设置为父容器的中心 */
+    left: 50%;
+    transform: translate(-50%, -50%); /* 调整位置到中心 */
+    width: 100%;         /* 确保与父容器一致 */
+    height: 100%;
+    background: url(bg.png) center no-repeat;
+    background-size: contain;
+    z-index: 1; /* 在 canvas 下方 */
+}
+
+  .arrow {
+      position: absolute;
+      width: 0;
+      height: 0;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-style: solid;
+      border-width: 30px 20px 0 20px;
+      border-color: red transparent transparent transparent;
+      z-index: 3; /* Above all elements */
+  }
+
+  .my-point {
+      position: absolute;
+      width: 20%;
+      height: 20%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgb(8, 223, 69);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.5s ease-out;
+      z-index: 3; /* Same as arrow */
+  }
+
+  .start-btn {
+      margin-bottom: auto;
+  }
+</style>
 
 
-
-      .compass {
-        position: relative;
-        width: 320px;
-        height: 320px;
-        border-radius: 50%;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-        margin: auto;
-      }
-
-      .compass > .arrow {
-        position: absolute;
-        width: 0;
-        height: 0;
-        top: -20px;
-        left: 50%;
-        transform: translateX(-50%);
-        border-style: solid;
-        border-width: 30px 20px 0 20px;
-        border-color: red transparent transparent transparent;
-        z-index: 1;
-      }
-
-      .compass > .compass-circle,
-      .compass > .my-point {
-        position: absolute;
-        width: 90%;
-        height: 90%;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        transition: transform 0.1s ease-out;
-        background: url(bg.png)
-          center no-repeat;
-        background-size: contain;
-      }
-
-      .compass > .my-point {
-        opacity: 0;
-        width: 20%;
-        height: 20%;
-        background: rgb(8, 223, 69);
-        border-radius: 50%;
-        transition: opacity 0.5s ease-out;
-      }
-
-      .start-btn {
-        margin-bottom: auto;
-      }
-    </style>
-  </head>
-  <body>
-
+<body>
     <div id="info-bar">
         <p id="satellite-name"></p>
         <p id="satellite-info"></p>
@@ -113,19 +104,20 @@
         <p id="time-info"></p>
     </div>
 
-    <div id="canvas-container">
-        <canvas id="elevation-canvas" width="300" height="300"></canvas>
-        <canvas id="trajectory-canvas" width="300" height="300"></canvas>
-    </div>
-
-
+<div id="canvas-container">
+    <canvas id="trajectory-canvas" width="300" height="300"></canvas>
+    <!-- 罗盘 -->
     <div class="compass">
-      <div class="arrow"></div>
-      <div class="compass-circle"></div>
-      <div class="my-point"></div>
+        <div class="compass-circle"></div>
+        <div class="arrow"></div>
+        <div class="my-point"></div>
     </div>
+</div>
+
     <button class="start-btn">Start compass</button>
-  </body>
+</body>
+
+
 
 
     <script src="satellite.js"></script>
@@ -157,7 +149,7 @@ window.onload = function () {
 
     const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
 
-    const elevationCtx = document.getElementById('elevation-canvas').getContext('2d');
+    //const elevationCtx = document.getElementById('elevation-canvas').getContext('2d');
     const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
 
 
@@ -323,7 +315,7 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
 
         // 清空轨迹层，重新绘制
         ctx.clearRect(0, 0, 300, 300);
-        drawCompass(ctx);
+        //drawCompass(ctx);
         const trajectoryPoints = drawTrajectory(ctx, selectedPass);
 
         // 计算红点投射到曲线上的点
