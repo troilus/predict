@@ -356,16 +356,41 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
 
 function handler(e) {
     const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
-    // 旋转罗盘
+
+    // Define the center of the compass
+    const centerX = 150;
+    const centerY = 150;
+
+    // Rotate compass circle
     compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
 
-    // 旋转轨迹画布
+    // Rotate trajectory canvas
     const trajectoryCanvas = document.getElementById('trajectory-canvas');
-    document.getElementById('trajectory-canvas').style.transform = 'rotate(0deg)';
-    trajectoryCanvas.style.transformOrigin = 'center'; // 设置旋转中心为画布中心
+    trajectoryCanvas.style.transformOrigin = 'center';
     trajectoryCanvas.style.transform = `rotate(${-compass}deg)`;
 
-    // 控制红点的可见性
+    // Handle arrow position based on beta
+    const beta = e.beta;  // Get the beta value from the event
+    console.log(beta)
+    const arrow = document.querySelector('.arrow');
+
+ // Map beta value (-180 to 180) to a position between center and edge
+    const radius = 140; // Radius of the compass circle
+
+    // Normalize the beta value to fit between -1 and 1
+    const normalizedBeta = beta / 180; // this will make beta range from -1 to 1
+
+    // Calculate distance based on normalized beta (vertically move between center and edge)
+    const distance = normalizedBeta * radius;  // Calculate distance based on normalized beta value
+
+    // Calculate the Y position based on beta (upward or downward movement)
+    const arrowY = centerY - distance;  // Adjust Y position to move the arrow vertically
+    const arrowX = centerX;  // Keep the arrow horizontally centered
+
+    // Update arrow position
+    arrow.style.top = `${arrowY - 20}px`; // Adjust top to position the arrow
+
+    // Control red point visibility based on compass angle
     if (
         (pointDegree < Math.abs(compass) &&
             pointDegree + 15 > Math.abs(compass)) ||
@@ -377,6 +402,7 @@ function handler(e) {
         myPoint.style.opacity = 1;
     }
 }
+
 
     let pointDegree;
 
@@ -425,7 +451,8 @@ function handler(e) {
                 b.innerHTML = Math.round(beta);
                 g.innerHTML = Math.round(gamma);
 
-                
+                  // Update arrow and compass position
+        handler(event);      
 
 
             }, false);
