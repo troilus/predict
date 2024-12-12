@@ -261,7 +261,7 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
             height: 0
 }
 
-    console.log(satrec)
+    
 
 
 
@@ -272,6 +272,7 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
         const gmst = satellite.gstime(time);
         const positionEci = positionAndVelocity.position;
         const lookAngles = satellite.ecfToLookAngles(observerGd, satellite.eciToEcf(positionEci, gmst));
+        console.log(lookAngles)
 
         const elevation = satellite.radiansToDegrees(lookAngles.elevation);
         const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
