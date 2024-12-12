@@ -13,18 +13,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             background-color: #f4f4f4;
             position: relative;
-            overflow: hidden;
+        }
+
+        #info-bar {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         #canvas-container {
             position: relative;
             width: 300px;
             height: 300px;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
 
         canvas {
@@ -33,22 +42,8 @@
             left: 0;
         }
 
-        .info-container {
-            position: absolute;
-            top: 10px;
-            width: 100%;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .info-container span {
-            display: block;
-            margin: 5px 0;
-        }
-
         #current-time {
-            position: absolute;
-            bottom: 10px;
+            margin-top: 10px;
             font-size: 16px;
         }
 
@@ -56,35 +51,19 @@
             position: absolute;
             font-size: 14px;
         }
-
-        #elevation {
-            top: 20px;
-            left: 20px;
-        }
-
-        #azimuth {
-            top: 20px;
-            right: 20px;
-        }
     </style>
 </head>
 
 <body>
-    <div class="info-container">
-        <span id="distance-info">卫星当前距离：暂无数据</span>
-        <span id="height-info">卫星当前高度：暂无数据</span>
-        <span id="pass-time">过境时间：开始时间 - 暂无数据 | 当前时间 - 暂无数据 | 结束时间 - 暂无数据</span>
+    <div id="info-bar">
+        <p id="satellite-info">距离：暂无 | 高度：暂无 | 当前时间：暂无</p>
+        <p id="pass-info">过境开始：暂无 | 当前时间：暂无 | 过境结束：暂无</p>
     </div>
 
     <div id="canvas-container">
         <canvas id="elevation-canvas" width="300" height="300"></canvas>
         <canvas id="trajectory-canvas" width="300" height="300"></canvas>
-        <canvas id="compass-canvas" width="300" height="300"></canvas>
     </div>
-
-    <div class="corner-info" id="elevation">卫星当前仰角：暂无数据</div>
-    <div class="corner-info" id="azimuth">卫星当前方位：暂无数据</div>
-    <div id="current-time">当前时间：暂无数据</div>
 
     <script src="satellite.js"></script>
     <script>
@@ -111,11 +90,13 @@
             ctx.fillText("0°", centerX + 5, centerY);
         }
 
-        function drawSatelliteTrajectory(ctx, trajectoryPoints) {
+        function drawSatelliteTrajectory(ctx, trajectoryPoints, phonePoint) {
             const centerX = 150;
             const centerY = 150;
 
             ctx.clearRect(0, 0, 300, 300);
+
+            // Draw trajectory
             ctx.strokeStyle = "red";
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -138,41 +119,67 @@
                 ctx.arc(centerX + current.x, centerY - current.y, 5, 0, 2 * Math.PI);
                 ctx.fill();
             }
+
+            // Draw phone direction marker
+            if (phonePoint) {
+                ctx.fillStyle = "blue";
+                ctx.beginPath();
+                ctx.arc(centerX + phonePoint.x, centerY - phonePoint.y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
         }
 
-        function drawCompass(ctx, azimuth, elevation) {
-            const centerX = 150;
-            const centerY = 150;
+        function calculateNextPass(satrec, observerGd) {
+    const nextPass = [];
+// 计算未来 5 天内的所有可能时间点
+    const currentTime = new Date();
+    const endTime = new Date(currentTime.getTime() + 1 * 24 * 60 * 60 * 1000);
+    const timeStep = 10* 1000; // 1分钟步长（单位：毫秒）
 
-            ctx.clearRect(0, 0, 300, 300);
 
-            // Draw azimuth line
-            ctx.strokeStyle = "blue";
-            ctx.lineWidth = 2;
-            const azimuthX = centerX + 120 * Math.cos((azimuth - 90) * Math.PI / 180);
-            const azimuthY = centerY + 120 * Math.sin((azimuth - 90) * Math.PI / 180);
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(azimuthX, azimuthY);
-            ctx.stroke();
+    for (let time = currentTime.getTime(); time <= endTime.getTime(); time += timeStep) {
+        const passTime = new Date(time);
 
-            // Draw elevation circle
-            ctx.strokeStyle = "green";
-            const elevationRadius = 120 * (90 - elevation) / 90;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, elevationRadius, 0, 2 * Math.PI);
-            ctx.stroke();
+        // 计算卫星位置和速度
+
+        const positionAndVelocity = satellite.propagate(satrec, passTime);
+        if (positionAndVelocity && positionAndVelocity.position) {
+            const gmst = satellite.gstime(passTime);
+
+            // 转换为地理坐标和视角
+            const lookAngles = satellite.ecfToLookAngles(
+                observerGd,
+                satellite.eciToEcf(positionAndVelocity.position, gmst)
+            );
+
+            if (lookAngles) {
+                const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
+
+                // 过滤仰角大于等于 15 度的记录
+                if (elevationDegrees >= 15) {
+                    const pass = {
+                        time: passTime,
+                        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
+                        elevation: elevationDegrees,
+                    };
+
+
+                    nextPass.push(pass);
+
+
+
+
+                }
+            }
         }
+    }
 
-        function updateTime() {
-            const now = new Date();
-            document.getElementById('current-time').textContent = `当前时间：${now.toLocaleTimeString('zh-CN', { hour12: false })}`;
-        }
+    return nextPass;
+}
 
         window.onload = function () {
             const elevationCtx = document.getElementById('elevation-canvas').getContext('2d');
             const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
-            const compassCtx = document.getElementById('compass-canvas').getContext('2d');
 
             drawElevationRings(elevationCtx);
 
@@ -182,6 +189,15 @@
 
             if (satelliteName && satelliteTLE1 && satelliteTLE2) {
                 const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
+                console.log(satrec)
+
+                const observerGd = {
+                    latitude: parseFloat(localStorage.getItem('latitude')),
+                    longitude: parseFloat(localStorage.getItem('longitude')),
+                    height: parseFloat(localStorage.getItem('altitude'))
+                };
+
+                const nextPass = calculateNextPass(satrec, observerGd);
 
                 setInterval(() => {
                     const now = new Date();
@@ -189,12 +205,6 @@
                     const gmst = satellite.gstime(now);
 
                     const positionEci = positionAndVelocity.position;
-                    const observerGd = {
-                        latitude: parseFloat(localStorage.getItem('latitude')),
-                        longitude: parseFloat(localStorage.getItem('longitude')),
-                        height: parseFloat(localStorage.getItem('altitude'))
-                    };
-
                     const lookAngles = satellite.ecfToLookAngles(
                         observerGd,
                         satellite.eciToEcf(positionEci, gmst)
@@ -202,24 +212,20 @@
 
                     const elevation = lookAngles.elevation.toFixed(2);
                     const azimuth = lookAngles.azimuth.toFixed(2);
-                    let height = positionEci.z;
-                    height = height !== null ? height.toFixed(2) : 400; // Default to 400 km if null
-
                     const distance = satellite.eciToGeodetic(positionEci).height.toFixed(2);
-                    document.getElementById('distance-info').textContent = `卫星当前距离：${distance} km`;
-                    document.getElementById('height-info').textContent = `卫星当前高度：${height} km`;
-                    document.getElementById('elevation').textContent = `卫星当前仰角：${elevation}°`;
-                    document.getElementById('azimuth').textContent = `卫星当前方位：${azimuth}°`;
+                    const height = positionEci.z.toFixed(2);
 
-                    // Update pass time information (mocked for now)
-                    document.getElementById('pass-time').textContent = `过境时间：开始时间 - 12:00:00 | 当前时间 - ${now.toLocaleTimeString('zh-CN', { hour12: false })} | 结束时间 - 12:10:00`;
+                    document.getElementById('satellite-info').textContent = `距离：${distance} km | 高度：${height} km | 当前时间：${now.toLocaleTimeString('zh-CN', { hour12: false })}`;
+                    document.getElementById('pass-info').textContent = `过境开始：${nextPass.start} | 当前时间：${now.toLocaleTimeString('zh-CN', { hour12: false })} | 过境结束：${nextPass.end}`;
 
-                    drawCompass(compassCtx, azimuth, elevation);
+                    const phoneAzimuth = 45; // Replace with actual phone azimuth value
+                    const phoneElevation = 30; // Replace with actual phone elevation value
+
+                    drawSatelliteTrajectory(trajectoryCtx, [
+                        { x: azimuth * 2, y: elevation * 2 }
+                    ], { x: phoneAzimuth * 2, y: phoneElevation * 2 });
                 }, 1000);
             }
-
-            updateTime();
-            setInterval(updateTime, 1000);
         };
     </script>
 </body>

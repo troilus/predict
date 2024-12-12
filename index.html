@@ -249,6 +249,7 @@ function parseSatellitesData(data) {
                 }
 
                 const satrec = satellite.twoline2satrec(satelliteinfo.tle[0], satelliteinfo.tle[1]);
+                                console.log(satrec)
                 const currentTime = new Date();
                 const passes = calculatePasses(satrec, latitude, longitude, altitude, currentTime, timeFilterChecked);
 
@@ -275,15 +276,24 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
         const passTime = new Date(time);
 
         // 计算卫星位置和速度
+
+
         const positionAndVelocity = satellite.propagate(satrec, passTime);
         if (positionAndVelocity && positionAndVelocity.position) {
             const gmst = satellite.gstime(passTime);
 
             // 转换为地理坐标和视角
+
+
+
+
+
+
             const lookAngles = satellite.ecfToLookAngles(
                 observerGd,
                 satellite.eciToEcf(positionAndVelocity.position, gmst)
             );
+
 
             if (lookAngles) {
                 const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
@@ -311,6 +321,7 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
             }
         }
     }
+
     return passes;
 }
 
