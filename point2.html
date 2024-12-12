@@ -1,34 +1,50 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>陀螺仪示例</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        #output {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-alpha:<span id="alpha"></span><br/>
-beta:<span id="beta"></span><br/>
-gamma:<span id="gamma"></span><br/>
-</body>
+
+陀螺仪数据
+<div id="output">请转动手机以查看数据</div>
+
 <script>
     if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', function (event) {
-            var a = document.getElementById('alpha'),
-                b = document.getElementById('beta'),
-                g = document.getElementById('gamma'),
-                alpha = event.alpha,
-                beta = event.beta,
-                gamma = event.gamma;
- 
-            a.innerHTML = Math.round(alpha);
-            b.innerHTML = Math.round(beta);
-            g.innerHTML = Math.round(gamma);
- 
+        window.addEventListener('deviceorientation', function(event) {
+            const alpha = event.alpha ? Math.round(event.alpha) : 0;
+            const beta = event.beta ? Math.round(event.beta) : 0;
+            const gamma = event.gamma ? Math.round(event.gamma) : 0;
+
+            document.getElementById('output').innerHTML = `
+                Alpha: ${alpha}°<br>
+                Beta: ${beta}°<br>
+                Gamma: ${gamma}°
+            `;
         }, false);
     } else {
-        document.querySelector('body').innerHTML = '你的浏览器不支持陀螺仪';
+        document.getElementById('output').innerHTML = '您的设备不支持陀螺仪';
     }
 </script>
+
+</body>
 </html>
