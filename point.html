@@ -66,16 +66,16 @@
 }
 
   .arrow {
-      position: absolute;
-      width: 0;
-      height: 0;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-style: solid;
-      border-width: 30px 20px 0 20px;
-      border-color: red transparent transparent transparent;
-      z-index: 3; /* Above all elements */
+    position: absolute;
+    width: 10px;        /* Set the diameter of the circle */
+    height: 10px;
+    top: -20px;         /* Adjust this based on desired vertical position */
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%; /* Makes the element round (circle) */
+    border: 4px solid red; /* Red border */
+    background-color: transparent; /* Hollow center */
+    z-index: 3;         /* Keep above all elements */
   }
 
   .my-point {
@@ -369,19 +369,18 @@ function handler(e) {
     trajectoryCanvas.style.transformOrigin = 'center';
     trajectoryCanvas.style.transform = `rotate(${-compass}deg)`;
 
-    // Handle arrow position based on beta
+     // Handle arrow position based on beta
     const beta = e.beta;  // Get the beta value from the event
-    console.log(beta)
+    console.log(beta);
     const arrow = document.querySelector('.arrow');
 
- // Map beta value (-180 to 180) to a position between center and edge
-    const radius = 140; // Radius of the compass circle
+    // Radius of the compass circle
+    const radius = 140; 
 
-    // Normalize the beta value to fit between -1 and 1
-    const normalizedBeta = beta / 180; // this will make beta range from -1 to 1
-
-    // Calculate distance based on normalized beta (vertically move between center and edge)
-    const distance = normalizedBeta * radius;  // Calculate distance based on normalized beta value
+    // Map beta value to distance: 
+    // When beta = 0, distance = radius (edge)
+    // When beta = 90, distance = 0 (center)
+    const distance = (90 - beta) / 90 * radius;  // Inverse the scaling to match your requirement
 
     // Calculate the Y position based on beta (upward or downward movement)
     const arrowY = centerY - distance;  // Adjust Y position to move the arrow vertically
