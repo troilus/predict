@@ -99,7 +99,7 @@ window.onload = function () {
             height: 0
 
         };
-            console.log(observerGd)
+ 
         setInterval(() => {
             const now = new Date();
 
@@ -133,6 +133,7 @@ window.onload = function () {
 
             })}`;
             updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
+
         }, 1000);
     }
 };
@@ -306,18 +307,28 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
                 var a = document.getElementById('alpha'),
                     b = document.getElementById('beta'),
                     g = document.getElementById('gamma'),
+                    d = document.getElementById('degree'),
                     alpha = event.alpha,
                     beta = event.beta,
                     gamma = event.gamma;
 
+                    degree=locationHandler();
+
                 a.innerHTML = Math.round(alpha);
                 b.innerHTML = Math.round(beta);
                 g.innerHTML = Math.round(gamma);
+                d.innerHTML = degree;
+                
+
 
             }, false);
         } else {
             document.querySelector('body').innerHTML = '你的浏览器不支持陀螺仪';
         }
+
+
+
+
 
         function requestOrientationPermission() {
             DeviceOrientationEvent.requestPermission()
@@ -335,15 +346,22 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
         document.getElementById('requestPermissionBtn').addEventListener('click', requestOrientationPermission);
 
 
-let pointDegree;
+
+
 
     function locationHandler(position) {
-      const { latitude, longitude } = position.coords;
+      //const { latitude, longitude } = position.coords;
+      const latitude= parseFloat(localStorage.getItem('latitude'))
+
+     const longitude= parseFloat(localStorage.getItem('longitude'))
+        console.log(latitude, longitude)
       pointDegree = calcDegreeToPoint(latitude, longitude);
 
       if (pointDegree < 0) {
         pointDegree = pointDegree + 360;
       }
+      console.log(pointDegree)
+      return pointDegree
     }
 
     function calcDegreeToPoint(latitude, longitude) {
@@ -352,11 +370,13 @@ let pointDegree;
         lat: 21.422487,
         lng: 39.826206
       };
-
+    
       const phiK = (point.lat * Math.PI) / 180.0;
       const lambdaK = (point.lng * Math.PI) / 180.0;
       const phi = (latitude * Math.PI) / 180.0;
       const lambda = (longitude * Math.PI) / 180.0;
+
+
       const psi =
         (180.0 / Math.PI) *
         Math.atan2(
@@ -364,17 +384,18 @@ let pointDegree;
           Math.cos(phi) * Math.tan(phiK) -
             Math.sin(phi) * Math.cos(lambdaK - lambda)
         );
+        console.log(phiK,lambdaK,phi,lambda)
       return Math.round(psi);
     }
 
 
 
-
+init();
     </script>
 
         alpha: <span id="alpha"></span><br/>
     beta: <span id="beta"></span><br/>
-    gamm1a: <span id="gamma"></span><br/>
+    gamma: <span id="gamma"></span><br/>
     pointDegree: <span id="degree"></span><br/>
 
     <!-- Add a button to request orientation permission -->
