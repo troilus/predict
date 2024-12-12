@@ -301,7 +301,49 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
     }
 }
 
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', function (event) {
+                var a = document.getElementById('alpha'),
+                    b = document.getElementById('beta'),
+                    g = document.getElementById('gamma'),
+                    alpha = event.alpha,
+                    beta = event.beta,
+                    gamma = event.gamma;
+
+                a.innerHTML = Math.round(alpha);
+                b.innerHTML = Math.round(beta);
+                g.innerHTML = Math.round(gamma);
+
+            }, false);
+        } else {
+            document.querySelector('body').innerHTML = '你的浏览器不支持陀螺仪';
+        }
+
+        function requestOrientationPermission() {
+            DeviceOrientationEvent.requestPermission()
+                .then(response => {
+                    if (response === 'granted') {
+                        window.addEventListener('deviceorientation', function (e) {
+                            // Handle device orientation here if needed
+                        });
+                    }
+                })
+                .catch(console.error);
+        }
+
+        // Add event listener to the button
+        document.getElementById('requestPermissionBtn').addEventListener('click', requestOrientationPermission);
+
+
+
 
     </script>
+
+        alpha: <span id="alpha"></span><br/>
+    beta: <span id="beta"></span><br/>
+    gamma: <span id="gamma"></span><br/>
+
+    <!-- Add a button to request orientation permission -->
+    <button id="requestPermissionBtn">Request Orientation Permission</button>
 </body>
 </html>
