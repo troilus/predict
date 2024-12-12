@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SATPoint</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            position: relative;
+        }
+
+        #info-bar {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #current-time {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .corner-info {
+            position: absolute;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="info-bar">
+        <p id="satellite-name"></p>
+        <p id="satellite-info"></p>
+        <p id="pass-info"></p>
+        <p id="time-info"></p>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="elevation-canvas" width="300" height="300"></canvas>
+        <canvas id="trajectory-canvas" width="300" height="300"></canvas>
+    </div>
+
+    <script>
+        // 检测设备支持
+        if (window.DeviceOrientationEvent) {
+            // 添加监听器
+            window.addEventListener('deviceorientation', handleOrientation, true);
+        } else {
+            alert('设备不支持陀螺仪或方向感应器');
+        }
+
+        const compassCanvas = document.getElementById('elevation-canvas');
+        const ctx = compassCanvas.getContext('2d');
+
+        function handleOrientation(event) {
+            const alpha = event.alpha; // 方位角（设备朝向的度数）
+            const beta = event.beta;   // 前后倾斜角（仰角）
+            const gamma = event.gamma; // 左右倾斜角
+
+            // 更新罗盘 UI
+            updateCompass(alpha, beta);
+
+            // 显示角度信息
+            document.getElementById('satellite-info').textContent = `方位角: ${alpha.toFixed(2)}°, 仰角: ${beta.toFixed(2)}°`;
+        }
+
+        function updateCompass(alpha, beta) {
+            const centerX = compassCanvas.width / 2;
+            const centerY = compassCanvas.height / 2;
+            const radius = 140;
+
+            // 清空画布
+            ctx.clearRect(0, 0, compassCanvas.width, compassCanvas.height);
+
+            // 绘制罗盘背景
+            drawCompass(ctx);
+
+            // 绘制方向指针
+            const pointerX = centerX + radius * Math.sin((alpha * Math.PI) / 180);
+            const pointerY = centerY - radius * Math.cos((alpha * Math.PI) / 180);
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(pointerX, pointerY);
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // 绘制仰角圆点
+            const elevationRadius = getRadiusForElevation(beta, radius);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY - elevationRadius, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'blue';
+            ctx.fill();
+        }
+
+        // 根据仰角计算半径
+        function getRadiusForElevation(elevation, radius) {
+            if (elevation <= 30) return radius - (radius * 0.25) * (elevation / 30);
+            if (elevation <= 60) return radius * 0.75 - (radius * 0.25) * ((elevation - 30) / 30);
+            return radius * 0.5 - (radius * 0.25) * ((elevation - 60) / 30);
+        }
+
+        // 绘制罗盘背景
+        function drawCompass(ctx) {
+            const centerX = compassCanvas.width / 2;
+            const centerY = compassCanvas.height / 2;
+            const radius = 140;
+
+            // 绘制背景圆圈
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+
+            // 绘制方向标记
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('N', centerX, centerY - radius + 20);
+            ctx.fillText('E', centerX + radius - 20, centerY);
+            ctx.fillText('S', centerX, centerY + radius - 20);
+            ctx.fillText('W', centerX - radius + 20, centerY);
+        }
+    </script>
+</body>
+</html>
