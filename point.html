@@ -42,6 +42,8 @@
       top: 0;
       left: 0;
       z-index: 2; /* Ensure it is above the compass circle */
+          transform-origin: center; /* 设置旋转中心为画布中心 */
+    transition: transform 0.1s linear; /* 平滑旋转效果（可选） */
   }
 
   .compass {
@@ -315,6 +317,7 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
 
         // 清空轨迹层，重新绘制
         ctx.clearRect(0, 0, 300, 300);
+        drawTrajectory(ctx, selectedPass); // 重绘轨迹
         //drawCompass(ctx);
         const trajectoryPoints = drawTrajectory(ctx, selectedPass);
 
@@ -346,22 +349,29 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
       }
     }
 
-    function handler(e) {
-      compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
-      compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
+function handler(e) {
+    const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
+    // 旋转罗盘
+    compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
 
-      // ±15 degree
-      if (
+    // 旋转轨迹画布
+    const trajectoryCanvas = document.getElementById('trajectory-canvas');
+    document.getElementById('trajectory-canvas').style.transform = 'rotate(0deg)';
+    trajectoryCanvas.style.transformOrigin = 'center'; // 设置旋转中心为画布中心
+    trajectoryCanvas.style.transform = `rotate(${-compass}deg)`;
+
+    // 控制红点的可见性
+    if (
         (pointDegree < Math.abs(compass) &&
-          pointDegree + 15 > Math.abs(compass)) ||
+            pointDegree + 15 > Math.abs(compass)) ||
         pointDegree > Math.abs(compass + 15) ||
         pointDegree < Math.abs(compass)
-      ) {
+    ) {
         myPoint.style.opacity = 0;
-      } else if (pointDegree) {
+    } else if (pointDegree) {
         myPoint.style.opacity = 1;
-      }
     }
+}
 
     let pointDegree;
 
