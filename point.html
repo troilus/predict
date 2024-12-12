@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手机对星页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .corner-info {
+            position: absolute;
+            font-size: 14px;
+        }
+
+        #elevation {
+            top: 20px;
+            left: 20px;
+        }
+
+        #azimuth {
+            top: 20px;
+            right: 20px;
+        }
+
+        #distance {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        #height {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        #current-time {
+            position: absolute;
+            bottom: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-container">
+        <canvas id="elevation-canvas" width="300" height="300"></canvas>
+        <canvas id="trajectory-canvas" width="300" height="300"></canvas>
+    </div>
+    <div class="corner-info" id="elevation">卫星当前仰角：暂无数据</div>
+    <div class="corner-info" id="azimuth">卫星当前方位：暂无数据</div>
+    <div class="corner-info" id="distance">卫星当前距离：暂无数据</div>
+    <div class="corner-info" id="height">卫星当前高度：暂无数据</div>
+    <div id="current-time">当前时间：暂无数据</div>
+
+    <script src="satellite.js"></script>
+    <script>
+        function drawElevationRings(ctx) {
+            const centerX = 150;
+            const centerY = 150;
+            const radii = [120, 90, 60, 30];
+
+            ctx.clearRect(0, 0, 300, 300);
+            ctx.strokeStyle = "#ccc";
+            ctx.lineWidth = 1;
+            radii.forEach(radius => {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+            });
+
+            // Draw angle labels
+            ctx.fillStyle = "#000";
+            ctx.font = "12px Arial";
+            ctx.fillText("90°", centerX + 5, centerY - 120);
+            ctx.fillText("60°", centerX + 5, centerY - 90);
+            ctx.fillText("30°", centerX + 5, centerY - 60);
+            ctx.fillText("0°", centerX + 5, centerY);
+        }
+
+        function drawSatelliteTrajectory(ctx, trajectoryPoints) {
+            const centerX = 150;
+            const centerY = 150;
+
+            ctx.clearRect(0, 0, 300, 300);
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            trajectoryPoints.forEach((point, index) => {
+                const x = centerX + point.x;
+                const y = centerY - point.y;
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+
+            // Draw current position marker
+            const current = trajectoryPoints[trajectoryPoints.length - 1];
+            if (current) {
+                ctx.fillStyle = "yellow";
+                ctx.beginPath();
+                ctx.arc(centerX + current.x, centerY - current.y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = `当前时间：${now.toLocaleTimeString('zh-CN', { hour12: false })}`;
+        }
+
+        window.onload = function () {
+            const elevationCtx = document.getElementById('elevation-canvas').getContext('2d');
+            const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
+
+            drawElevationRings(elevationCtx);
+
+            const satelliteName = localStorage.getItem('selectedSatelliteName');
+            const satelliteTLE1 = localStorage.getItem('selectedSatelliteTLE1');
+            const satelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
+
+            if (satelliteName && satelliteTLE1 && satelliteTLE2) {
+                const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
+
+                setInterval(() => {
+                    const now = new Date();
+                    const positionAndVelocity = satellite.propagate(satrec, now);
+                    const gmst = satellite.gstime(now);
+
+                    const positionEci = positionAndVelocity.position;
+                    const observerGd = {
+                        latitude: parseFloat(localStorage.getItem('latitude')),
+                        longitude: parseFloat(localStorage.getItem('longitude')),
+                        height: parseFloat(localStorage.getItem('altitude'))
+                    };
+
+                    const lookAngles = satellite.ecfToLookAngles(
+                        observerGd,
+                        satellite.eciToEcf(positionEci, gmst)
+                    );
+              
+                    console.log(lookAngles)
+
+                    const elevation = lookAngles.elevation.toFixed(2);
+                    const azimuth = lookAngles.azimuth.toFixed(2);
+                    const distance = satellite.eciToGeodetic(positionEci).height.toFixed(2);
+                    const height = positionEci.z.toFixed(2);
+
+                    document.getElementById('elevation').textContent = `卫星当前仰角：${elevation}°`;
+                    document.getElementById('azimuth').textContent = `卫星当前方位：${azimuth}°`;
+                    document.getElementById('distance').textContent = `卫星当前距离：${distance} km`;
+                    document.getElementById('height').textContent = `卫星当前高度：${height} km`;
+                }, 1000);
+            }
+
+            updateTime();
+            setInterval(updateTime, 1000);
+        };
+    </script>
+</body>
+
+</html>

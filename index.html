@@ -108,10 +108,17 @@
         document.getElementById('getLocation').addEventListener('click', function() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
-                    const latitude = position.coords.latitude.toFixed(3);
-                    const longitude = position.coords.longitude.toFixed(3);
-                    const altitude = position.coords.altitude.toFixed(1);
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const altitude = position.coords.altitude;
                     const accuracy = position.coords.accuracy.toFixed(1);
+                    localStorage.setItem('latitude', latitude);
+                    localStorage.setItem('longitude', longitude);
+                    localStorage.setItem('altitude', altitude);
+
+
+
+
                     document.getElementById('location').textContent = `经纬度：${latitude}, ${longitude}    高度：${altitude}   精度：${accuracy}  `;
                 }, function(error) {
                     document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
@@ -176,13 +183,23 @@ function parseSatellitesData(data) {
                     // Extract NORAD ID (from the first TLE line)
                     const noradId = satellite.tle[1].split(' ')[1]; // TLE line 1, second value is the NORAD ID
 
+                    // 获取完整的星历数据（TLE数据）
+
+                    const satelliteName = satellite.name;
+
+                    // 将卫星名称和星历数据存储到localStorage（
+                    localStorage.setItem('selectedSatelliteName', satelliteName);
+                    localStorage.setItem('selectedSatelliteTLE1', satellite.tle[0]);
+                    localStorage.setItem('selectedSatelliteTLE2', satellite.tle[1]);    
+
+
                     // Create the "对星" link
                     const satelliteLinkContainer = document.getElementById('satelliteLinkContainer');
                     satelliteLinkContainer.innerHTML = `<button id="satelliteLinkButton" style="cursor: pointer;">当前所选卫星即时对星</button>`;
                     const satelliteLinkButton = document.getElementById('satelliteLinkButton');
                     satelliteLinkButton.addEventListener('click', () => {
-
-                    window.open(`https://star.conor.link/find?satelliteId=${noradId}`, '_blank');
+                    window.open('point.html', '_blank');
+                    //window.open(`https://star.conor.link/find?satelliteId=${noradId}`, '_blank');
                 });
                 });
                 dropdown.appendChild(div);
@@ -210,6 +227,10 @@ function parseSatellitesData(data) {
 
         document.getElementById('calculatePass').addEventListener('click', function() {
             const satelliteName = document.getElementById('dropdownButton').textContent;
+
+
+
+
             const locationText = document.getElementById('location').textContent;
             const match = locationText.match(/经纬度：([\-0-9.]+), ([\-0-9.]+)/);
             const timeFilterChecked = document.getElementById('timeFilter').checked;
