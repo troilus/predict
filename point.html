@@ -160,6 +160,7 @@ window.onload = function () {
     //drawCompass(elevationCtx);
 
     // 绘制卫星过境轨迹
+    console.log(trajectoryCtx, selectedPass)
     drawTrajectory(trajectoryCtx, selectedPass);
 
     // 显示卫星信息
@@ -272,7 +273,7 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
 
         const elevation = satellite.radiansToDegrees(lookAngles.elevation);
         const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
-console.log(elevation)
+
         if (elevation > 0) {
             const satelliteRadius = getRadiusForElevation(elevation, radius);
             const { x, y } = toCanvasCoords(azimuth, satelliteRadius);
