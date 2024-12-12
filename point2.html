@@ -67,9 +67,9 @@
     </div>
 
     <script>
-        // 检测设备支持
+
         if (window.DeviceOrientationEvent) {
-            // 添加监听器
+
             window.addEventListener('deviceorientation', handleOrientation, true);
         } else {
             alert('设备不支持陀螺仪或方向感应器');
@@ -87,7 +87,7 @@
             updateCompass(alpha, beta);
 
             // 显示角度信息
-            document.getElementById('satellite-info').textContent = `方位角: ${alpha.toFixed(2)}°, 仰角: ${beta.toFixed(2)}°`;
+            document.getElementById('satellite-info').textContent = `方位角: ${alpha}°, 仰角: ${beta}°`;
         }
 
         function updateCompass(alpha, beta) {
