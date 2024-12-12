@@ -335,15 +335,49 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
         document.getElementById('requestPermissionBtn').addEventListener('click', requestOrientationPermission);
 
 
+let pointDegree;
+
+    function locationHandler(position) {
+      const { latitude, longitude } = position.coords;
+      pointDegree = calcDegreeToPoint(latitude, longitude);
+
+      if (pointDegree < 0) {
+        pointDegree = pointDegree + 360;
+      }
+    }
+
+    function calcDegreeToPoint(latitude, longitude) {
+      // Qibla geolocation
+      const point = {
+        lat: 21.422487,
+        lng: 39.826206
+      };
+
+      const phiK = (point.lat * Math.PI) / 180.0;
+      const lambdaK = (point.lng * Math.PI) / 180.0;
+      const phi = (latitude * Math.PI) / 180.0;
+      const lambda = (longitude * Math.PI) / 180.0;
+      const psi =
+        (180.0 / Math.PI) *
+        Math.atan2(
+          Math.sin(lambdaK - lambda),
+          Math.cos(phi) * Math.tan(phiK) -
+            Math.sin(phi) * Math.cos(lambdaK - lambda)
+        );
+      return Math.round(psi);
+    }
+
+
 
 
     </script>
 
         alpha: <span id="alpha"></span><br/>
     beta: <span id="beta"></span><br/>
-    gamma: <span id="gamma"></span><br/>
+    gamm1a: <span id="gamma"></span><br/>
+    pointDegree: <span id="degree"></span><br/>
 
     <!-- Add a button to request orientation permission -->
-    <button id="requestPermissionBtn">Request Orientation Permission</button>
+    <button id="requestPermissionBtn">iOS用户请点击允许权限以使用陀螺仪</button>
 </body>
 </html>

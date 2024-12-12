@@ -1,21 +1,306 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SATPoint</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            position: relative;
+        }
+
+        #info-bar {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #current-time {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .corner-info {
+            position: absolute;
+            font-size: 14px;
+        }
+    </style>
 </head>
+
 <body>
-    alpha: <span id="alpha"></span><br/>
-    beta: <span id="beta"></span><br/>
-    gamma: <span id="gamma"></span><br/>
+    <div id="info-bar">
+        <p id="satellite-name"></p>
+        <p id="satellite-info"></p>
+        <p id="pass-info"></p>
+        <p id="time-info"></p>
+    </div>
 
-    <!-- Add a button to request orientation permission -->
-    <button id="requestPermissionBtn">Request Orientation Permission</button>
+    <div id="canvas-container">
+        <canvas id="elevation-canvas" width="300" height="300"></canvas>
+        <canvas id="trajectory-canvas" width="300" height="300"></canvas>
+    </div>
 
+    <script src="satellite.js"></script>
     <script>
+window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const index = urlParams.get('index');
+    // 获取 localStorage 中保存的卫星数据
+    const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
+
+    const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
+
+    const elevationCtx = document.getElementById('elevation-canvas').getContext('2d');
+    const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
+
+    // 绘制罗盘背景
+    drawCompass(elevationCtx);
+
+    // 绘制卫星过境轨迹
+    drawTrajectory(trajectoryCtx, selectedPass);
+
+    // 显示卫星信息
+    const satelliteName = localStorage.getItem('selectedSatelliteName');
+    const satelliteTLE1 = localStorage.getItem('selectedSatelliteTLE1');
+    const satelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
+
+    if (satelliteName && satelliteTLE1 && satelliteTLE2) {
+        const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
+
+        const observerGd = {
+            latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
+            longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
+            height: 0
+
+        };
+            console.log(observerGd)
+        setInterval(() => {
+            const now = new Date();
+
+            const positionAndVelocity = satellite.propagate(satrec, now);
+            const gmst = satellite.gstime(now);
+
+
+            const positionEci = positionAndVelocity.position;
+            const lookAngles = satellite.ecfToLookAngles(
+                observerGd,
+                satellite.eciToEcf(positionEci, gmst)
+            );
+
+
+            const elevationdg =satellite.radiansToDegrees(lookAngles.elevation).toFixed(2);
+            const azimuthdg = satellite.radiansToDegrees(lookAngles.azimuth).toFixed(2);
+            const distance = satellite.eciToGeodetic(positionEci).height.toFixed(2);
+            const height = positionEci.z.toFixed(2);
+
+
+
+            document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
+            document.getElementById('satellite-info').textContent = `高度：${distance} km | 距离：${height} km| 仰角：${elevationdg} 方位角：${azimuthdg}`;
+            document.getElementById('pass-info').textContent = `开始：${selectedPass.entryTime} ${selectedPass.entryAzimuth}° | 结束：${selectedPass.exitTime}${selectedPass.exitAzimuth}°`;
+            document.getElementById('time-info').textContent = `当前时间：${now.toLocaleString('zh-CN', { 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+
+            })}`;
+            updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
+        }, 1000);
+    }
+};
+
+// 绘制罗盘
+function drawCompass(ctx) {
+    const centerX = 150;  // 画布中心点X坐标
+    const centerY = 150;  // 画布中心点Y坐标
+    const radius = 140;   // 罗盘半径
+
+    // 绘制背景圆圈
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
+
+    // 绘制仰角层：0°, 30°, 60°, 90°
+    const angleLevels = [0, 30, 60, 90]; // 仰角层
+    const levelRadius = [radius, radius * 0.75, radius * 0.5, radius * 0.25]; // 每个层的半径
+
+    angleLevels.forEach((angle, index) => {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, levelRadius[index], 0, 2 * Math.PI);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#000';
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+
+        // 绘制仰角标记
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${angle}°`, centerX, centerY - levelRadius[index] - 10); // 文字在层的上方
+    });
+
+    // 绘制方向标记
+    ctx.font = '16px Arial';
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('N', centerX, centerY - radius + 20);  // 北
+    ctx.fillText('E', centerX + radius - 20, centerY);  // 东
+    ctx.fillText('S', centerX, centerY + radius - 20);  // 南
+    ctx.fillText('W', centerX - radius + 20, centerY);  // 西
+}
+
+// 根据仰角计算半径
+function getRadiusForElevation(elevation, radius) {
+    if (elevation <= 30) return radius - (radius * 0.25) * (elevation / 30);
+    if (elevation <= 60) return radius * 0.75 - (radius * 0.25) * ((elevation - 30) / 30);
+    return radius * 0.5 - (radius * 0.25) * ((elevation - 60) / 30);
+}
+
+// 绘制轨迹曲线
+function drawTrajectory(ctx, selectedPass) {
+    const centerX = 150;
+    const centerY = 150;
+    const radius = 140;
+
+    const getRadiusForElevation = (elevation) => {
+        if (elevation <= 30) return radius;
+        if (elevation <= 60) return radius * 0.75;
+        if (elevation <= 90) return radius * 0.5;
+        return radius * 0.25; // 90° 仰角
+    };
+
+    const entryRadius = getRadiusForElevation(0);
+    const exitRadius = getRadiusForElevation(0);
+    const highestRadius = getRadiusForElevation(selectedPass.highestElevation);
+
+    const entryX = centerX + entryRadius * Math.cos(Math.PI / 180 * selectedPass.entryAzimuth);
+    const entryY = centerY - entryRadius * Math.sin(Math.PI / 180 * selectedPass.entryAzimuth);
+
+    const exitX = centerX + exitRadius * Math.cos(Math.PI / 180 * selectedPass.exitAzimuth);
+    const exitY = centerY - exitRadius * Math.sin(Math.PI / 180 * selectedPass.exitAzimuth);
+
+    const highestX = centerX + highestRadius * Math.cos(Math.PI / 180 * selectedPass.highestAzimuth);
+    const highestY = centerY - highestRadius * Math.sin(Math.PI / 180 * selectedPass.highestAzimuth);
+
+    // 绘制贝塞尔曲线连接轨迹点
+    ctx.beginPath();
+    ctx.moveTo(entryX, entryY);
+    ctx.quadraticCurveTo(highestX, highestY, exitX, exitY);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    return generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY);
+}
+
+// 生成轨迹上的点数组
+function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY, steps = 100) {
+    const points = [];
+    for (let t = 0; t <= 1; t += 1 / steps) {
+        const x = Math.pow(1 - t, 2) * entryX +
+                  2 * (1 - t) * t * highestX +
+                  Math.pow(t, 2) * exitX;
+        const y = Math.pow(1 - t, 2) * entryY +
+                  2 * (1 - t) * t * highestY +
+                  Math.pow(t, 2) * exitY;
+        points.push({ x, y });
+    }
+    return points;
+}
+
+// 投射红点到曲线的最近点
+function projectPointToCurve(x, y, curvePoints) {
+    let minDistance = Infinity;
+    let nearestPoint = { x: curvePoints[0].x, y: curvePoints[0].y };
+
+    curvePoints.forEach((point) => {
+        const distance = Math.sqrt(
+            Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2)
+        );
+        if (distance < minDistance) {
+            minDistance = distance;
+            nearestPoint = point;
+        }
+    });
+
+    return nearestPoint;
+}
+
+// 更新卫星位置并绘制实时轨迹
+function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
+    const now = new Date();
+    const positionAndVelocity = satellite.propagate(satrec, now);
+    const gmst = satellite.gstime(now);
+    const positionEci = positionAndVelocity.position;
+    const lookAngles = satellite.ecfToLookAngles(
+        observerGd,
+        satellite.eciToEcf(positionEci, gmst)
+    );
+
+    const elevation = satellite.radiansToDegrees(lookAngles.elevation);
+    const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
+
+    // 根据仰角更新轨迹上的卫星位置
+    if (parseFloat(elevation) > 0) {
+        const centerX = 150;
+        const centerY = 150;
+        const radius = 140;
+        const satelliteRadius = getRadiusForElevation(elevation, radius);
+
+        const satelliteX = centerX + satelliteRadius * Math.cos(Math.PI / 180 * azimuth);
+        const satelliteY = centerY - satelliteRadius * Math.sin(Math.PI / 180 * azimuth);
+
+        // 清空轨迹层，重新绘制
+        ctx.clearRect(0, 0, 300, 300);
+        drawCompass(ctx);
+        const trajectoryPoints = drawTrajectory(ctx, selectedPass);
+
+        // 计算红点投射到曲线上的点
+        const projectedPoint = projectPointToCurve(satelliteX, satelliteY, trajectoryPoints);
+
+        // 绘制卫星当前位置
+        ctx.beginPath();
+        ctx.arc(projectedPoint.x, projectedPoint.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+    }
+}
+
         if (window.DeviceOrientationEvent) {
             window.addEventListener('deviceorientation', function (event) {
                 var a = document.getElementById('alpha'),
@@ -48,6 +333,17 @@
 
         // Add event listener to the button
         document.getElementById('requestPermissionBtn').addEventListener('click', requestOrientationPermission);
+
+
+
+
     </script>
+
+        alpha: <span id="alpha"></span><br/>
+    beta: <span id="beta"></span><br/>
+    gamma: <span id="gamma"></span><br/>
+
+    <!-- Add a button to request orientation permission -->
+    <button id="requestPermissionBtn">iOS用户请点击允许权限以使用陀螺仪</button>
 </body>
 </html>
