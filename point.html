@@ -160,7 +160,7 @@ window.onload = function () {
     //drawCompass(elevationCtx);
 
     // 绘制卫星过境轨迹
-    console.log(trajectoryCtx, selectedPass)
+
     drawTrajectory(trajectoryCtx, selectedPass);
 
     // 显示卫星信息
@@ -260,6 +260,8 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
             longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
             height: 0
 }
+
+    console.log(satrec)
 
 
 
