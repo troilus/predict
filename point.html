@@ -264,9 +264,9 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
     
 
 
-
+const indices = Array.from({ length: steps + 1 }, (_, i) => i); 
     // Loop through each time step and calculate satellite position
-    for ( i = 0; i <= steps; i++) {
+ indices.forEach(function(i) {
                 console.log(i)
         const time = new Date(startDate.getTime() + i * timeStep);
         const positionAndVelocity = satellite.propagate(satrec, time);
@@ -284,7 +284,7 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
             trajectoryPoints.push({ x, y });
 
         }
-    }
+    });
 
     // Draw the trajectory curve
         if (trajectoryPoints.length > 0) {
