@@ -238,7 +238,7 @@ function parseSatellitesData(data) {
             if (satelliteName && match) {
                 const latitude = parseFloat(match[1]);
                 const longitude = parseFloat(match[2]);
-                const altitude = 0;
+                //const altitude = 0;
 
                 const satellites = JSON.parse(localStorage.getItem('satellites'));
                 const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
@@ -284,12 +284,6 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
             const gmst = satellite.gstime(passTime);
 
             // 转换为地理坐标和视角
-
-
-
-
-
-
             const lookAngles = satellite.ecfToLookAngles(
                 observerGd,
                 satellite.eciToEcf(positionAndVelocity.position, gmst)
@@ -429,7 +423,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
         html += `
             <tr class="${rowClass}">
-                <td><a href="point.html?index=${index + 1}">${entrydate}</a></td>
+                <td><a href="point.html?index=${index + 1}" target="_blank">${entrydate}</a></td>
                 <td>${entryTime}, ${entryAzimuth}</td>
                 <td>${highestTime}</td>
                 <td>${highestAzimuth}</td>
