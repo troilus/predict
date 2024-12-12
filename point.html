@@ -227,6 +227,7 @@ function drawTrajectory(ctx, selectedPass) {
     const centerY = 150;
     const radius = 140;
 
+    // 根据仰角调整半径
     const getRadiusForElevation = (elevation) => {
         if (elevation <= 30) return radius;
         if (elevation <= 60) return radius * 0.75;
@@ -238,14 +239,17 @@ function drawTrajectory(ctx, selectedPass) {
     const exitRadius = getRadiusForElevation(0);
     const highestRadius = getRadiusForElevation(selectedPass.highestElevation);
 
-    const entryX = centerX + entryRadius * Math.cos(Math.PI / 180 * selectedPass.entryAzimuth);
-    const entryY = centerY - entryRadius * Math.sin(Math.PI / 180 * selectedPass.entryAzimuth);
+    // 将方位角转换为绘图坐标
+    const toCanvasCoords = (azimuth, distance) => {
+        const angle = (90 - azimuth) * (Math.PI / 180); // 旋转方位角，0°指向北方
+        const x = centerX + distance * Math.cos(angle);
+        const y = centerY - distance * Math.sin(angle);
+        return { x, y };
+    };
 
-    const exitX = centerX + exitRadius * Math.cos(Math.PI / 180 * selectedPass.exitAzimuth);
-    const exitY = centerY - exitRadius * Math.sin(Math.PI / 180 * selectedPass.exitAzimuth);
-
-    const highestX = centerX + highestRadius * Math.cos(Math.PI / 180 * selectedPass.highestAzimuth);
-    const highestY = centerY - highestRadius * Math.sin(Math.PI / 180 * selectedPass.highestAzimuth);
+    const { x: entryX, y: entryY } = toCanvasCoords(selectedPass.entryAzimuth, entryRadius);
+    const { x: exitX, y: exitY } = toCanvasCoords(selectedPass.exitAzimuth, exitRadius);
+    const { x: highestX, y: highestY } = toCanvasCoords(selectedPass.highestAzimuth, highestRadius);
 
     // 绘制贝塞尔曲线连接轨迹点
     ctx.beginPath();
@@ -272,6 +276,7 @@ function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exi
     }
     return points;
 }
+
 
 // 投射红点到曲线的最近点
 function projectPointToCurve(x, y, curvePoints) {
