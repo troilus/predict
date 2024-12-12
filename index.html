@@ -110,6 +110,8 @@
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
+                    const latitudefix = position.coords.latitude.toFixed(2);
+                    const longitudefix = position.coords.longitude.toFixed(2);
                     const altitude = position.coords.altitude;
                     const accuracy = position.coords.accuracy.toFixed(1);
                     localStorage.setItem('latitude', latitude);
@@ -119,7 +121,7 @@
 
 
 
-                    document.getElementById('location').textContent = `经纬度：${latitude}, ${longitude} `;
+                    document.getElementById('location').textContent = `经纬度：${latitudefix}, ${longitudefix} `;
                 }, function(error) {
                     document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
                 });
