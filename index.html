@@ -119,7 +119,7 @@
 
 
 
-                    document.getElementById('location').textContent = `经纬度：${latitude}, ${longitude}    高度：${altitude}   精度：${accuracy}  `;
+                    document.getElementById('location').textContent = `经纬度：${latitude}, ${longitude} `;
                 }, function(error) {
                     document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
                 });
@@ -192,15 +192,6 @@ function parseSatellitesData(data) {
                     localStorage.setItem('selectedSatelliteTLE1', satellite.tle[0]);
                     localStorage.setItem('selectedSatelliteTLE2', satellite.tle[1]);    
 
-
-                    // Create the "对星" link
-                    const satelliteLinkContainer = document.getElementById('satelliteLinkContainer');
-                    satelliteLinkContainer.innerHTML = `<button id="satelliteLinkButton" style="cursor: pointer;">当前所选卫星即时对星</button>`;
-                    const satelliteLinkButton = document.getElementById('satelliteLinkButton');
-                    satelliteLinkButton.addEventListener('click', () => {
-                    window.open('point.html', '_blank');
-                    //window.open(`https://star.conor.link/find?satelliteId=${noradId}`, '_blank');
-                });
                 });
                 dropdown.appendChild(div);
             });
@@ -238,7 +229,7 @@ function parseSatellitesData(data) {
             if (satelliteName && match) {
                 const latitude = parseFloat(match[1]);
                 const longitude = parseFloat(match[2]);
-                //const altitude = 0;
+                const altitude = parseFloat(localStorage.getItem('altitude'));
 
                 const satellites = JSON.parse(localStorage.getItem('satellites'));
                 const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
@@ -266,14 +257,15 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
     const observerGd = {
         latitude: satellite.degreesToRadians(latitude),
         longitude: satellite.degreesToRadians(longitude),
-        height: altitude,
+        height: 0
     };
 
+        console.log(observerGd)
     // 计算未来 5 天内的所有可能时间点
     const endTime = new Date(currentTime.getTime() + 3 * 24 * 60 * 60 * 1000);
     const timeStep = 1 * 1000; // 1分钟步长（单位：毫秒）
 
-    for (let time = currentTime.getTime(); time <= endTime.getTime(); time += timeStep) {
+    for (let time = currentTime.getTime()-60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
         const passTime = new Date(time);
 
         // 计算卫星位置和速度

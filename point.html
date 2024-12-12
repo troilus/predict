@@ -96,9 +96,10 @@ window.onload = function () {
         const observerGd = {
             latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
             longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
-            height: parseFloat(localStorage.getItem('altitude'))
-        };
+            height: 0
 
+        };
+            console.log(observerGd)
         setInterval(() => {
             const now = new Date();
 
@@ -118,8 +119,6 @@ window.onload = function () {
             const distance = satellite.eciToGeodetic(positionEci).height.toFixed(2);
             const height = positionEci.z.toFixed(2);
 
-            console.log('positionAndVelocity',positionAndVelocity)
-            console.log('observerGd',observerGd)
 
 
             document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
@@ -138,133 +137,170 @@ window.onload = function () {
     }
 };
 
-        function drawCompass(ctx) {
-            const centerX = 150;  // 画布中心点X坐标
-            const centerY = 150;  // 画布中心点Y坐标
-            const radius = 140;   // 罗盘半径
+// 绘制罗盘
+function drawCompass(ctx) {
+    const centerX = 150;  // 画布中心点X坐标
+    const centerY = 150;  // 画布中心点Y坐标
+    const radius = 140;   // 罗盘半径
 
-            // 绘制背景圆圈
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-            ctx.fillStyle = '#fff';
-            ctx.fill();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = '#000';
-            ctx.stroke();
+    // 绘制背景圆圈
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
 
-            // 绘制仰角层：0°, 30°, 60°, 90°
-            const angleLevels = [0, 30, 60, 90]; // 仰角层
-            const levelRadius = [radius, radius * 0.75, radius * 0.5, radius * 0.25]; // 每个层的半径
+    // 绘制仰角层：0°, 30°, 60°, 90°
+    const angleLevels = [0, 30, 60, 90]; // 仰角层
+    const levelRadius = [radius, radius * 0.75, radius * 0.5, radius * 0.25]; // 每个层的半径
 
-            angleLevels.forEach((angle, index) => {
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, levelRadius[index], 0, 2 * Math.PI);
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = '#000';
-                ctx.stroke();
-                ctx.fillStyle = '#fff';
-                ctx.fill();
+    angleLevels.forEach((angle, index) => {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, levelRadius[index], 0, 2 * Math.PI);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#000';
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.fill();
 
-                // 绘制仰角标记
-                ctx.font = '12px Arial';
-                ctx.fillStyle = '#000';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(`${angle}°`, centerX, centerY - levelRadius[index] - 10); // 文字在层的上方
-            });
+        // 绘制仰角标记
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${angle}°`, centerX, centerY - levelRadius[index] - 10); // 文字在层的上方
+    });
 
-            // 绘制方向标记
-            ctx.font = '16px Arial';
-            ctx.fillStyle = '#000';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('N', centerX, centerY - radius + 20);  // 北
-            ctx.fillText('E', centerX + radius - 20, centerY);  // 东
-            ctx.fillText('S', centerX, centerY + radius - 20);  // 南
-            ctx.fillText('W', centerX - radius + 20, centerY);  // 西
+    // 绘制方向标记
+    ctx.font = '16px Arial';
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('N', centerX, centerY - radius + 20);  // 北
+    ctx.fillText('E', centerX + radius - 20, centerY);  // 东
+    ctx.fillText('S', centerX, centerY + radius - 20);  // 南
+    ctx.fillText('W', centerX - radius + 20, centerY);  // 西
+}
+
+// 根据仰角计算半径
+function getRadiusForElevation(elevation, radius) {
+    if (elevation <= 30) return radius - (radius * 0.25) * (elevation / 30);
+    if (elevation <= 60) return radius * 0.75 - (radius * 0.25) * ((elevation - 30) / 30);
+    return radius * 0.5 - (radius * 0.25) * ((elevation - 60) / 30);
+}
+
+// 绘制轨迹曲线
+function drawTrajectory(ctx, selectedPass) {
+    const centerX = 150;
+    const centerY = 150;
+    const radius = 140;
+
+    const getRadiusForElevation = (elevation) => {
+        if (elevation <= 30) return radius;
+        if (elevation <= 60) return radius * 0.75;
+        if (elevation <= 90) return radius * 0.5;
+        return radius * 0.25; // 90° 仰角
+    };
+
+    const entryRadius = getRadiusForElevation(0);
+    const exitRadius = getRadiusForElevation(0);
+    const highestRadius = getRadiusForElevation(selectedPass.highestElevation);
+
+    const entryX = centerX + entryRadius * Math.cos(Math.PI / 180 * selectedPass.entryAzimuth);
+    const entryY = centerY - entryRadius * Math.sin(Math.PI / 180 * selectedPass.entryAzimuth);
+
+    const exitX = centerX + exitRadius * Math.cos(Math.PI / 180 * selectedPass.exitAzimuth);
+    const exitY = centerY - exitRadius * Math.sin(Math.PI / 180 * selectedPass.exitAzimuth);
+
+    const highestX = centerX + highestRadius * Math.cos(Math.PI / 180 * selectedPass.highestAzimuth);
+    const highestY = centerY - highestRadius * Math.sin(Math.PI / 180 * selectedPass.highestAzimuth);
+
+    // 绘制贝塞尔曲线连接轨迹点
+    ctx.beginPath();
+    ctx.moveTo(entryX, entryY);
+    ctx.quadraticCurveTo(highestX, highestY, exitX, exitY);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    return generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY);
+}
+
+// 生成轨迹上的点数组
+function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY, steps = 100) {
+    const points = [];
+    for (let t = 0; t <= 1; t += 1 / steps) {
+        const x = Math.pow(1 - t, 2) * entryX +
+                  2 * (1 - t) * t * highestX +
+                  Math.pow(t, 2) * exitX;
+        const y = Math.pow(1 - t, 2) * entryY +
+                  2 * (1 - t) * t * highestY +
+                  Math.pow(t, 2) * exitY;
+        points.push({ x, y });
+    }
+    return points;
+}
+
+// 投射红点到曲线的最近点
+function projectPointToCurve(x, y, curvePoints) {
+    let minDistance = Infinity;
+    let nearestPoint = { x: curvePoints[0].x, y: curvePoints[0].y };
+
+    curvePoints.forEach((point) => {
+        const distance = Math.sqrt(
+            Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2)
+        );
+        if (distance < minDistance) {
+            minDistance = distance;
+            nearestPoint = point;
         }
+    });
 
-        // 绘制平滑轨迹（使用贝塞尔曲线）
-        function drawTrajectory(ctx, selectedPass) {
-            const centerX = 150;
-            const centerY = 150;
-            const radius = 140;
+    return nearestPoint;
+}
 
-            // 获取轨迹点的坐标
-            const entryAzimuth = selectedPass.entryAzimuth;
-            const exitAzimuth = selectedPass.exitAzimuth;
-            const highestAzimuth = selectedPass.highestAzimuth;
-            const highestElevation = selectedPass.highestElevation;
+// 更新卫星位置并绘制实时轨迹
+function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
+    const now = new Date();
+    const positionAndVelocity = satellite.propagate(satrec, now);
+    const gmst = satellite.gstime(now);
+    const positionEci = positionAndVelocity.position;
+    const lookAngles = satellite.ecfToLookAngles(
+        observerGd,
+        satellite.eciToEcf(positionEci, gmst)
+    );
 
-            const getRadiusForElevation = (elevation) => {
-                if (elevation <= 30) return radius;
-                if (elevation <= 60) return radius * 0.75;
-                if (elevation <= 90) return radius * 0.5;
-                return radius * 0.25; // 90° 仰角
-            };
+    const elevation = satellite.radiansToDegrees(lookAngles.elevation);
+    const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
 
-            const entryRadius = getRadiusForElevation(0);
-            const exitRadius = getRadiusForElevation(0);
-            const highestRadius = getRadiusForElevation(highestElevation);
+    // 根据仰角更新轨迹上的卫星位置
+    if (parseFloat(elevation) > 0) {
+        const centerX = 150;
+        const centerY = 150;
+        const radius = 140;
+        const satelliteRadius = getRadiusForElevation(elevation, radius);
 
-            const entryX = centerX + entryRadius * Math.cos(Math.PI / 180 * entryAzimuth);
-            const entryY = centerY - entryRadius * Math.sin(Math.PI / 180 * entryAzimuth);
+        const satelliteX = centerX + satelliteRadius * Math.cos(Math.PI / 180 * azimuth);
+        const satelliteY = centerY - satelliteRadius * Math.sin(Math.PI / 180 * azimuth);
 
-            const exitX = centerX + exitRadius * Math.cos(Math.PI / 180 * exitAzimuth);
-            const exitY = centerY - exitRadius * Math.sin(Math.PI / 180 * exitAzimuth);
+        // 清空轨迹层，重新绘制
+        ctx.clearRect(0, 0, 300, 300);
+        drawCompass(ctx);
+        const trajectoryPoints = drawTrajectory(ctx, selectedPass);
 
-            const highestX = centerX + highestRadius * Math.cos(Math.PI / 180 * highestAzimuth);
-            const highestY = centerY - highestRadius * Math.sin(Math.PI / 180 * highestAzimuth);
+        // 计算红点投射到曲线上的点
+        const projectedPoint = projectPointToCurve(satelliteX, satelliteY, trajectoryPoints);
 
-            // 绘制贝塞尔曲线连接轨迹点
-            ctx.beginPath();
-            ctx.moveTo(entryX, entryY);
-            ctx.quadraticCurveTo(highestX, highestY, exitX, exitY); // 使用二次贝塞尔曲线
-            ctx.strokeStyle = 'blue';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
+        // 绘制卫星当前位置
+        ctx.beginPath();
+        ctx.arc(projectedPoint.x, projectedPoint.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'red';
+        ctx.fill();
+    }
+}
 
-        // 更新卫星位置并绘制实时轨迹
-        function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
-            const now = new Date();
-            const positionAndVelocity = satellite.propagate(satrec, now);
-            const gmst = satellite.gstime(now);
-            const positionEci = positionAndVelocity.position;
-            const lookAngles = satellite.ecfToLookAngles(
-                observerGd,
-                satellite.eciToEcf(positionEci, gmst)
-            );
-
-            const elevationdg =satellite.radiansToDegrees(lookAngles.elevation);
-
-            const azimuthdg = satellite.radiansToDegrees(lookAngles.azimuth);
-
-            // 根据仰角更新轨迹上的卫星位置
-            if (parseFloat(elevationdg) > 0) {
-
-                const centerX = 150;
-                const centerY = 150;
-                const radius = 140;
-                const satelliteRadius = (parseFloat(elevationdg) / 90) * radius; // 根据仰角动态调整位置
-
-                const satelliteX = centerX + satelliteRadius * Math.cos(Math.PI / 180 * azimuthdg);
-                const satelliteY = centerY - satelliteRadius * Math.sin(Math.PI / 180 * azimuthdg);
-
-                // 清空轨迹层，重新绘制
-                ctx.clearRect(0, 0, 300, 300);
-                drawCompass(ctx);
-                drawTrajectory(ctx, selectedPass);
-
-                // 绘制卫星当前位置
-                ctx.beginPath();
-                ctx.arc(satelliteX, satelliteY, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = 'red';
-                ctx.fill();
-            }
-
- 
-        }
 
     </script>
 </body>
