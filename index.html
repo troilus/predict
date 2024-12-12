@@ -249,11 +249,12 @@ function parseSatellitesData(data) {
                 }
 
                 const satrec = satellite.twoline2satrec(satelliteinfo.tle[0], satelliteinfo.tle[1]);
-                                console.log(satrec)
+                           
                 const currentTime = new Date();
                 const passes = calculatePasses(satrec, latitude, longitude, altitude, currentTime, timeFilterChecked);
 
                 const groupedPasses = groupPasses(passes);
+                const savedSatelliteDataToLocalStorage=saveSatelliteDataToLocalStorage(groupedPasses, satelliteName)
                 document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTML(groupedPasses);
             } else {
                 document.getElementById('passInfo').innerHTML = '<p>请提供卫星和有效的经纬度。</p>';
@@ -358,9 +359,32 @@ function groupPasses(passes) {
 }
 
 
+function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
+
+    const satelliteData = groupedPasses.map((pass, index) => {
+        return {
+            satelliteName: satelliteName,
+            entryTime: pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit',hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间",
+            entryAzimuth: pass.entry?.azimuth ? pass.entry.azimuth.toFixed(2) : "未知",
+            highestTime: pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间",
+            highestAzimuth: pass.highest?.azimuth ? pass.highest.azimuth.toFixed(2) : "未知",
+            highestElevation: pass.highest?.elevation ? pass.highest.elevation.toFixed(2) : "未知",
+            exitTime: pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', {  month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间",
+            exitAzimuth: pass.exit?.azimuth ? pass.exit.azimuth.toFixed(2) : "未知"
+        };
+    });
+
+    // 使用卫星名称作为键，将数据存储到 localStorage
+    localStorage.setItem('selectedorbit', JSON.stringify(satelliteData));
+}
+
+
+
+
 
 
 function formatGroupedPassesToHTML(groupedPasses) {
+    const satelliteName = document.getElementById('dropdownButton').textContent;
     if (groupedPasses.length === 0) {
         return "<p>当前条件下未来3天内没有仰角大于等于15度的过境信息。</p>";
     }
@@ -383,7 +407,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
             <tbody>
     `;
 
-    groupedPasses.forEach(pass => {
+    groupedPasses.forEach((pass, index) => {
         const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
         const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
         const entryAzimuth = typeof pass.entry?.azimuth === "number" ? `${pass.entry.azimuth.toFixed(2)}°` : "未知";
@@ -405,7 +429,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
         html += `
             <tr class="${rowClass}">
-                <td>${entrydate}</td>
+                <td><a href="point.html?index=${index + 1}">${entrydate}</a></td>
                 <td>${entryTime}, ${entryAzimuth}</td>
                 <td>${highestTime}</td>
                 <td>${highestAzimuth}</td>
@@ -422,6 +446,8 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
     return html;
 }
+
+
 
     </script>
 </body>

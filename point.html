@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>手机对星页面</title>
+    <title>SATPoint</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -58,6 +58,7 @@
     <div id="info-bar">
         <p id="satellite-info">距离：暂无 | 高度：暂无 | 当前时间：暂无</p>
         <p id="pass-info">过境开始：暂无 | 当前时间：暂无 | 过境结束：暂无</p>
+        <p id="time-info">过境开始：暂无 | 当前时间：暂无 | 过境结束：暂无</p>
     </div>
 
     <div id="canvas-container">
@@ -67,6 +68,10 @@
 
     <script src="satellite.js"></script>
     <script>
+        let phoneAzimuth = 0; // 手机的方位角
+        let phoneElevation = 0; // 手机的仰角
+
+        // 绘制罗盘的环形区域及角度标记
         function drawElevationRings(ctx) {
             const centerX = 150;
             const centerY = 150;
@@ -81,22 +86,29 @@
                 ctx.stroke();
             });
 
-            // Draw angle labels
+            // 绘制角度标记（0°，90°，180°，270°，N，E，S，W）
             ctx.fillStyle = "#000";
             ctx.font = "12px Arial";
             ctx.fillText("90°", centerX + 5, centerY - 120);
             ctx.fillText("60°", centerX + 5, centerY - 90);
             ctx.fillText("30°", centerX + 5, centerY - 60);
             ctx.fillText("0°", centerX + 5, centerY);
+
+            // 四个方位标记
+            ctx.fillText("N", centerX - 10, centerY - 130);
+            ctx.fillText("E", centerX + 110, centerY + 5);
+            ctx.fillText("S", centerX - 10, centerY + 130);
+            ctx.fillText("W", centerX - 130, centerY + 5);
         }
 
-        function drawSatelliteTrajectory(ctx, trajectoryPoints, phonePoint) {
+        // 绘制卫星轨迹
+        function drawSatelliteTrajectory(ctx, trajectoryPoints, phonePoint, rotationAngle) {
             const centerX = 150;
             const centerY = 150;
 
             ctx.clearRect(0, 0, 300, 300);
 
-            // Draw trajectory
+            // 绘制轨迹
             ctx.strokeStyle = "red";
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -111,7 +123,7 @@
             });
             ctx.stroke();
 
-            // Draw current position marker
+            // 绘制卫星当前的位置
             const current = trajectoryPoints[trajectoryPoints.length - 1];
             if (current) {
                 ctx.fillStyle = "yellow";
@@ -120,64 +132,34 @@
                 ctx.fill();
             }
 
-            // Draw phone direction marker
+            // 绘制手机方向标记
             if (phonePoint) {
                 ctx.fillStyle = "blue";
                 ctx.beginPath();
                 ctx.arc(centerX + phonePoint.x, centerY - phonePoint.y, 5, 0, 2 * Math.PI);
                 ctx.fill();
             }
+
+            // 旋转画布以匹配手机的方位
+            ctx.translate(centerX, centerY);
+            ctx.rotate(rotationAngle);
+            ctx.translate(-centerX, -centerY);
         }
 
-        function calculateNextPass(satrec, observerGd) {
-    const nextPass = [];
-// 计算未来 5 天内的所有可能时间点
-    const currentTime = new Date();
-    const endTime = new Date(currentTime.getTime() + 1 * 24 * 60 * 60 * 1000);
-    const timeStep = 10* 1000; // 1分钟步长（单位：毫秒）
-
-
-    for (let time = currentTime.getTime(); time <= endTime.getTime(); time += timeStep) {
-        const passTime = new Date(time);
-
-        // 计算卫星位置和速度
-
-        const positionAndVelocity = satellite.propagate(satrec, passTime);
-        if (positionAndVelocity && positionAndVelocity.position) {
-            const gmst = satellite.gstime(passTime);
-
-            // 转换为地理坐标和视角
-            const lookAngles = satellite.ecfToLookAngles(
-                observerGd,
-                satellite.eciToEcf(positionAndVelocity.position, gmst)
-            );
-
-            if (lookAngles) {
-                const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
-
-                // 过滤仰角大于等于 15 度的记录
-                if (elevationDegrees >= 15) {
-                    const pass = {
-                        time: passTime,
-                        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
-                        elevation: elevationDegrees,
-                    };
-
-
-                    nextPass.push(pass);
-
-
-
-
-                }
-            }
-        }
-    }
-
-    return nextPass;
-}
+        window.addEventListener('deviceorientation', (event) => {
+            phoneAzimuth = event.alpha; // 手机的方位角（0-360°）
+            phoneElevation = event.beta; // 手机的仰角
+            updatePhoneDirection(phoneAzimuth, phoneElevation);
+        });
 
         window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const index = urlParams.get('index');
+            // 获取 localStorage 中保存的卫星数据
+            const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
+
+            const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
+
             const elevationCtx = document.getElementById('elevation-canvas').getContext('2d');
             const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
 
@@ -189,15 +171,12 @@
 
             if (satelliteName && satelliteTLE1 && satelliteTLE2) {
                 const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
-                console.log(satrec)
 
                 const observerGd = {
                     latitude: parseFloat(localStorage.getItem('latitude')),
                     longitude: parseFloat(localStorage.getItem('longitude')),
                     height: parseFloat(localStorage.getItem('altitude'))
                 };
-
-                const nextPass = calculateNextPass(satrec, observerGd);
 
                 setInterval(() => {
                     const now = new Date();
@@ -215,15 +194,16 @@
                     const distance = satellite.eciToGeodetic(positionEci).height.toFixed(2);
                     const height = positionEci.z.toFixed(2);
 
-                    document.getElementById('satellite-info').textContent = `距离：${distance} km | 高度：${height} km | 当前时间：${now.toLocaleTimeString('zh-CN', { hour12: false })}`;
-                    document.getElementById('pass-info').textContent = `过境开始：${nextPass.start} | 当前时间：${now.toLocaleTimeString('zh-CN', { hour12: false })} | 过境结束：${nextPass.end}`;
+                    document.getElementById('satellite-info').textContent = `${selectedPass.satelliteName} | 高度：${distance} km | 距离：${height} km`;
+                    document.getElementById('pass-info').textContent = `开始：${selectedPass.entryTime} ${selectedPass.entryAzimuth}° | 结束：${selectedPass.exitTime}${selectedPass.exitAzimuth}°`;
+                    document.getElementById('time-info').textContent = `当前时间：${now.toLocaleTimeString('zh-CN', { hour12: false })}`;
 
-                    const phoneAzimuth = 45; // Replace with actual phone azimuth value
-                    const phoneElevation = 30; // Replace with actual phone elevation value
-
-                    drawSatelliteTrajectory(trajectoryCtx, [
-                        { x: azimuth * 2, y: elevation * 2 }
-                    ], { x: phoneAzimuth * 2, y: phoneElevation * 2 });
+                    // 绘制卫星轨迹和手机方向
+                    const trajectoryPoints = [
+                        { x: selectedPass.entryAzimuth, y: selectedPass.highestElevation },  // 起始点
+                        { x: selectedPass.exitAzimuth, y: selectedPass.highestElevation } // 结束点
+                    ];
+                    drawSatelliteTrajectory(trajectoryCtx, trajectoryPoints, { x: phoneAzimuth, y: phoneElevation }, phoneAzimuth * (Math.PI / 180));
                 }, 1000);
             }
         };
