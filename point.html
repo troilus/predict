@@ -282,6 +282,7 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
     }
 
     // Draw the trajectory curve
+        if (trajectoryPoints.length > 0) {
     ctx.beginPath();
     ctx.moveTo(trajectoryPoints[0].x, trajectoryPoints[0].y);
     trajectoryPoints.forEach((point, index) => {
@@ -294,6 +295,7 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
     ctx.stroke();
 
     return trajectoryPoints;
+}
 }
 
 
