@@ -160,7 +160,6 @@ window.onload = function () {
     //drawCompass(elevationCtx);
 
     // 绘制卫星过境轨迹
-
     drawTrajectory(trajectoryCtx, selectedPass);
 
     // 显示卫星信息
@@ -226,97 +225,42 @@ function getRadiusForElevation(elevation, radius) {
 function drawTrajectory(ctx, selectedPass) {
     const centerX = 150;
     const centerY = 150;
-    const radius = 150;
+    const radius = 140;
 
-    // Calculate the number of steps for the trajectory
+    // 根据仰角调整半径
+    const getRadiusForElevation = (elevation) => {
+        if (elevation <= 30) return radius;
+        if (elevation <= 60) return radius * 0.75;
+        if (elevation <= 90) return radius * 0.5;
+        return radius * 0.25; // 90° 仰角
+    };
 
-// Timestamps as string
-const startTime = selectedPass.entryTime;
-const endTime = selectedPass.exitTime;
+    const entryRadius = getRadiusForElevation(0);
+    const exitRadius = getRadiusForElevation(0);
+    const highestRadius = getRadiusForElevation(selectedPass.highestElevation);
 
-// Parse the timestamps into Date objects. You need to add the year and month for full date format.
-const startDate = new Date("2024 " + startTime); // Add a year for valid parsing
-const endDate = new Date("2024 " + endTime); // Same for the end time
+    // 将方位角转换为绘图坐标
+    const toCanvasCoords = (azimuth, distance) => {
+        const angle = (90 - azimuth) * (Math.PI / 180); // 旋转方位角，0°指向北方
+        const x = centerX + distance * Math.cos(angle);
+        const y = centerY - distance * Math.sin(angle);
+        return { x, y };
+    };
 
-// Calculate the difference in milliseconds
-const timeDifference = endDate - startDate;
+    const { x: entryX, y: entryY } = toCanvasCoords(selectedPass.entryAzimuth, entryRadius);
+    const { x: exitX, y: exitY } = toCanvasCoords(selectedPass.exitAzimuth, exitRadius);
+    const { x: highestX, y: highestY } = toCanvasCoords(selectedPass.highestAzimuth, highestRadius);
 
-
-
-
-
-
-    const steps = Math.floor((timeDifference) / 1000); // Steps based on time difference
-    const timeStep = (timeDifference) / steps;
-   
-
-    const trajectoryPoints = [];
-        const satelliteTLE1 = localStorage.getItem('selectedSatelliteTLE1');
-    const satelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
-const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
-
-        const observerGd = {
-            latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
-            longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
-            height: 0
-}
-
-    
-
-
-
-    // Loop through each time step and calculate satellite position
-    for (let i = 0; i <= 55; i++) {
-
-        const time = new Date(startDate.getTime() + i * timeStep);
-        const positionAndVelocity = satellite.propagate(satrec, time);
-        const gmst = satellite.gstime(time);
-        const positionEci = positionAndVelocity.position;
-        const lookAngles = satellite.ecfToLookAngles(observerGd, satellite.eciToEcf(positionEci, gmst));
-
-
-        const elevation = satellite.radiansToDegrees(lookAngles.elevation);
-        const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
-                console.log(elevation)
-        if (elevation > 0) {
-            const satelliteRadius = getRadiusForElevation(elevation, radius);
-            const { x, y } = toCanvasCoords(azimuth, satelliteRadius);
-            trajectoryPoints.push({ x, y });
-
-        }
-    }
-
-    // Draw the trajectory curve
-        if (trajectoryPoints.length > 0) {
+    // 绘制贝塞尔曲线连接轨迹点
     ctx.beginPath();
-    ctx.moveTo(trajectoryPoints[0].x, trajectoryPoints[0].y);
-    trajectoryPoints.forEach((point, index) => {
-        if (index === trajectoryPoints.length - 1) {
-            ctx.lineTo(point.x, point.y);
-        }
-    });
+    ctx.moveTo(entryX, entryY);
+    ctx.quadraticCurveTo(highestX, highestY, exitX, exitY);
     ctx.strokeStyle = 'blue';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    return trajectoryPoints;
+    return generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY);
 }
-}
-
-
-function toCanvasCoords(azimuth, distance) {
-
-        const centerX = 150;
-    const centerY = 150;
-    const angle = (90 - azimuth) * (Math.PI / 180);
-    const x = centerX + distance * Math.cos(angle);
-    const y = centerY - distance * Math.sin(angle);
-    return { x, y };
-}
-
-
-
-
 
 // 生成轨迹上的点数组
 function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY, steps = 100) {
@@ -367,18 +311,27 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
     const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
 
     // 根据仰角更新轨迹上的卫星位置
-   if (elevation > 0) {
+    if (parseFloat(elevation) > 0) {
+        const centerX = 150;
+        const centerY = 150;
+        const radius = 140;
         const satelliteRadius = getRadiusForElevation(elevation, radius);
+
         const satelliteX = centerX + satelliteRadius * Math.cos(Math.PI / 180 * azimuth);
         const satelliteY = centerY - satelliteRadius * Math.sin(Math.PI / 180 * azimuth);
 
-        // Clear previous trajectory and redraw
+        // 清空轨迹层，重新绘制
         ctx.clearRect(0, 0, 300, 300);
-        drawTrajectory(ctx, selectedPass);
+        drawTrajectory(ctx, selectedPass); // 重绘轨迹
+        //drawCompass(ctx);
+        const trajectoryPoints = drawTrajectory(ctx, selectedPass);
 
-        // Draw satellite position
+        // 计算红点投射到曲线上的点
+        const projectedPoint = projectPointToCurve(satelliteX, satelliteY, trajectoryPoints);
+
+        // 绘制卫星当前位置
         ctx.beginPath();
-        ctx.arc(satelliteX, satelliteY, 5, 0, 2 * Math.PI);
+        ctx.arc(projectedPoint.x, projectedPoint.y, 5, 0, 2 * Math.PI);
         ctx.fillStyle = 'red';
         ctx.fill();
     }
@@ -418,7 +371,7 @@ function handler(e) {
 
      // Handle arrow position based on beta
     const beta = e.beta;  // Get the beta value from the event
-
+    console.log(beta);
     const arrow = document.querySelector('.arrow');
 
     // Radius of the compass circle
