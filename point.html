@@ -266,13 +266,14 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
 
 
     // Loop through each time step and calculate satellite position
-    for (let i = 0; i <= steps; i++) {
+    for ( i = 0; i <= steps; i++) {
+                console.log(i)
         const time = new Date(startDate.getTime() + i * timeStep);
         const positionAndVelocity = satellite.propagate(satrec, time);
         const gmst = satellite.gstime(time);
         const positionEci = positionAndVelocity.position;
         const lookAngles = satellite.ecfToLookAngles(observerGd, satellite.eciToEcf(positionEci, gmst));
-        console.log(lookAngles)
+
 
         const elevation = satellite.radiansToDegrees(lookAngles.elevation);
         const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
