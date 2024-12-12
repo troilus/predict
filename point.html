@@ -267,7 +267,7 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
 
     // Loop through each time step and calculate satellite position
     for (let i = 0; i <= 55; i++) {
-                console.log(i)
+
         const time = new Date(startDate.getTime() + i * timeStep);
         const positionAndVelocity = satellite.propagate(satrec, time);
         const gmst = satellite.gstime(time);
@@ -277,7 +277,7 @@ const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
 
         const elevation = satellite.radiansToDegrees(lookAngles.elevation);
         const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
-
+                console.log(elevation)
         if (elevation > 0) {
             const satelliteRadius = getRadiusForElevation(elevation, radius);
             const { x, y } = toCanvasCoords(azimuth, satelliteRadius);
