@@ -40,7 +40,7 @@
         }
 
 .button {
-    padding: 10px 15px;
+    padding: 8px 15px;
     border: none;
     border-radius: 5px;
     background-color: var(--primary-color);
@@ -57,10 +57,8 @@
         }
 
         .custom-dropdown {
-            position: relative;
-            width: 100%;
-            max-width: 300px;
-            margin-bottom: 15px;
+    position: relative;
+    width: 85%;
         }
 
         .custom-dropdown button {
@@ -75,19 +73,28 @@
             cursor: pointer;
         }
 
+        .dropdown-item {
+    padding: 5px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+
+
+
         .dropdown-list {
-            display: none;
-            position: absolute;
-            top: 45px;
-            left: 0;
-            right: 0;
-            max-height: 200px;
-            overflow-y: auto;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none; /* 默认隐藏 */
         }
 
         .dropdown-list div {
@@ -103,7 +110,7 @@
 
         #searchInput {
             width: 100%;
-            max-width: 300px;
+            /*max-width: 300px;*/
             padding: 10px;
             font-size: 14px;
             border: 1px solid #ccc;
@@ -158,26 +165,27 @@
     <!--<button id="getLocation" class="button">获取位置</button>-->
     
 
-        <div class="custom-dropdown">
-        <button id="dropdownButton">Select satellite</button>
-        <div class="dropdown-list" id="satelliteDropdown"></div>
-    </div>
+<div class="custom-dropdown">
+    <input type="text" id="searchInput" placeholder="Search Satellite..." />
+    <div class="dropdown-list" id="satelliteDropdown"></div>
+</div>
 
-    <input type="text" id="searchInput" placeholder="Search satellite..." />
+    <!--<input type="text" id="searchInput" placeholder="搜索卫星..." />-->
 
-
+<div id="location" style="align-self: left;">Location：null</div>
 
     <div class="checkbox-container">
         <label for="timeFilter">Calculate only from 19:00 to 23:59</label>
         <input type="checkbox" id="timeFilter">
     </div>
-<div id="location">Location：null</div>
+
     <button id="calculatePass" class="button">Calculate</button>
         <div id="notesInfo"></div>
     <div id="passInfo"></div>
 
-    <div id="satelliteLinkContainer"></div>
+
     <div id="made">Made with ❤ by troilus</div>
+
 
     <script src="satellite.js"></script>
 
@@ -225,12 +233,12 @@
 
 
 
-                    document.getElementById('location').textContent = `Location：${latitudefix}, ${longitudefix} `;
+                    document.getElementById('location').textContent = `位置：${latitudefix}, ${longitudefix} `;
                 }, function(error) {
-                    document.getElementById('location').textContent = 'Unable to retrieve location. Please check your permission settings.';
+                    document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
                 });
             } else {
-                document.getElementById('location').textContent = 'The browser does not support geolocation.';
+                document.getElementById('location').textContent = '浏览器不支持地理定位。';
             }
 
 
@@ -276,32 +284,51 @@ function parseSatellitesData(data) {
             return satellites;
         }
 
-        function populateDropdown(satellites) {
-            const dropdown = document.getElementById('satelliteDropdown');
-            satellites.forEach(satellite => {
-                const div = document.createElement('div');
-                div.textContent = satellite.name;
-                div.addEventListener('click', function() {
-                    document.getElementById('dropdownButton').textContent = satellite.name;
-                    dropdown.style.display = 'none';
+function populateDropdown(satellites) {
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('satelliteDropdown');
 
-                    // Extract NORAD ID (from the first TLE line)
-                    const noradId = satellite.tle[1].split(' ')[1]; // TLE line 1, second value is the NORAD ID
+    // 初始化下拉菜单
+    function renderDropdown(filteredSatellites) {
+        dropdown.innerHTML = ''; // 清空列表
+        filteredSatellites.forEach(satellite => {
+            const div = document.createElement('div');
+            div.textContent = satellite.name;
+            div.classList.add('dropdown-item');
+            div.addEventListener('click', function () {
+                searchInput.value = satellite.name; // 将选择的值填入输入框
+                dropdown.style.display = 'none'; // 隐藏下拉菜单
 
-                    // 获取完整的星历数据（TLE数据）
-
-                    const satelliteName = satellite.name;
-
-                    // 将卫星名称和星历数据存储到localStorage（
-                    localStorage.setItem('selectedSatelliteName', satelliteName);
-                    localStorage.setItem('selectedSatelliteTLE1', satellite.tle[0]);
-                    localStorage.setItem('selectedSatelliteTLE2', satellite.tle[1]);    
-                    
-
-                });
-                dropdown.appendChild(div);
+                // 获取并存储卫星数据
+                const noradId = satellite.tle[1].split(' ')[1];
+                localStorage.setItem('selectedSatelliteName', satellite.name);
+                localStorage.setItem('selectedSatelliteTLE1', satellite.tle[0]);
+                localStorage.setItem('selectedSatelliteTLE2', satellite.tle[1]);
             });
-        }
+            dropdown.appendChild(div);
+        });
+        dropdown.style.display = filteredSatellites.length ? 'block' : 'none';
+    }
+
+    // 监听搜索输入
+    searchInput.addEventListener('input', function () {
+        const query = searchInput.value.toLowerCase();
+        const filteredSatellites = satellites.filter(satellite =>
+            satellite.name.toLowerCase().includes(query)
+        );
+        renderDropdown(filteredSatellites);
+    });
+
+
+        // 监听点击搜索框展开下拉菜单并选中文字
+    searchInput.addEventListener('click', function () {
+        searchInput.select(); // 选中所有文字
+        renderDropdown(satellites); // 展开下拉菜单显示所有选项
+    });
+
+    // 初始化时加载所有选项
+    renderDropdown(satellites);
+}
 
         document.getElementById('searchInput').addEventListener('input', function() {
             const searchValue = this.value.toLowerCase();
@@ -317,21 +344,22 @@ function parseSatellitesData(data) {
             });
         });
 
-        document.getElementById('dropdownButton').addEventListener('click', function() {
+        /*document.getElementById('dropdownButton').addEventListener('click', function() {
             const dropdown = document.getElementById('satelliteDropdown');
             dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
-        });
+        });*/
 
         document.getElementById('calculatePass').addEventListener('click', function() {
-            const satelliteName = document.getElementById('dropdownButton').textContent;
+            const satelliteName = localStorage.getItem('selectedSatelliteName')
+            console.log(satelliteName)
 
 
 
 
             const locationText = document.getElementById('location').textContent;
-            const match = locationText.match(/Location：([\-0-9.]+), ([\-0-9.]+)/);
+            const match = locationText.match(/位置：([\-0-9.]+), ([\-0-9.]+)/);
             const timeFilterChecked = document.getElementById('timeFilter').checked;
-            console.log(satelliteName , match)
+  
 
             if (satelliteName && match) {
                 const latitude = parseFloat(localStorage.getItem('latitude'));
@@ -477,7 +505,7 @@ function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 
 
 function formatGroupedPassesToHTML(groupedPasses) {
-    const satelliteName = document.getElementById('dropdownButton').textContent;
+    const satelliteName = localStorage.getItem('selectedSatelliteName');
     if (groupedPasses.length === 0) {
         return "<p>当前条件下未来3天内没有仰角大于等于15度的过境信息。</p>";
     }
@@ -513,7 +541,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
             rowClass = "day";    // 其余时间，蓝底黄字
         }
 
-        document.getElementById('notesInfo').innerHTML = '<p>点击日期查看轨道及对星页面</p>';
+        document.getElementById('notesInfo').innerHTML = '<p>ap Date to Orbit view</p>';
 
         const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
         const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
@@ -605,6 +633,7 @@ function drawTrajectory(ctx, selectedPass, scaleFactor = 0.17) {
     ctx.lineWidth = 1;
     ctx.stroke();
 }
+
 
 
 
