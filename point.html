@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>Document</title>
+    <title>🌎</title>
     <style>
 
   body {
@@ -101,9 +101,9 @@
     </div>
 
 
-    <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 11px; background-color: #ddd; border: 1px solid #999;">
-    <div id="satellite-elevation" style="position: absolute; left: 1px; width: 9px; height: 9px; background-color: red; border-radius: 50%;"></div>
-    <div id="arrow-elevation" style="position: absolute; left: 2px; width: 7px; height: 7px; background-color: #172e39; border-radius: 50%;"></div>
+    <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 11px; background-color: #ddd; border: 0px solid #999;">
+    <div id="satellite-elevation" style="position: absolute; left: 1px; width: 9px; height: 9px; background-color: blue; border-radius: 50%;"></div>
+    <div id="arrow-elevation" style="position: absolute; left: 2px; width: 7px; height: 7px; background-color: red; border-radius: 50%;"></div>
 
 
 </div>
@@ -195,7 +195,7 @@ window.onload = function () {
             const height = positionEci.z.toFixed(2);
 
             document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
-            document.getElementById('satellite-info').textContent = `高度：${distance} km | 距离：${height} km| 仰角：${elevationdg} 方位角：${azimuthdg}`;
+            document.getElementById('satellite-info').textContent = `当前方位：${azimuthdg}° 当前仰角：${elevationdg}° 预测最高仰角：${selectedPass.highestElevation}° `;
             document.getElementById('pass-info').textContent = `开始：${selectedPass.entryTime} ${selectedPass.entryAzimuth}° | 结束：${selectedPass.exitTime} ${selectedPass.exitAzimuth}°`;
             document.getElementById('time-info').textContent = `当前时间：${now.toLocaleString('zh-CN', { 
                 month: '2-digit', 
@@ -204,7 +204,7 @@ window.onload = function () {
                 minute: '2-digit', 
                 second: '2-digit' 
 
-            })} UTC+8`;
+            })}`;
             updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
 
         }, 1000);
@@ -429,7 +429,7 @@ if (elevation >= -100 && elevation <= 90) {
         // 绘制轨迹上的卫星位置
         ctx.beginPath();
         ctx.arc(projectedPoint.x, projectedPoint.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
+        ctx.fillStyle = 'blue';
         ctx.fill();
     }
 }

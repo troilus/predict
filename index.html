@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛰 SAT Predict</title>
+    <title>🛰</title>
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -39,16 +39,18 @@
             margin-bottom: 20px;
         }
 
-        .button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: var(--primary-color);
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+.button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 20px;  /* 上间距 */
+
+}
 
         .button:hover {
             background-color: var(--hover-color);
@@ -114,7 +116,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 3px;
         }
 
 
@@ -152,31 +154,36 @@
     </style>
 </head>
 <body>
-    <h1>🛰 SAT Predict</h1>
-    <button id="getLocation" class="button">获取位置</button>
-    <div id="location">位置信息：未获取</div>
+    <h1>🛰</h1>
+    <!--<button id="getLocation" class="button">获取位置</button>-->
+    
 
-    <input type="text" id="searchInput" placeholder="搜索卫星..." />
-
-    <div class="custom-dropdown">
+        <div class="custom-dropdown">
         <button id="dropdownButton">选择卫星</button>
         <div class="dropdown-list" id="satelliteDropdown"></div>
     </div>
+
+    <input type="text" id="searchInput" placeholder="搜索卫星..." />
+
+
 
     <div class="checkbox-container">
         <label for="timeFilter">仅计算 19:00 ~ 23:59</label>
         <input type="checkbox" id="timeFilter">
     </div>
-
+<div id="location">位置信息：未获取</div>
     <button id="calculatePass" class="button">计算过境信息</button>
-    <div id="passInfo">过境信息：未计算</div>
+        <div id="notesInfo"></div>
+    <div id="passInfo"></div>
+
     <div id="satelliteLinkContainer"></div>
+    <div id="made">Made with ❤ by troilus</div>
 
     <script src="satellite.js"></script>
 
     <script>
         let satellites = [];
-        document.getElementById('getLocation').addEventListener('click', function() {
+        /*document.getElementById('getLocation').addEventListener('click', function() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const latitude = position.coords.latitude;
@@ -199,7 +206,7 @@
             } else {
                 document.getElementById('location').textContent = '浏览器不支持地理定位。';
             }
-        });
+        });*/
 
         window.addEventListener('load', function() {
 
@@ -218,7 +225,7 @@
 
 
 
-                    document.getElementById('location').textContent = `经纬度：${latitudefix}, ${longitudefix} `;
+                    document.getElementById('location').textContent = `位置：${latitudefix}, ${longitudefix} `;
                 }, function(error) {
                     document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
                 });
@@ -226,7 +233,7 @@
                 document.getElementById('location').textContent = '浏览器不支持地理定位。';
             }
 
-            
+
             fetch('https://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
                 .then(response => {
                     if (!response.ok) {
@@ -322,8 +329,9 @@ function parseSatellitesData(data) {
 
 
             const locationText = document.getElementById('location').textContent;
-            const match = locationText.match(/经纬度：([\-0-9.]+), ([\-0-9.]+)/);
+            const match = locationText.match(/位置：([\-0-9.]+), ([\-0-9.]+)/);
             const timeFilterChecked = document.getElementById('timeFilter').checked;
+            console.log(satelliteName , match)
 
             if (satelliteName && match) {
                 const latitude = parseFloat(match[1]);
@@ -504,6 +512,8 @@ function formatGroupedPassesToHTML(groupedPasses) {
         } else {
             rowClass = "day";    // 其余时间，蓝底黄字
         }
+
+                        document.getElementById('notesInfo').innerHTML = '<p>点击日期查看轨道及对星页面</p>';
 
         const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
         const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
