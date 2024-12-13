@@ -1,0 +1,29 @@
+name: TLE update
+
+on:
+  schedule:
+    # 每天 UTC 时间 0 点运行 (可以根据需求修改时间)
+    - cron: '0 0 * * *'
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      # 检出代码仓库
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 下载文件
+      - name: Download file
+        run: |
+
+          curl -o satonline.txt https://r4uab.ru/satonline.txt
+      
+      # 可选：将文件提交回仓库
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add satonline.txt
+          git commit -m "Updated file on $(date)"
+          git push
