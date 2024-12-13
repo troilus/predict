@@ -102,7 +102,7 @@
 
 
     <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 11px; background-color: #ddd; border: 1px solid #999;">
-            <div id="satellite-elevation" style="position: absolute; left: 1px; width: 9px; height: 9px; background-color: red; border-radius: 50%;"></div>
+    <div id="satellite-elevation" style="position: absolute; left: 1px; width: 9px; height: 9px; background-color: red; border-radius: 50%;"></div>
     <div id="arrow-elevation" style="position: absolute; left: 2px; width: 7px; height: 7px; background-color: #172e39; border-radius: 50%;"></div>
 
 
@@ -196,7 +196,7 @@ window.onload = function () {
 
             document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
             document.getElementById('satellite-info').textContent = `高度：${distance} km | 距离：${height} km| 仰角：${elevationdg} 方位角：${azimuthdg}`;
-            document.getElementById('pass-info').textContent = `开始：${selectedPass.entryTime} ${selectedPass.entryAzimuth}° | 结束：${selectedPass.exitTime}${selectedPass.exitAzimuth}°`;
+            document.getElementById('pass-info').textContent = `开始：${selectedPass.entryTime} ${selectedPass.entryAzimuth}° | 结束：${selectedPass.exitTime} ${selectedPass.exitAzimuth}°`;
             document.getElementById('time-info').textContent = `当前时间：${now.toLocaleString('zh-CN', { 
                 month: '2-digit', 
                 day: '2-digit', 
@@ -204,7 +204,7 @@ window.onload = function () {
                 minute: '2-digit', 
                 second: '2-digit' 
 
-            })}`;
+            })} UTC+8`;
             updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
 
         }, 1000);
@@ -380,17 +380,20 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
         // 显示卫星的仰角
     const elevationBar = document.getElementById('elevation-bar');
     const satelliteElevation = document.getElementById('satellite-elevation');
-    const barHeight = elevationBar.offsetHeight;
+    const barHeight = elevationBar.offsetHeight-9;
 
 
 // 需要确保 elevation 在 0 到 90 之间
-if (elevation >= 0 && elevation <= 90) {
+if (elevation >= -100 && elevation <= 90) {
+
+
 
     // 映射卫星的仰角到仰角条的位置 (0 - 90度 -> 0 - barHeight)
-    const satelliteElevationDistance = (90 - elevation) / 90 * barHeight;
+    const satelliteElevationDistance = (90 - 0) / 90 * barHeight;
 
     // 更新蓝色点的位置
-    satelliteElevation.style.top = `${satelliteElevationDistance - satelliteElevation.offsetHeight / 2}px`;
+    satelliteElevation.style.top = `${satelliteElevationDistance  - satelliteElevation.offsetHeight / 2}px`;
+
 
 } else {
     // 如果 elevation 不在有效范围内，可以选择不显示或者显示一个默认值
@@ -512,9 +515,10 @@ const elevationDistance = (90 - adjustedBeta) / 90 * barHeight;
 
 
 
-// 更新黄点位置
+// 更新红点位置
 
 arrowElevation.style.top = `${elevationDistance - arrowElevation.offsetHeight / 2}px`;
+
 
 
 }

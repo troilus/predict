@@ -3,48 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛰SAT Predict</title>
+    <title>🛰 SAT Predict</title>
     <style>
-        .custom-dropdown {
-            position: relative;
-            width: 200px;
-            font-family: Arial, sans-serif;
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --hover-color: #45a049;
+            --font-family: 'Arial', sans-serif;
         }
-        .custom-dropdown button {
-            width: 100%;
-            height: 30px;
-            text-align: left;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            padding: 5px;
-        }
-        .dropdown-list {
-            display: none;
-            position: absolute;
-            top: 35px;
-            left: 0;
-            right: 0;
-            max-height: 200px;
-            overflow-y: auto;
-            background-color: white;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 1;
-        }
-        .dropdown-list div {
-            padding: 5px;
-            cursor: pointer;
-        }
-        .dropdown-list div:hover {
-            background-color: #f1f1f1;
-        }
-        #searchInput {
-            width: 100%;
-            padding: 5px;
-            box-sizing: border-box;
-            margin-bottom: 5px;
-        }
-
 
                 /* 19:00~07:00 (夜间) */
         .night {
@@ -57,47 +24,151 @@
             background-color: #69a7ff;
             color: #271700;
         }
-
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        #location {
-            margin-top: 10px;
-        }
-        select {
-            margin-top: 10px;
-            width: 200px;
-            height: 30px;
-        }
-        button {
-            margin-top: 10px;
-            padding: 10px;
-        }
-        #satelliteDropdown {
-            display: block;
-            margin-top: 10px;
-        }
-        #satelliteDropdown option {
-            padding: 10px;
+            font-family: var(--font-family);
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: var(--hover-color);
+        }
+
+        .custom-dropdown {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 15px;
+        }
+
+        .custom-dropdown button {
+            width: 100%;
+            height: 40px;
+            text-align: left;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .dropdown-list {
+            display: none;
+            position: absolute;
+            top: 45px;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .dropdown-list div {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .dropdown-list div:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #searchInput {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+
+
+        #satelliteLinkContainer {
+            margin-top: 20px;
+            max-width: 300px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-color: #3e8e41;
+                --secondary-color: #2c2c2c;
+                --text-color: #ddd;
+                --hover-color: #2e7033;
+            }
+
+            body {
+                color: var(--text-color);
+            }
+
+            .custom-dropdown button, 
+            #searchInput, 
+            #passInfo {
+                background-color: #444;
+                border: 1px solid #555;
+                color: var(--text-color);
+            }
+
+            .dropdown-list div:hover {
+                background-color: var(--hover-color);
+                color: white;
+            }
+        }
     </style>
 </head>
 <body>
-    <button id="getLocation">获取位置</button>
+    <h1>🛰 SAT Predict</h1>
+    <button id="getLocation" class="button">获取位置</button>
     <div id="location">位置信息：未获取</div>
+
     <input type="text" id="searchInput" placeholder="搜索卫星..." />
-    
+
     <div class="custom-dropdown">
         <button id="dropdownButton">选择卫星</button>
         <div class="dropdown-list" id="satelliteDropdown"></div>
     </div>
-    
-    <label for="timeFilter">仅计算19:00~23:59</label>
-    <input type="checkbox" id="timeFilter">
-    <button id="calculatePass">计算过境信息</button>
+
+    <div class="checkbox-container">
+        <label for="timeFilter">仅计算 19:00 ~ 23:59</label>
+        <input type="checkbox" id="timeFilter">
+    </div>
+
+    <button id="calculatePass" class="button">计算过境信息</button>
     <div id="passInfo">过境信息：未计算</div>
     <div id="satelliteLinkContainer"></div>
 
@@ -131,6 +202,31 @@
         });
 
         window.addEventListener('load', function() {
+
+                        if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const latitudefix = position.coords.latitude.toFixed(2);
+                    const longitudefix = position.coords.longitude.toFixed(2);
+                    const altitude = position.coords.altitude;
+                    const accuracy = position.coords.accuracy.toFixed(1);
+                    localStorage.setItem('latitude', latitude);
+                    localStorage.setItem('longitude', longitude);
+                    localStorage.setItem('altitude', altitude);
+
+
+
+
+                    document.getElementById('location').textContent = `经纬度：${latitudefix}, ${longitudefix} `;
+                }, function(error) {
+                    document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
+                });
+            } else {
+                document.getElementById('location').textContent = '浏览器不支持地理定位。';
+            }
+
+            
             fetch('https://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
                 .then(response => {
                     if (!response.ok) {
@@ -418,7 +514,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
         html += `
             <tr class="${rowClass}">
-                <td><a href="point.html?index=${index + 1}" target="_blank">${entrydate}</a></td>
+                <td><a href="point.html?index=${index + 1}" target="_blank"  style="color: #ffffbc;"  >${entrydate}</a></td>
                 <td>${entryTime}, ${entryAzimuth}</td>
                 <td>${highestTime}</td>
                 <td>${highestAzimuth}</td>
