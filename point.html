@@ -53,16 +53,15 @@
       margin: auto;
   }
 
-.compass-circle {
-    position: absolute;
-    top: 50%;            /* 设置为父容器的中心 */
-    left: 50%;
-    transform: translate(-50%, -50%); /* 调整位置到中心 */
-    width: 100%;         /* 确保与父容器一致 */
-    height: 100%;
-    background: url(bg.png) center no-repeat;
-    z-index: 1; /* 在 canvas 下方 */
-}
+        .compass-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg);
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
 
   .arrow {
     position: absolute;
@@ -97,7 +96,8 @@
     <canvas id="trajectory-canvas" width="300" height="300"></canvas>
     <!-- 罗盘 -->
     <div class="compass">
-        <div class="compass-circle"></div>
+        <!--<div class="compass-circle"></div>-->
+        <canvas class="compass-circle" id="compass-background" width="300" height="300"></canvas>
         <div class="arrow"></div>
     </div>
 </div>
@@ -111,6 +111,8 @@
     <script src="satellite.js"></script>
 
   <script>
+            const compassBackground = document.getElementById('compass-background');
+        const compassCtx = compassBackground.getContext('2d');
     const compassCircle = document.querySelector(".compass-circle");
     const myPoint = document.querySelector(".my-point");
     const startBtn = document.querySelector(".start-btn");
@@ -200,6 +202,63 @@ window.onload = function () {
         }, 1000);
     }
 };
+
+
+function drawCompassBackground(ctx) {
+            const centerX = 150;
+            const centerY = 150;
+            const radius = 140;
+
+            // Draw outer circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw concentric circles for 30° and 60° elevation
+            const circleAngles = [30, 60];
+            circleAngles.forEach((elevation) => {
+                const circleRadius = (radius * (90 - elevation)) / 90;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, circleRadius, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'gray';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+            });
+            ctx.setLineDash([]); // Reset dash style
+
+            // Draw cardinal directions
+            const directions = ['N', 'E', 'S', 'W'];
+            directions.forEach((dir, index) => {
+                const angle = (index * 90) * (Math.PI / 180);
+                const x = centerX + (radius - 20) * Math.cos(angle);
+                const y = centerY - (radius - 20) * Math.sin(angle);
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dir, x, y);
+            });
+
+            // Draw intermediate tick marks
+            for (let i = 0; i < 360; i += 10) {
+                const angle = (i - 90) * (Math.PI / 180);
+                const x1 = centerX + radius * Math.cos(angle);
+                const y1 = centerY - radius * Math.sin(angle);
+                const x2 = centerX + (radius - 10) * Math.cos(angle);
+                const y2 = centerY - (radius - 10) * Math.sin(angle);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = i % 90 === 0 ? 2 : 1; // Thicker for cardinal directions
+                ctx.stroke();
+            }
+        }
+
+
+
 
 function getRadiusForElevation(elevation, radius) {
     if (elevation <= 30) return radius - (radius * 0.25) * (elevation / 30);
@@ -341,6 +400,7 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
     }
 
 function handler(e) {
+    drawCompassBackground(compassCtx);
     const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
 
     // Define the center of the compass
@@ -349,6 +409,7 @@ function handler(e) {
 
     // Rotate compass circle
     compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
+    compassBackground.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
 
     // Rotate trajectory canvas
     const trajectoryCanvas = document.getElementById('trajectory-canvas');
@@ -357,7 +418,6 @@ function handler(e) {
 
      // Handle arrow position based on beta
     const beta = e.beta;  // Get the beta value from the event
-    console.log(beta);
     const arrow = document.querySelector('.arrow');
 
     // Radius of the compass circle
@@ -376,16 +436,7 @@ function handler(e) {
     arrow.style.top = `${arrowY - 20}px`; // Adjust top to position the arrow
 
     // Control red point visibility based on compass angle
-    if (
-        (pointDegree < Math.abs(compass) &&
-            pointDegree + 15 > Math.abs(compass)) ||
-        pointDegree > Math.abs(compass + 15) ||
-        pointDegree < Math.abs(compass)
-    ) {
-        myPoint.style.opacity = 0;
-    } else if (pointDegree) {
-        myPoint.style.opacity = 1;
-    }
+
 }
 
 
@@ -438,6 +489,7 @@ function handler(e) {
 
                   // Update arrow and compass position
         handler(event);      
+
 
 
             }, false);
