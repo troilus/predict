@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Satellite Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            position: relative;
+        }
+        #info-bar {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #canvas-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px 0;
+        }
+        #trajectory-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            transform-origin: center;
+            transform: rotate(0deg);
+        }
+        .compass {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: auto;
+        }
+        .compass-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg);
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .arrow {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            border: 4px solid red;
+            background-color: transparent;
+            z-index: 3;
+        }
+        .start-btn {
+            margin-bottom: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="info-bar">
+        <p id="satellite-name"></p>
+        <p id="satellite-info"></p>
+        <p id="pass-info"></p>
+        <p id="time-info"></p>
+    </div>
+    <div id="canvas-container">
+        <canvas id="trajectory-canvas" width="300" height="300"></canvas>
+        <div class="compass">
+            <canvas class="compass-circle" id="compass-background" width="300" height="300"></canvas>
+            <div class="arrow"></div>
+        </div>
+    </div>
+    <button class="start-btn">Start Compass</button>
+    <script src="https://unpkg.com/satellite.js/dist/satellite.min.js"></script>
+    <script>
+        const compassBackground = document.getElementById('compass-background');
+        const compassCtx = compassBackground.getContext('2d');
+        const trajectoryCanvas = document.getElementById('trajectory-canvas');
+        const trajectoryCtx = trajectoryCanvas.getContext('2d');
+        let currentDeviceRotation = 0;
+
+        // Draw compass background with concentric circles
+        function drawCompassBackground(ctx) {
+            const centerX = 150;
+            const centerY = 150;
+            const radius = 140;
+
+            // Draw outer circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw concentric circles for 30° and 60° elevation
+            const circleAngles = [30, 60];
+            circleAngles.forEach((elevation) => {
+                const circleRadius = (radius * (90 - elevation)) / 90;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, circleRadius, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'gray';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+            });
+            ctx.setLineDash([]); // Reset dash style
+
+            // Draw cardinal directions
+            const directions = ['N', 'E', 'S', 'W'];
+            directions.forEach((dir, index) => {
+                const angle = (index * 90) * (Math.PI / 180);
+                const x = centerX + (radius - 20) * Math.cos(angle);
+                const y = centerY - (radius - 20) * Math.sin(angle);
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dir, x, y);
+            });
+
+            // Draw intermediate tick marks
+            for (let i = 0; i < 360; i += 10) {
+                const angle = (i - 90) * (Math.PI / 180);
+                const x1 = centerX + radius * Math.cos(angle);
+                const y1 = centerY - radius * Math.sin(angle);
+                const x2 = centerX + (radius - 10) * Math.cos(angle);
+                const y2 = centerY - (radius - 10) * Math.sin(angle);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = i % 90 === 0 ? 2 : 1; // Thicker for cardinal directions
+                ctx.stroke();
+            }
+        }
+
+        // Rotate compass and trajectory canvas
+        function handleDeviceOrientation(event) {
+            const alpha = event.alpha; // Device rotation around Z-axis (0-360 degrees)
+            const rotation = 360 - alpha; // Adjust rotation to match compass behavior
+            currentDeviceRotation = rotation;
+
+            // Rotate compass and trajectory canvas
+            compassBackground.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+            trajectoryCanvas.style.transform = `rotate(${rotation}deg)`;
+        }
+
+        // Add event listener for device orientation
+        function enableCompass() {
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', handleDeviceOrientation);
+            } else {
+                alert('Device Orientation is not supported on this device/browser.');
+            }
+        }
+
+        // Draw everything
+        drawCompassBackground(compassCtx);
+
+        // Enable compass on button click
+        document.querySelector('.start-btn').addEventListener('click', enableCompass);
+    </script>
+</body>
+</html>
