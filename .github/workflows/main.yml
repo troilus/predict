@@ -3,7 +3,7 @@ name: TLE update
 on:
   schedule:
     # 每天 UTC 时间 0 点运行 (可以根据需求修改时间)
-    - cron: '0 15 * * *'
+    - cron: '06 23 * * *'
   workflow_dispatch: # 手动触发支持
 jobs:
   download:
