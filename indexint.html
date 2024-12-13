@@ -21,8 +21,8 @@
 
         /* 其余时间 (白天) */
         .day {
-            background-color: #69a7ff;
-            color: #271700;
+            background-color: #2e71d1;
+            color: #ffffbc;
         }
         body {
             font-family: var(--font-family);
@@ -486,7 +486,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
         <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
             <thead>
                 <tr>
-                    <th rowspan="2">Date</th>
+                     <th rowspan="2">Date</th>
                     <th rowspan="2">Start</th>
                     <th colspan="3">El</th>
                     <th rowspan="2">End</th>
@@ -513,22 +513,26 @@ function formatGroupedPassesToHTML(groupedPasses) {
             rowClass = "day";    // 其余时间，蓝底黄字
         }
 
-                        document.getElementById('notesInfo').innerHTML = '<p>Click on the date to view the orbit and satellite alignment page</p>';
+        document.getElementById('notesInfo').innerHTML = '<p>点击日期查看轨道及对星页面</p>';
 
-        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "UnknownTime";
-        const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "Unknown";
-        const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "Unknown";
+        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
+        const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
 
-        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "UnknownTime";
-        const exitAzimuth = typeof pass.exit?.azimuth === "number" ? `${pass.exit.azimuth.toFixed(2)}°` : "Unknown";
+        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const exitAzimuth = typeof pass.exit?.azimuth === "number" ? `${pass.exit.azimuth.toFixed(2)}°` : "未知";
+
+        // Generate a placeholder for the canvas
+        const chartId = `chart-${index}`;
+        const chartHTML = `<canvas id="${chartId}" width="17" height="17"></canvas>`;
 
         html += `
             <tr class="${rowClass}">
-                <td><a href="pointint.html?index=${index + 1}" target="_blank"  style="color: #ffffbc;"  >${entrydate}</a></td>
+                <td><a href="point.html?index=${index + 1}" target="_blank"  style="color: #ffffbc;"  >${entrydate}</a></td>
                 <td>${entryTime}, ${entryAzimuth}</td>
                 <td>${highestTime}</td>
                 <td>${highestAzimuth}</td>
-                <td>${highestElevation}</td>
+                <td>${highestElevation}${chartHTML}</td>
                 <td>${exitTime}, ${exitAzimuth}</td>
             </tr>
         `;
@@ -539,7 +543,67 @@ function formatGroupedPassesToHTML(groupedPasses) {
     </table>
     `;
 
+    // Append the HTML to the page
+    document.getElementById('passInfo').innerHTML = html;
+
+    // Now that the table is added, draw the trajectories
+    setTimeout(() => {
+        groupedPasses.forEach((pass, index) => {
+            const canvas = document.getElementById(`chart-${index}`);
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    drawTrajectory(ctx, pass);
+                }
+            }
+        });
+    }, 0);
+
     return html;
+}
+
+function drawTrajectory(ctx, selectedPass, scaleFactor = 0.17) { 
+    const centerX = 50 * scaleFactor;
+    const centerY = 50 * scaleFactor;
+    const radius = 40 * scaleFactor;  // 缩放半径
+
+    // 根据仰角调整半径
+    const getRadiusForElevation = (elevation) => {
+        return radius * (90 - elevation) / 90; // 仰角映射为半径比例
+    };
+
+    const entryRadius = getRadiusForElevation(0);
+    const exitRadius = getRadiusForElevation(0);
+    const highestRadius = getRadiusForElevation(selectedPass.highest?.elevation || 0);
+
+    // 将方位角转换为绘图坐标
+    const toCanvasCoords = (azimuth, distance) => {
+        const angle = (90 - azimuth) * (Math.PI / 180); // 旋转方位角，0°指向北方
+        const x = centerX + distance * Math.cos(angle);
+        const y = centerY - distance * Math.sin(angle);
+        return { x, y };
+    };
+
+    const { x: entryX, y: entryY } = toCanvasCoords(selectedPass.entry?.azimuth, entryRadius);
+    const { x: exitX, y: exitY } = toCanvasCoords(selectedPass.exit?.azimuth, exitRadius);
+    const { x: highestX, y: highestY } = toCanvasCoords(selectedPass.highest?.azimuth, highestRadius);
+
+        // Draw black circle around the trajectory
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);  // Outer circle
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+
+
+    // 绘制贝塞尔曲线连接轨迹点
+    ctx.beginPath();
+    ctx.moveTo(entryX, entryY);
+    ctx.quadraticCurveTo(highestX, highestY, exitX, exitY);
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1;
+    ctx.stroke();
 }
 
 
