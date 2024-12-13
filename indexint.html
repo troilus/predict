@@ -159,20 +159,20 @@
     
 
         <div class="custom-dropdown">
-        <button id="dropdownButton">选择卫星</button>
+        <button id="dropdownButton">Select satellite</button>
         <div class="dropdown-list" id="satelliteDropdown"></div>
     </div>
 
-    <input type="text" id="searchInput" placeholder="搜索卫星..." />
+    <input type="text" id="searchInput" placeholder="Search satellite..." />
 
 
 
     <div class="checkbox-container">
-        <label for="timeFilter">仅计算 19:00 ~ 23:59</label>
+        <label for="timeFilter">Calculate only from 19:00 to 23:59</label>
         <input type="checkbox" id="timeFilter">
     </div>
-<div id="location">位置信息：未获取</div>
-    <button id="calculatePass" class="button">计算过境信息</button>
+<div id="location">Location：null</div>
+    <button id="calculatePass" class="button">Calculate</button>
         <div id="notesInfo"></div>
     <div id="passInfo"></div>
 
@@ -225,12 +225,12 @@
 
 
 
-                    document.getElementById('location').textContent = `位置：${latitudefix}, ${longitudefix} `;
+                    document.getElementById('location').textContent = `Location：${latitudefix}, ${longitudefix} `;
                 }, function(error) {
-                    document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
+                    document.getElementById('location').textContent = 'Unable to retrieve location. Please check your permission settings.';
                 });
             } else {
-                document.getElementById('location').textContent = '浏览器不支持地理定位。';
+                document.getElementById('location').textContent = 'The browser does not support geolocation.';
             }
 
 
@@ -329,7 +329,7 @@ function parseSatellitesData(data) {
 
 
             const locationText = document.getElementById('location').textContent;
-            const match = locationText.match(/位置：([\-0-9.]+), ([\-0-9.]+)/);
+            const match = locationText.match(/Location：([\-0-9.]+), ([\-0-9.]+)/);
             const timeFilterChecked = document.getElementById('timeFilter').checked;
             console.log(satelliteName , match)
 
@@ -486,15 +486,15 @@ function formatGroupedPassesToHTML(groupedPasses) {
         <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
             <thead>
                 <tr>
-                    <th rowspan="2">日期</th>
-                    <th rowspan="2">开始</th>
-                    <th colspan="3">最高点</th>
-                    <th rowspan="2">结束</th>
+                    <th rowspan="2">Date</th>
+                    <th rowspan="2">Start</th>
+                    <th colspan="3">El</th>
+                    <th rowspan="2">End</th>
                 </tr>
                 <tr>
-                    <th>时间</th>
-                    <th>方位</th>
-                    <th>仰角</th>
+                    <th>Time</th>
+                    <th>Az</th>
+                    <th>El</th>
                 </tr>
             </thead>
             <tbody>
@@ -513,18 +513,18 @@ function formatGroupedPassesToHTML(groupedPasses) {
             rowClass = "day";    // 其余时间，蓝底黄字
         }
 
-                        document.getElementById('notesInfo').innerHTML = '<p>点击日期查看轨道及对星页面</p>';
+                        document.getElementById('notesInfo').innerHTML = '<p>Click on the date to view the orbit and satellite alignment page</p>';
 
-        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
-        const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
-        const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
+        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "UnknownTime";
+        const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "Unknown";
+        const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "Unknown";
 
-        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
-        const exitAzimuth = typeof pass.exit?.azimuth === "number" ? `${pass.exit.azimuth.toFixed(2)}°` : "未知";
+        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "UnknownTime";
+        const exitAzimuth = typeof pass.exit?.azimuth === "number" ? `${pass.exit.azimuth.toFixed(2)}°` : "Unknown";
 
         html += `
             <tr class="${rowClass}">
-                <td><a href="point.html?index=${index + 1}" target="_blank"  style="color: #ffffbc;"  >${entrydate}</a></td>
+                <td><a href="pointint.html?index=${index + 1}" target="_blank"  style="color: #ffffbc;"  >${entrydate}</a></td>
                 <td>${entryTime}, ${entryAzimuth}</td>
                 <td>${highestTime}</td>
                 <td>${highestAzimuth}</td>

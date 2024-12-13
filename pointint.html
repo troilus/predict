@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>🌎</title>
+    <style>
+
+  body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background-color: #f4f4f4;
+      position: relative;
+  }
+
+  #info-bar {
+      width: 100%;
+      background-color: #333;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  #canvas-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 20px 0;
+  }
+
+        #trajectory-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            transform-origin: center;
+            transform: rotate(0deg);
+        }
+  .compass {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: auto;
+  }
+
+        .compass-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg);
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+  .arrow {
+    position: absolute;
+    width: 10px;        /* Set the diameter of the circle */
+    height: 10px;
+    top: -20px;         /* Adjust this based on desired vertical position */
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%; /* Makes the element round (circle) */
+    border: 4px solid red; /* Red border */
+    background-color: transparent; /* Hollow center */
+    z-index: 3;         /* Keep above all elements */
+  }
+
+
+
+  .start-btn {
+      margin-bottom: auto;
+  }
+</style>
+
+
+<body>
+    <div id="info-bar">
+        <p id="satellite-name"></p>
+        <p id="satellite-info"></p>
+        <p id="pass-info"></p>
+        <p id="time-info"></p>
+    </div>
+
+<div id="canvas-container">
+    <canvas id="trajectory-canvas" width="300" height="300"></canvas>
+    <!-- 罗盘 -->
+    <div class="compass">
+        <!--<div class="compass-circle"></div>-->
+        <canvas class="compass-circle" id="compass-background" width="300" height="300"></canvas>
+        <div class="arrow"></div>
+    </div>
+
+
+    <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 11px; background-color: #ddd; border: 0px solid #999;">
+    <div id="satellite-elevation" style="position: absolute; left: 1px; width: 9px; height: 9px; background-color: blue; border-radius: 50%;"></div>
+    <div id="arrow-elevation" style="position: absolute; left: 2px; width: 7px; height: 7px; background-color: red; border-radius: 50%;"></div>
+
+
+</div>
+
+
+
+
+</div>
+
+    <button class="start-btn">Sensor Authorization on iOS Devices</button>
+</body>
+
+
+
+
+    <script src="satellite.js"></script>
+
+  <script>
+    const compassBackground = document.getElementById('compass-background');
+    const compassCtx = compassBackground.getContext('2d');
+    const compassCircle = document.querySelector(".compass-circle");
+    const myPoint = document.querySelector(".my-point");
+    const startBtn = document.querySelector(".start-btn");
+    const isIOS =
+      navigator.userAgent.match(/(iPod|iPhone|iPad)/) &&
+      navigator.userAgent.match(/AppleWebKit/);
+
+    function init() {
+      startBtn.addEventListener("click", startCompass);
+      navigator.geolocation.getCurrentPosition(locationHandler);
+
+      if (!isIOS) {
+        window.addEventListener("deviceorientationabsolute", handler, true);
+      }
+    }
+
+
+
+window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const index = urlParams.get('index');
+    // 获取 localStorage 中保存的卫星数据
+    const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
+
+    const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
+
+    //const elevationCtx = document.getElementById('elevation-canvas').getContext('2d');
+    const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
+
+
+
+    // 绘制罗盘背景
+    drawCompassBackground(compassCtx);
+
+    // 绘制卫星过境轨迹
+    drawTrajectory(trajectoryCtx, selectedPass);
+
+    // 显示卫星信息
+    const satelliteName = localStorage.getItem('selectedSatelliteName');
+    const satelliteTLE1 = localStorage.getItem('selectedSatelliteTLE1');
+    const satelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
+
+    if (satelliteName && satelliteTLE1 && satelliteTLE2) {
+        const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
+
+        const observerGd = {
+            latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
+            longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
+            height: 0
+
+        };
+        startTracking(trajectoryCtx, selectedPass, satrec, observerGd)
+
+ 
+        setInterval(() => {
+            const now = new Date();
+            const positionAndVelocity = satellite.propagate(satrec, now);
+            const gmst = satellite.gstime(now);
+
+            const positionEci = positionAndVelocity.position;
+            const lookAngles = satellite.ecfToLookAngles(
+                observerGd,
+                satellite.eciToEcf(positionEci, gmst)
+            );
+
+            const elevationdg =satellite.radiansToDegrees(lookAngles.elevation).toFixed(2);
+            const azimuthdg = satellite.radiansToDegrees(lookAngles.azimuth).toFixed(2);
+            const distance = satellite.eciToGeodetic(positionEci).height.toFixed(2);
+            const height = positionEci.z.toFixed(2);
+
+            document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
+            document.getElementById('satellite-info').textContent = `Az：${azimuthdg}° El：${elevationdg}° MaxEl：${selectedPass.highestElevation}° `;
+            document.getElementById('pass-info').textContent = `Start：${selectedPass.entryTime} ${selectedPass.entryAzimuth}° | End：${selectedPass.exitTime} ${selectedPass.exitAzimuth}°`;
+            document.getElementById('time-info').textContent = `Time：${now.toLocaleString('zh-CN', { 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+
+            })}`;
+            updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
+
+        }, 1000);
+    }
+};
+
+
+function startTracking(ctx, selectedPass, satrec, observerGd) {
+    function update() {
+        const now = new Date();
+        updateSatellitePosition(ctx, selectedPass, satrec, observerGd, now);
+        requestAnimationFrame(update); // 持续更新
+    }
+    update();
+}
+
+
+
+
+
+function drawCompassBackground(ctx) {
+            const centerX = 150;
+            const centerY = 150;
+            const radius = 140;
+
+            // Draw outer circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw concentric circles for 30° and 60° elevation
+            const circleAngles = [30, 60];
+            circleAngles.forEach((elevation) => {
+                const circleRadius = (radius * (90 - elevation)) / 90;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, circleRadius, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'gray';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+            });
+            ctx.setLineDash([]); // Reset dash style
+
+            // Draw cardinal directions
+            const directions = [ 'E-90','N-180', 'W-270', 'S-0'];
+            directions.forEach((dir, index) => {
+                const angle = (index * 90) * (Math.PI / 180);
+                const x = centerX + (radius - 20) * Math.cos(angle);
+                const y = centerY - (radius - 20) * Math.sin(angle);
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dir, x, y);
+            });
+
+            // Draw intermediate tick marks
+            for (let i = 0; i < 360; i += 10) {
+                const angle = (i - 90) * (Math.PI / 180);
+                const x1 = centerX + radius * Math.cos(angle);
+                const y1 = centerY - radius * Math.sin(angle);
+                const x2 = centerX + (radius - 10) * Math.cos(angle);
+                const y2 = centerY - (radius - 10) * Math.sin(angle);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = i % 90 === 0 ? 2 : 1; // Thicker for cardinal directions
+                ctx.stroke();
+            }
+        }
+
+
+
+
+function getRadiusForElevation(elevation, radius) {
+    if (elevation <= 30) return radius - (radius * 0.25) * (elevation / 30);
+    if (elevation <= 60) return radius * 0.75 - (radius * 0.25) * ((elevation - 30) / 30);
+    return radius * 0.5 - (radius * 0.25) * ((elevation - 60) / 30);
+}
+
+// 绘制轨迹曲线
+function drawTrajectory(ctx, selectedPass) { 
+    const centerX = 150;
+    const centerY = 150;
+    const radius = 140;
+
+    // 根据仰角调整半径
+    const getRadiusForElevation = (elevation) => {
+        return radius * (90 - elevation) / 90; // 仰角映射为半径比例
+    };
+
+    const entryRadius = getRadiusForElevation(0);
+    const exitRadius = getRadiusForElevation(0);
+    const highestRadius = getRadiusForElevation(selectedPass.highestElevation);
+
+    // 将方位角转换为绘图坐标
+    const toCanvasCoords = (azimuth, distance) => {
+        const angle = (90 - azimuth) * (Math.PI / 180); // 旋转方位角，0°指向北方
+        const x = centerX + distance * Math.cos(angle);
+        const y = centerY - distance * Math.sin(angle);
+        return { x, y };
+    };
+
+    const { x: entryX, y: entryY } = toCanvasCoords(selectedPass.entryAzimuth, entryRadius);
+    const { x: exitX, y: exitY } = toCanvasCoords(selectedPass.exitAzimuth, exitRadius);
+    const { x: highestX, y: highestY } = toCanvasCoords(selectedPass.highestAzimuth, highestRadius);
+
+    // 绘制贝塞尔曲线连接轨迹点
+    ctx.beginPath();
+    ctx.moveTo(entryX, entryY);
+    ctx.quadraticCurveTo(highestX, highestY, exitX, exitY);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    return generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY);
+}
+
+// 生成轨迹上的点数组
+function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY, steps = 100) {
+    const points = [];
+    for (let t = 0; t <= 1; t += 1 / steps) {
+        const x = Math.pow(1 - t, 2) * entryX +
+                  2 * (1 - t) * t * highestX +
+                  Math.pow(t, 2) * exitX;
+        const y = Math.pow(1 - t, 2) * entryY +
+                  2 * (1 - t) * t * highestY +
+                  Math.pow(t, 2) * exitY;
+        points.push({ x, y });
+    }
+    return points;
+}
+
+
+// 投射红点到曲线的最近点
+function projectPointToCurve(x, y, trajectoryPoints) {
+    let minDistance = Infinity;
+    let closestPoint = { x: 0, y: 0 };
+
+    trajectoryPoints.forEach(point => {
+        const distance = Math.hypot(point.x - x, point.y - y);
+        if (distance < minDistance) {
+            minDistance = distance;
+            closestPoint = point;
+        }
+    });
+
+    return closestPoint;
+}
+
+// 更新卫星位置并绘制实时轨迹
+function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) { 
+    const now = new Date();
+    const positionAndVelocity = satellite.propagate(satrec, now);
+    const gmst = satellite.gstime(now);
+    const positionEci = positionAndVelocity.position;
+    const lookAngles = satellite.ecfToLookAngles(
+        observerGd,
+        satellite.eciToEcf(positionEci, gmst)
+    );
+
+
+
+    const elevation = satellite.radiansToDegrees(lookAngles.elevation);
+
+
+    const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
+
+
+
+        // 显示卫星的仰角
+    const elevationBar = document.getElementById('elevation-bar');
+    const satelliteElevation = document.getElementById('satellite-elevation');
+    const barHeight = elevationBar.offsetHeight-9;
+
+
+// 需要确保 elevation 在 0 到 90 之间
+if (elevation >= -100 && elevation <= 90) {
+
+
+
+    // 映射卫星的仰角到仰角条的位置 (0 - 90度 -> 0 - barHeight)
+    const satelliteElevationDistance = (90 - 0) / 90 * barHeight;
+
+    // 更新蓝色点的位置
+    satelliteElevation.style.top = `${satelliteElevationDistance  - satelliteElevation.offsetHeight / 2}px`;
+
+
+} else {
+    // 如果 elevation 不在有效范围内，可以选择不显示或者显示一个默认值
+    satelliteElevation.style.display = 'none';
+}
+
+
+
+
+
+    if (parseFloat(elevation) > 0) {
+        const centerX = 150;
+        const centerY = 150;
+        const radius = 140;
+
+        // 根据仰角计算卫星轨迹半径
+        const getRadiusForElevation = (elevation) => radius * (90 - elevation) / 90;
+        const satelliteRadius = getRadiusForElevation(elevation);
+
+        // 计算卫星的画布坐标
+        const satelliteX = centerX + satelliteRadius * Math.cos((90 - azimuth) * (Math.PI / 180));
+        const satelliteY = centerY - satelliteRadius * Math.sin((90 - azimuth) * (Math.PI / 180));
+
+        // 清空轨迹层，重新绘制
+        ctx.clearRect(0, 0, 300, 300);
+
+        // 绘制轨迹和卫星
+        const trajectoryPoints = drawTrajectory(ctx, selectedPass);
+
+        // 计算卫星在轨迹曲线上的投影点
+        const projectedPoint = projectPointToCurve(satelliteX, satelliteY, trajectoryPoints);
+
+        // 绘制轨迹上的卫星位置
+        ctx.beginPath();
+        ctx.arc(projectedPoint.x, projectedPoint.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'blue';
+        ctx.fill();
+    }
+}
+
+
+    function startCompass() {
+      if (isIOS) {
+        DeviceOrientationEvent.requestPermission()
+          .then((response) => {
+            if (response === "granted") {
+              window.addEventListener("deviceorientation", handler, true);
+            } else {
+              alert("has to be allowed!");
+            }
+          })
+          .catch(() => alert("not supported"));
+      }
+    }
+
+function handler(e) {
+
+    const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
+
+    // Define the center of the compass
+    const centerX = 150;
+    const centerY = 150;
+
+    // Rotate compass circle
+    compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
+    compassBackground.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
+
+    // Rotate trajectory canvas
+    const trajectoryCanvas = document.getElementById('trajectory-canvas');
+    trajectoryCanvas.style.transformOrigin = 'center';
+    trajectoryCanvas.style.transform = `rotate(${-compass}deg)`;
+
+     // Handle arrow position based on beta
+    const beta = e.beta;  // Get the beta value from the event
+    const arrow = document.querySelector('.arrow');
+
+    // Radius of the compass circle
+    const radius = 140; 
+
+    // Map beta value to distance: 
+    // When beta = 0, distance = radius (edge)
+    // When beta = 90, distance = 0 (center)
+    const distance = (90 - beta) / 90 * radius;  // Inverse the scaling to match your requirement
+
+    // Calculate the Y position based on beta (upward or downward movement)
+    const arrowY = centerY - distance;  // Adjust Y position to move the arrow vertically
+    const arrowX = centerX;  // Keep the arrow horizontally centered
+
+    // Update arrow position
+    arrow.style.top = `${arrowY - 10}px`; // Adjust top to position the arrow
+
+    // Control red point visibility based on compass angle
+
+
+    // 获取仰角条和黄点
+const elevationBar = document.getElementById('elevation-bar');
+const arrowElevation = document.getElementById('arrow-elevation');
+
+// 高度条总长度
+const barHeight = elevationBar.offsetHeight-9;
+
+// 映射 beta (0 - 90) 到仰角条 (0 - barHeight)
+
+
+
+
+if (beta > 90) {
+    adjustedBeta = 90; // 如果 beta > 90，强制设为 90
+} else if (beta < 0) {
+    adjustedBeta = 0; // 如果 beta < 90，强制设为 0
+} else {
+    adjustedBeta = beta; // beta == 90 时，保持为 90
+}
+
+const elevationDistance = (90 - adjustedBeta) / 90 * barHeight;
+
+
+
+
+
+
+// 更新红点位置
+
+arrowElevation.style.top = `${elevationDistance - arrowElevation.offsetHeight / 2}px`;
+
+
+
+}
+
+
+    let pointDegree;
+
+    function locationHandler(position) {
+      const { latitude, longitude } = position.coords;
+      pointDegree = calcDegreeToPoint(latitude, longitude);
+
+      if (pointDegree < 0) {
+        pointDegree = pointDegree + 360;
+      }
+    }
+
+    function calcDegreeToPoint(latitude, longitude) {
+      // Qibla geolocation
+      const point = {
+        lat: 21.422487,
+        lng: 39.826206
+      };
+
+      const phiK = (point.lat * Math.PI) / 180.0;
+      const lambdaK = (point.lng * Math.PI) / 180.0;
+      const phi = (latitude * Math.PI) / 180.0;
+      const lambda = (longitude * Math.PI) / 180.0;
+      const psi =
+        (180.0 / Math.PI) *
+        Math.atan2(
+          Math.sin(lambdaK - lambda),
+          Math.cos(phi) * Math.tan(phiK) -
+            Math.sin(phi) * Math.cos(lambdaK - lambda)
+        );
+      return Math.round(psi);
+    }
+
+
+        if (window.DeviceOrientationEvent) {
+            window.addEventListener('deviceorientation', function (event) {
+                /*var a = document.getElementById('alpha'),
+                    b = document.getElementById('beta'),
+                    g = document.getElementById('gamma'),*/
+
+                    alpha = event.alpha,
+                    beta = event.beta,
+                    gamma = event.gamma;
+
+                /*a.innerHTML = Math.round(alpha);
+                b.innerHTML = Math.round(beta);
+                g.innerHTML = Math.round(gamma);*/
+
+                  // Update arrow and compass position
+        handler(event);      
+
+
+
+            }, false);
+        } else {
+            document.querySelector('body').innerHTML = '你的浏览器不支持陀螺仪';
+        }
+
+
+
+
+
+    init();
+  </script>
+
+
+        <!-- alpha: <span id="alpha"></span><br/>
+    beta: <span id="beta"></span><br/>
+    gamma: <span id="gamma"></span><br/>-->
+
+
+</html>
