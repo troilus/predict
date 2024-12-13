@@ -99,9 +99,21 @@
         <canvas class="compass-circle" id="compass-background" width="300" height="300"></canvas>
         <div class="arrow"></div>
     </div>
+
+
+    <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 11px; background-color: #ddd; border: 1px solid #999;">
+            <div id="satellite-elevation" style="position: absolute; left: 1px; width: 9px; height: 9px; background-color: red; border-radius: 50%;"></div>
+    <div id="arrow-elevation" style="position: absolute; left: 2px; width: 7px; height: 7px; background-color: #172e39; border-radius: 50%;"></div>
+
+
 </div>
 
-    <button class="start-btn">Start compass</button>
+
+
+
+</div>
+
+    <button class="start-btn">iOS设备传感器授权</button>
 </body>
 
 
@@ -144,7 +156,7 @@ window.onload = function () {
 
 
     // 绘制罗盘背景
-        drawCompassBackground(compassCtx);
+    drawCompassBackground(compassCtx);
 
     // 绘制卫星过境轨迹
     drawTrajectory(trajectoryCtx, selectedPass);
@@ -163,13 +175,13 @@ window.onload = function () {
             height: 0
 
         };
+        startTracking(trajectoryCtx, selectedPass, satrec, observerGd)
+
  
         setInterval(() => {
             const now = new Date();
-
             const positionAndVelocity = satellite.propagate(satrec, now);
             const gmst = satellite.gstime(now);
-
 
             const positionEci = positionAndVelocity.position;
             const lookAngles = satellite.ecfToLookAngles(
@@ -177,13 +189,10 @@ window.onload = function () {
                 satellite.eciToEcf(positionEci, gmst)
             );
 
-
             const elevationdg =satellite.radiansToDegrees(lookAngles.elevation).toFixed(2);
             const azimuthdg = satellite.radiansToDegrees(lookAngles.azimuth).toFixed(2);
             const distance = satellite.eciToGeodetic(positionEci).height.toFixed(2);
             const height = positionEci.z.toFixed(2);
-
-
 
             document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
             document.getElementById('satellite-info').textContent = `高度：${distance} km | 距离：${height} km| 仰角：${elevationdg} 方位角：${azimuthdg}`;
@@ -201,6 +210,19 @@ window.onload = function () {
         }, 1000);
     }
 };
+
+
+function startTracking(ctx, selectedPass, satrec, observerGd) {
+    function update() {
+        const now = new Date();
+        updateSatellitePosition(ctx, selectedPass, satrec, observerGd, now);
+        requestAnimationFrame(update); // 持续更新
+    }
+    update();
+}
+
+
+
 
 
 function drawCompassBackground(ctx) {
@@ -320,25 +342,23 @@ function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exi
 
 
 // 投射红点到曲线的最近点
-function projectPointToCurve(x, y, curvePoints) {
+function projectPointToCurve(x, y, trajectoryPoints) {
     let minDistance = Infinity;
-    let nearestPoint = { x: curvePoints[0].x, y: curvePoints[0].y };
+    let closestPoint = { x: 0, y: 0 };
 
-    curvePoints.forEach((point) => {
-        const distance = Math.sqrt(
-            Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2)
-        );
+    trajectoryPoints.forEach(point => {
+        const distance = Math.hypot(point.x - x, point.y - y);
         if (distance < minDistance) {
             minDistance = distance;
-            nearestPoint = point;
+            closestPoint = point;
         }
     });
 
-    return nearestPoint;
+    return closestPoint;
 }
 
 // 更新卫星位置并绘制实时轨迹
-function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
+function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) { 
     const now = new Date();
     const positionAndVelocity = satellite.propagate(satrec, now);
     const gmst = satellite.gstime(now);
@@ -348,37 +368,68 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
         satellite.eciToEcf(positionEci, gmst)
     );
 
+
+
     const elevation = satellite.radiansToDegrees(lookAngles.elevation);
+
+
     const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
 
-    // 根据仰角更新轨迹上的卫星位置
+
+
+        // 显示卫星的仰角
+    const elevationBar = document.getElementById('elevation-bar');
+    const satelliteElevation = document.getElementById('satellite-elevation');
+    const barHeight = elevationBar.offsetHeight;
+
+
+// 需要确保 elevation 在 0 到 90 之间
+if (elevation >= 0 && elevation <= 90) {
+
+    // 映射卫星的仰角到仰角条的位置 (0 - 90度 -> 0 - barHeight)
+    const satelliteElevationDistance = (90 - elevation) / 90 * barHeight;
+
+    // 更新蓝色点的位置
+    satelliteElevation.style.top = `${satelliteElevationDistance - satelliteElevation.offsetHeight / 2}px`;
+
+} else {
+    // 如果 elevation 不在有效范围内，可以选择不显示或者显示一个默认值
+    satelliteElevation.style.display = 'none';
+}
+
+
+
+
+
     if (parseFloat(elevation) > 0) {
         const centerX = 150;
         const centerY = 150;
         const radius = 140;
-        const satelliteRadius = getRadiusForElevation(elevation, radius);
 
-        const satelliteX = centerX + satelliteRadius * Math.cos(Math.PI / 180 * azimuth);
-        const satelliteY = centerY - satelliteRadius * Math.sin(Math.PI / 180 * azimuth);
+        // 根据仰角计算卫星轨迹半径
+        const getRadiusForElevation = (elevation) => radius * (90 - elevation) / 90;
+        const satelliteRadius = getRadiusForElevation(elevation);
+
+        // 计算卫星的画布坐标
+        const satelliteX = centerX + satelliteRadius * Math.cos((90 - azimuth) * (Math.PI / 180));
+        const satelliteY = centerY - satelliteRadius * Math.sin((90 - azimuth) * (Math.PI / 180));
 
         // 清空轨迹层，重新绘制
         ctx.clearRect(0, 0, 300, 300);
-        drawTrajectory(ctx, selectedPass); // 重绘轨迹
-        //drawCompass(ctx);
+
+        // 绘制轨迹和卫星
         const trajectoryPoints = drawTrajectory(ctx, selectedPass);
 
-        // 计算红点投射到曲线上的点
+        // 计算卫星在轨迹曲线上的投影点
         const projectedPoint = projectPointToCurve(satelliteX, satelliteY, trajectoryPoints);
 
-        // 绘制卫星当前位置
+        // 绘制轨迹上的卫星位置
         ctx.beginPath();
         ctx.arc(projectedPoint.x, projectedPoint.y, 5, 0, 2 * Math.PI);
         ctx.fillStyle = 'red';
         ctx.fill();
     }
 }
-
-
 
 
     function startCompass() {
@@ -429,9 +480,42 @@ function handler(e) {
     const arrowX = centerX;  // Keep the arrow horizontally centered
 
     // Update arrow position
-    arrow.style.top = `${arrowY - 20}px`; // Adjust top to position the arrow
+    arrow.style.top = `${arrowY - 10}px`; // Adjust top to position the arrow
 
     // Control red point visibility based on compass angle
+
+
+    // 获取仰角条和黄点
+const elevationBar = document.getElementById('elevation-bar');
+const arrowElevation = document.getElementById('arrow-elevation');
+
+// 高度条总长度
+const barHeight = elevationBar.offsetHeight-9;
+
+// 映射 beta (0 - 90) 到仰角条 (0 - barHeight)
+
+
+
+
+if (beta > 90) {
+    adjustedBeta = 90; // 如果 beta > 90，强制设为 90
+} else if (beta < 0) {
+    adjustedBeta = 0; // 如果 beta < 90，强制设为 0
+} else {
+    adjustedBeta = beta; // beta == 90 时，保持为 90
+}
+
+const elevationDistance = (90 - adjustedBeta) / 90 * barHeight;
+
+
+
+
+
+
+// 更新黄点位置
+
+arrowElevation.style.top = `${elevationDistance - arrowElevation.offsetHeight / 2}px`;
+
 
 }
 
@@ -471,17 +555,17 @@ function handler(e) {
 
         if (window.DeviceOrientationEvent) {
             window.addEventListener('deviceorientation', function (event) {
-                var a = document.getElementById('alpha'),
+                /*var a = document.getElementById('alpha'),
                     b = document.getElementById('beta'),
-                    g = document.getElementById('gamma'),
+                    g = document.getElementById('gamma'),*/
 
                     alpha = event.alpha,
                     beta = event.beta,
                     gamma = event.gamma;
 
-                a.innerHTML = Math.round(alpha);
+                /*a.innerHTML = Math.round(alpha);
                 b.innerHTML = Math.round(beta);
-                g.innerHTML = Math.round(gamma);
+                g.innerHTML = Math.round(gamma);*/
 
                   // Update arrow and compass position
         handler(event);      
@@ -501,9 +585,9 @@ function handler(e) {
   </script>
 
 
-          alpha: <span id="alpha"></span><br/>
+        <!-- alpha: <span id="alpha"></span><br/>
     beta: <span id="beta"></span><br/>
-    gamma: <span id="gamma"></span><br/>
+    gamma: <span id="gamma"></span><br/>-->
 
 
 </html>
