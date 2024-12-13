@@ -229,7 +229,7 @@ function drawCompassBackground(ctx) {
             ctx.setLineDash([]); // Reset dash style
 
             // Draw cardinal directions
-            const directions = [ 'E','N', 'W', 'S'];
+            const directions = [ 'E-90','N-180', 'W-270', 'S-0'];
             directions.forEach((dir, index) => {
                 const angle = (index * 90) * (Math.PI / 180);
                 const x = centerX + (radius - 20) * Math.cos(angle);
@@ -266,17 +266,14 @@ function getRadiusForElevation(elevation, radius) {
 }
 
 // 绘制轨迹曲线
-function drawTrajectory(ctx, selectedPass) {
+function drawTrajectory(ctx, selectedPass) { 
     const centerX = 150;
     const centerY = 150;
     const radius = 140;
 
     // 根据仰角调整半径
     const getRadiusForElevation = (elevation) => {
-        if (elevation <= 30) return radius;
-        if (elevation <= 60) return radius * 0.75;
-        if (elevation <= 90) return radius * 0.5;
-        return radius * 0.25; // 90° 仰角
+        return radius * (90 - elevation) / 90; // 仰角映射为半径比例
     };
 
     const entryRadius = getRadiusForElevation(0);
