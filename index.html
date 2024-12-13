@@ -242,7 +242,10 @@
             }
 
 
-            fetch('https://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
+
+
+            //fetch('https://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
+            fetch('/satonline.txt')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('网络响应失败');
@@ -251,6 +254,7 @@
                 })
                 .then(data => {
                     satellites = parseSatellitesData(data);
+                    console.log(data)
                     localStorage.setItem('satellites', JSON.stringify(satellites));
                     populateDropdown(satellites);
                 })
