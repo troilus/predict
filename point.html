@@ -37,15 +37,14 @@
       margin: 20px 0;
   }
 
-  #trajectory-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 2; /* Ensure it is above the compass circle */
-          transform-origin: center; /* 设置旋转中心为画布中心 */
-    /*transition: transform 0.1s linear; /* 平滑旋转效果（可选） */
-  }
-
+        #trajectory-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            transform-origin: center;
+            transform: rotate(0deg);
+        }
   .compass {
       position: relative;
       width: 300px;
@@ -111,8 +110,8 @@
     <script src="satellite.js"></script>
 
   <script>
-            const compassBackground = document.getElementById('compass-background');
-        const compassCtx = compassBackground.getContext('2d');
+    const compassBackground = document.getElementById('compass-background');
+    const compassCtx = compassBackground.getContext('2d');
     const compassCircle = document.querySelector(".compass-circle");
     const myPoint = document.querySelector(".my-point");
     const startBtn = document.querySelector(".start-btn");
@@ -145,7 +144,7 @@ window.onload = function () {
 
 
     // 绘制罗盘背景
-    //drawCompass(elevationCtx);
+        drawCompassBackground(compassCtx);
 
     // 绘制卫星过境轨迹
     drawTrajectory(trajectoryCtx, selectedPass);
@@ -400,7 +399,7 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
     }
 
 function handler(e) {
-    drawCompassBackground(compassCtx);
+
     const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
 
     // Define the center of the compass
