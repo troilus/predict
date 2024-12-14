@@ -625,7 +625,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
             if (canvas) {
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
-                    drawTrajectory(ctx, pass, satrec, observerGd);
+                    drawTrajectory(ctx, pass);
                 }
             }
         });
