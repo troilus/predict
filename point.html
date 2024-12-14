@@ -251,7 +251,7 @@ function drawCompassBackground(ctx) {
             ctx.setLineDash([]); // Reset dash style
 
             // Draw cardinal directions
-            const directions = [ 'E-90','N-180', 'W-270', 'S-0'];
+            const directions = [ 'E-90','N-0', 'W-270', 'S-180'];
             directions.forEach((dir, index) => {
                 const angle = (index * 90) * (Math.PI / 180);
                 const x = centerX + (radius - 20) * Math.cos(angle);
@@ -320,7 +320,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
         const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
 
         // Only consider valid look angles (elevation between 0 and 90 degrees)
-        if (elevation >= 0 && elevation <= 90) {
+        if (elevation > 0 && elevation <= 90) {
             const centerX = 150;
             const centerY = 150;
             const radius = 140;
@@ -334,8 +334,11 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
 
             // Store the trajectory points
             trajectoryPoints.push({ x: satelliteX, y: satelliteY });
-        }
+        } else if (elevation < 0) {
+        // 当仰角小于或等于0时，确保卫星点不显示
+        ctx.clearRect(0, 0, 300, 300); // 清空图层，避免显示卫星点
     }
+    } 
 
     // Draw the trajectory line connecting all points
     ctx.beginPath();
@@ -469,10 +472,7 @@ if (elevation >= 0 && elevation <= 90) {
         ctx.fill();
 
 
-    } else if (elevation <= 0) {
-        // 当仰角小于或等于0时，确保卫星点不显示
-        //ctx.clearRect(0, 0, 300, 300); // 清空图层，避免显示卫星点
-}
+    } 
 }
 
 
