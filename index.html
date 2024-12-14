@@ -278,7 +278,7 @@
                 })
                 .then(data => {
                     satellites = parseSatellitesData(data);
-                    console.log(data)
+
                     localStorage.setItem('satellites', JSON.stringify(satellites));
                     populateDropdown(satellites);
                 })
@@ -529,12 +529,12 @@ function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
     const satelliteData = groupedPasses.map((pass, index) => {
         return {
             satelliteName: satelliteName,
-            entryTime: pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit',hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间",
+            entryTime: pass.entry?.time ? new Date(pass.entry.time): "未知时间",
             entryAzimuth: pass.entry?.azimuth ? pass.entry.azimuth.toFixed(2) : "未知",
-            highestTime: pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间",
+            highestTime: pass.highest?.time ? new Date(pass.highest.time): "未知时间",
             highestAzimuth: pass.highest?.azimuth ? pass.highest.azimuth.toFixed(2) : "未知",
             highestElevation: pass.highest?.elevation ? pass.highest.elevation.toFixed(2) : "未知",
-            exitTime: pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', {  month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间",
+            exitTime: pass.exit?.time ? new Date(pass.exit.time):"未知时间",
             exitAzimuth: pass.exit?.azimuth ? pass.exit.azimuth.toFixed(2) : "未知"
         };
     });

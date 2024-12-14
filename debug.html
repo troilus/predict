@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compass Trajectory Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        canvas {
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Compass Trajectory Visualizer</h1>
+    <label for="highestElevation">Highest Elevation (degrees):</label>
+    <input type="number" id="highestElevation" value="30" min="0" max="90">
+    <label for="correctionFactor">Correction Factor:</label>
+    <input type="number" id="correctionFactor" value="0" step="1">
+    <button onclick="draw()">Generate Trajectory</button>
+
+    <canvas id="compassCanvas" width="300" height="300"></canvas>
+
+    <script>
+        function drawCompassBackground(ctx) {
+            const centerX = 150;
+            const centerY = 150;
+            const radius = 140;
+
+            // Draw outer circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw concentric circles for elevation
+            const circleAngles = [30, 60];
+            circleAngles.forEach((elevation) => {
+                const circleRadius = (radius * (90 - elevation)) / 90;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, circleRadius, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'gray';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+            });
+            ctx.setLineDash([]); // Reset dash style
+
+            // Draw cardinal directions
+            const directions = ['E-90', 'N-180', 'W-270', 'S-0'];
+            directions.forEach((dir, index) => {
+                const angle = (index * 90) * (Math.PI / 180);
+                const x = centerX + (radius - 20) * Math.cos(angle);
+                const y = centerY - (radius - 20) * Math.sin(angle);
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dir, x, y);
+            });
+        }
+
+        function drawTrajectory(ctx, highestElevation, correctionFactor) {
+            const centerX = 150;
+            const centerY = 150;
+            const radius = 140;
+
+            const getRadiusForElevation = (elevation) => {
+                return radius * (90 - elevation) / 90; // Elevation to radius mapping
+            };
+
+            const entryRadius = getRadiusForElevation(0);
+            const exitRadius = getRadiusForElevation(0);
+            const highestRadius = getRadiusForElevation(highestElevation - correctionFactor);
+
+            const toCanvasCoords = (azimuth, distance) => {
+                const angle = (90 - azimuth) * (Math.PI / 180); // Rotate azimuth to align north
+                const x = centerX + distance * Math.cos(angle);
+                const y = centerY - distance * Math.sin(angle);
+                return { x, y };
+            };
+
+            const entryAzimuth = 120;
+            const exitAzimuth = 360;
+            const highestAzimuth = (entryAzimuth + exitAzimuth) / 2;
+
+            const { x: entryX, y: entryY } = toCanvasCoords(entryAzimuth, entryRadius);
+            const { x: exitX, y: exitY } = toCanvasCoords(exitAzimuth, exitRadius);
+            const { x: highestX, y: highestY } = toCanvasCoords(highestAzimuth, highestRadius);
+
+            // Draw Bezier curve for trajectory
+            ctx.beginPath();
+            ctx.moveTo(entryX, entryY);
+            ctx.quadraticCurveTo(highestX, highestY, exitX, exitY);
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Debug: Mark key points
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(highestX, highestY, 5, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function draw() {
+            const canvas = document.getElementById('compassCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw compass background
+            drawCompassBackground(ctx);
+
+            // Get user input values
+            const highestElevation = parseFloat(document.getElementById('highestElevation').value);
+            const correctionFactor = parseFloat(document.getElementById('correctionFactor').value);
+
+            // Draw trajectory
+            drawTrajectory(ctx, highestElevation, correctionFactor);
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>

@@ -158,8 +158,7 @@ window.onload = function () {
     // 绘制罗盘背景
     drawCompassBackground(compassCtx);
 
-    // 绘制卫星过境轨迹
-    drawTrajectory(trajectoryCtx, selectedPass);
+
 
     // 显示卫星信息
     const satelliteName = localStorage.getItem('selectedSatelliteName');
@@ -177,7 +176,8 @@ window.onload = function () {
         };
         startTracking(trajectoryCtx, selectedPass, satrec, observerGd)
 
- 
+     // 绘制卫星过境轨迹
+    drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
         setInterval(() => {
             const now = new Date();
             const positionAndVelocity = satellite.propagate(satrec, now);
@@ -196,7 +196,7 @@ window.onload = function () {
 
             document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
             document.getElementById('satellite-info').textContent = `当前方位：${azimuthdg}° 当前仰角：${elevationdg}° 预测最高仰角：${selectedPass.highestElevation}° `;
-            document.getElementById('pass-info').textContent = `开始：${selectedPass.entryTime} ${selectedPass.entryAzimuth}° | 结束：${selectedPass.exitTime} ${selectedPass.exitAzimuth}°`;
+            document.getElementById('pass-info').textContent = `开始：${selectedPass.entryTime.toLocaleString('zh-CN', {  month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) } ${selectedPass.entryAzimuth}° | 结束：${selectedPass.exitTime.toLocaleString('zh-CN', {  month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) } ${selectedPass.exitAzimuth}°`;
             document.getElementById('time-info').textContent = `当前时间：${now.toLocaleString('zh-CN', { 
                 month: '2-digit', 
                 day: '2-digit', 
@@ -205,7 +205,7 @@ window.onload = function () {
                 second: '2-digit' 
 
             })}`;
-            updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
+           // updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
 
         }, 1000);
     }
@@ -288,41 +288,88 @@ function getRadiusForElevation(elevation, radius) {
 }
 
 // 绘制轨迹曲线
-function drawTrajectory(ctx, selectedPass) { 
-    const centerX = 150;
-    const centerY = 150;
-    const radius = 140;
+function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
 
-    // 根据仰角调整半径
-    const getRadiusForElevation = (elevation) => {
-        return radius * (90 - elevation) / 90; // 仰角映射为半径比例
-    };
 
-    const entryRadius = getRadiusForElevation(0);
-    const exitRadius = getRadiusForElevation(0);
-    const highestRadius = getRadiusForElevation(selectedPass.highestElevation);
+    const startTime = new Date(selectedPass.entryTime);
+    const endTime = new Date(selectedPass.exitTime);
+        console.log(startTime)
+   const steps = 100;
+    const timeStep = (endTime - startTime) / steps;
 
-    // 将方位角转换为绘图坐标
-    const toCanvasCoords = (azimuth, distance) => {
-        const angle = (90 - azimuth) * (Math.PI / 180); // 旋转方位角，0°指向北方
-        const x = centerX + distance * Math.cos(angle);
-        const y = centerY - distance * Math.sin(angle);
-        return { x, y };
-    };
 
-    const { x: entryX, y: entryY } = toCanvasCoords(selectedPass.entryAzimuth, entryRadius);
-    const { x: exitX, y: exitY } = toCanvasCoords(selectedPass.exitAzimuth, exitRadius);
-    const { x: highestX, y: highestY } = toCanvasCoords(selectedPass.highestAzimuth, highestRadius);
+    const trajectoryPoints = [];
+    
+    // Loop through selectedPass (pass times or observations) and calculate satellite position
+    for (let i = 0; i <= steps; i++) {
+        const passTime = new Date(startTime.getTime() + i * timeStep);
 
-    // 绘制贝塞尔曲线连接轨迹点
+
+        // Get the satellite position at this pass time
+        const positionAndVelocity = satellite.propagate(satrec, passTime);
+        const gmst = satellite.gstime(passTime);
+        const positionEci = positionAndVelocity.position;
+
+        // Get the look angles (elevation and azimuth) at this time
+        const lookAngles = satellite.ecfToLookAngles(
+            observerGd,
+            satellite.eciToEcf(positionEci, gmst)
+        );
+
+        const elevation = satellite.radiansToDegrees(lookAngles.elevation);
+        const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
+
+        // Only consider valid look angles (elevation between 0 and 90 degrees)
+        if (elevation >= 0 && elevation <= 90) {
+            const centerX = 150;
+            const centerY = 150;
+            const radius = 140;
+
+            // Map elevation to a radius on the compass
+            const satelliteRadius = radius * (90 - elevation) / 90;
+
+            // Calculate the x, y coordinates of the satellite on the compass
+            const satelliteX = centerX + satelliteRadius * Math.cos((90 - azimuth) * (Math.PI / 180));
+            const satelliteY = centerY - satelliteRadius * Math.sin((90 - azimuth) * (Math.PI / 180));
+
+            // Store the trajectory points
+            trajectoryPoints.push({ x: satelliteX, y: satelliteY });
+        }
+    }
+
+    // Draw the trajectory line connecting all points
     ctx.beginPath();
-    ctx.moveTo(entryX, entryY);
-    ctx.quadraticCurveTo(highestX, highestY, exitX, exitY);
-    ctx.strokeStyle = 'blue';
+    ctx.moveTo(trajectoryPoints[0].x, trajectoryPoints[0].y);
+
+    for (let i = 1; i < trajectoryPoints.length; i++) {
+        ctx.lineTo(trajectoryPoints[i].x, trajectoryPoints[i].y);
+
+    }
+    ctx.strokeStyle = 'blue'; // Trajectory line color
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    return generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY);
+
+    // 绘制调试点
+    drawDebugPoint(ctx, trajectoryPoints[0].x, trajectoryPoints[0].y, 'green', '');
+    drawDebugPoint(ctx, trajectoryPoints[(trajectoryPoints.length+1)/2].x, trajectoryPoints[(trajectoryPoints.length+1)/2].y, 'red', 'El'); // Peak 和 Peak2 应重合
+    drawDebugPoint(ctx, trajectoryPoints[trajectoryPoints.length-1].x, trajectoryPoints[trajectoryPoints.length-1].y, 'green', '');
+
+
+
+    return 1;
+}
+
+
+// 调试函数：绘制轨迹点位置
+function drawDebugPoint(ctx, x, y, color, label) {
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x, y - 10);
 }
 
 // 生成轨迹上的点数组
@@ -368,21 +415,14 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
         satellite.eciToEcf(positionEci, gmst)
     );
 
-
-
     const elevation = satellite.radiansToDegrees(lookAngles.elevation);
-
-
     const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
 
 
-
-        // 显示卫星的仰角
+            // 显示卫星的仰角
     const elevationBar = document.getElementById('elevation-bar');
     const satelliteElevation = document.getElementById('satellite-elevation');
     const barHeight = elevationBar.offsetHeight-9;
-
-
 // 需要确保 elevation 在 0 到 90 之间
 if (elevation >= 0 && elevation <= 90) {
 
@@ -401,19 +441,16 @@ if (elevation >= 0 && elevation <= 90) {
 }
 
 
-
-
-
-    if (parseFloat(elevation) > 0) {
+    if (elevation > 0 && elevation <= 90) {
         const centerX = 150;
         const centerY = 150;
         const radius = 140;
 
-        // 根据仰角计算卫星轨迹半径
+        // 根据仰角计算半径
         const getRadiusForElevation = (elevation) => radius * (90 - elevation) / 90;
         const satelliteRadius = getRadiusForElevation(elevation);
 
-        // 计算卫星的画布坐标
+        // 计算卫星在罗盘上的位置
         const satelliteX = centerX + satelliteRadius * Math.cos((90 - azimuth) * (Math.PI / 180));
         const satelliteY = centerY - satelliteRadius * Math.sin((90 - azimuth) * (Math.PI / 180));
 
@@ -421,17 +458,21 @@ if (elevation >= 0 && elevation <= 90) {
         ctx.clearRect(0, 0, 300, 300);
 
         // 绘制轨迹和卫星
-        const trajectoryPoints = drawTrajectory(ctx, selectedPass);
+        const trajectoryPoints = drawTrajectory(ctx, selectedPass, satrec, observerGd);
 
-        // 计算卫星在轨迹曲线上的投影点
-        const projectedPoint = projectPointToCurve(satelliteX, satelliteY, trajectoryPoints);
 
-        // 绘制轨迹上的卫星位置
+
+        // 绘制罗盘上的卫星仰角点
         ctx.beginPath();
-        ctx.arc(projectedPoint.x, projectedPoint.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'blue';
+        ctx.arc(satelliteX, satelliteY, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = 'blue'; // 仰角点颜色
         ctx.fill();
-    }
+
+
+    } else if (elevation <= 0) {
+        // 当仰角小于或等于0时，确保卫星点不显示
+        ctx.clearRect(0, 0, 300, 300); // 清空图层，避免显示卫星点
+}
 }
 
 
