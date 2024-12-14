@@ -179,6 +179,32 @@
         <input type="checkbox" id="timeFilter">
     </div>
 
+<div class="elevation-filter">
+    <label for="elevationThreshold">Calculate only El≥</label>
+    <select id="elevationThreshold">
+        <option value="0">0°</option>
+        <option value="5">5°</option>
+        <option value="10">10°</option>
+        <option value="15" selected>15°</option>
+        <option value="20">20°</option>
+        <option value="25">25°</option>
+        <option value="30">30°</option>
+        <option value="35">35°</option>
+        <option value="40">40°</option>
+        <option value="45">45°</option>
+        <option value="50">50°</option>
+        <option value="55">55°</option>
+        <option value="60">60°</option>
+        <option value="65">65°</option>
+        <option value="70">70°</option>
+        <option value="75">75°</option>
+        <option value="80">80°</option>
+        <option value="85">85°</option>
+    </select>
+</div>
+
+
+
     <button id="calculatePass" class="button">Calculate</button>
         <div id="notesInfo"></div>
     <div id="passInfo"></div>
@@ -233,7 +259,7 @@
 
 
 
-                    document.getElementById('location').textContent = `位置：${latitudefix}, ${longitudefix} `;
+                    document.getElementById('location').textContent = `Location：${latitudefix}, ${longitudefix} `;
                 }, function(error) {
                     document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
                 });
@@ -357,7 +383,7 @@ function populateDropdown(satellites) {
 
 
             const locationText = document.getElementById('location').textContent;
-            const match = locationText.match(/位置：([\-0-9.]+), ([\-0-9.]+)/);
+            const match = locationText.match(/Location：([\-0-9.]+), ([\-0-9.]+)/);
             const timeFilterChecked = document.getElementById('timeFilter').checked;
   
 
@@ -395,50 +421,40 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
         height: 0
     };
 
-        console.log(observerGd)
-    // 计算未来 5 天内的所有可能时间点
     const endTime = new Date(currentTime.getTime() + 3 * 24 * 60 * 60 * 1000);
-    const timeStep = 1 * 1000; // 1分钟步长（单位：毫秒）
+    const timeStep = 1 * 1000; // 1秒步长（单位：毫秒）
 
-    for (let time = currentTime.getTime()-60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
+    for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
         const passTime = new Date(time);
-
-        // 计算卫星位置和速度
-
 
         const positionAndVelocity = satellite.propagate(satrec, passTime);
         if (positionAndVelocity && positionAndVelocity.position) {
             const gmst = satellite.gstime(passTime);
 
-            // 转换为地理坐标和视角
             const lookAngles = satellite.ecfToLookAngles(
                 observerGd,
                 satellite.eciToEcf(positionAndVelocity.position, gmst)
             );
 
-
             if (lookAngles) {
                 const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
 
-                // 过滤仰角大于等于 15 度的记录
-                if (elevationDegrees >= 15) {
+                // 仰角大于 0 度的记录添加到 passes
+                if (elevationDegrees > 0) {
                     const pass = {
                         time: passTime,
                         azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
                         elevation: elevationDegrees,
                     };
 
-                    // If the checkbox is checked, only include passes between 19:00 and 23:59
-                    const passHour = passTime.getHours();
-                    if (filterNightTime && (passHour < 19 || passHour >= 24)) {
-                        continue; // Skip this pass if it is outside the 19:00 to 23:59 range
+                    if (filterNightTime) {
+                        const passHour = passTime.getHours();
+                        if (passHour < 19 || passHour >= 24) {
+                            continue; // 跳过夜间范围外的记录
+                        }
                     }
 
                     passes.push(pass);
-
-
-
-
                 }
             }
         }
@@ -447,38 +463,63 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
     return passes;
 }
 
-
 function groupPasses(passes) {
     const groupedPasses = [];
     let currentPass = null;
+    let hasAboveThreshold  = false; // 是否出现过仰角 >= 15 的点
+        const elevationThreshold = parseFloat(document.getElementById('elevationThreshold').value);
+
 
     passes.forEach((pass, index) => {
         if (!currentPass) {
-            currentPass = { entry: pass, highest: pass, exit: pass };
+            // 初始化分组，当仰角从 0 度变为正值时开始记录
+            if (pass.elevation > 0) {
+                currentPass = { entry: pass, highest: pass, exit: pass };
+                hasAboveThreshold  = pass.elevation >= elevationThreshold; // 标记是否达到 15 度
+            }
         } else {
-            // 如果时间连续且仰角满足条件，更新当前过境的最高点和出境点
             const timeDifference = (new Date(pass.time) - new Date(currentPass.exit.time)) / 1000;
-            if (timeDifference <= 600) { // 时间差小于等于10分钟认为是同一次过境
+
+            if (pass.elevation > 0 && timeDifference <= 600) { 
+                // 更新出口点
                 currentPass.exit = pass;
-                if (parseFloat(pass.elevation) > parseFloat(currentPass.highest.elevation)) {
+
+                // 更新最高点
+                if (pass.elevation > currentPass.highest.elevation) {
                     currentPass.highest = pass;
                 }
-            } else {
-                // 完成一组数据后存储，并开启新的一次过境
-                groupedPasses.push(currentPass);
+
+                // 标记是否达到 15 度
+                if (pass.elevation >= elevationThreshold) {
+                    hasAboveThreshold  = true;
+                }
+            } else if (pass.elevation > 0) {
+                // 保存当前分组
+                if (hasAboveThreshold ) {
+                    groupedPasses.push(currentPass);
+                }
+
+                // 开始新分组
                 currentPass = { entry: pass, highest: pass, exit: pass };
+                hasAboveThreshold = pass.elevation >= elevationThreshold;
+            } else {
+                // 当仰角回到 0 度时结束分组
+                if (hasAboveThreshold) {
+                    groupedPasses.push(currentPass);
+                }
+                currentPass = null;
+                hasAboveThreshold = false;
             }
         }
 
         // 如果是最后一个点，强制结束当前分组
-        if (index === passes.length - 1 && currentPass) {
+        if (index === passes.length - 1 && currentPass && hasAboveThreshold) {
             groupedPasses.push(currentPass);
         }
     });
 
     return groupedPasses;
 }
-
 
 function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 
@@ -541,7 +582,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
             rowClass = "day";    // 其余时间，蓝底黄字
         }
 
-        document.getElementById('notesInfo').innerHTML = '<p>ap Date to Orbit view</p>';
+        document.getElementById('notesInfo').innerHTML = '<p>Tap Date to Orbit view</p>';
 
         const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
         const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
@@ -634,7 +675,15 @@ function drawTrajectory(ctx, selectedPass, scaleFactor = 0.17) {
     ctx.stroke();
 }
 
+document.addEventListener('click', function(event) {
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('satelliteDropdown');
 
+    // 检查点击目标是否是输入框或下拉列表的一部分
+    if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none'; // 隐藏下拉菜单
+    }
+});
 
 
     </script>

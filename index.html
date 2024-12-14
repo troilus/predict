@@ -179,6 +179,30 @@
         <input type="checkbox" id="timeFilter">
     </div>
 
+    <div class="elevation-filter">
+    <label for="elevationThreshold">最高点仰角≥</label>
+    <select id="elevationThreshold">
+        <option value="0">0°</option>
+        <option value="5">5°</option>
+        <option value="10">10°</option>
+        <option value="15" selected>15°</option>
+        <option value="20">20°</option>
+        <option value="25">25°</option>
+        <option value="30">30°</option>
+        <option value="35">35°</option>
+        <option value="40">40°</option>
+        <option value="45">45°</option>
+        <option value="50">50°</option>
+        <option value="55">55°</option>
+        <option value="60">60°</option>
+        <option value="65">65°</option>
+        <option value="70">70°</option>
+        <option value="75">75°</option>
+        <option value="80">80°</option>
+        <option value="85">85°</option>
+    </select>
+</div>
+
     <button id="calculatePass" class="button">计算过境信息</button>
         <div id="notesInfo"></div>
     <div id="passInfo"></div>
@@ -444,14 +468,16 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
 function groupPasses(passes) {
     const groupedPasses = [];
     let currentPass = null;
-    let hasAbove15 = false; // 是否出现过仰角 >= 15 的点
+    let hasAboveThreshold  = false; // 是否出现过仰角 >= 15 的点
+        const elevationThreshold = parseFloat(document.getElementById('elevationThreshold').value);
+
 
     passes.forEach((pass, index) => {
         if (!currentPass) {
             // 初始化分组，当仰角从 0 度变为正值时开始记录
             if (pass.elevation > 0) {
                 currentPass = { entry: pass, highest: pass, exit: pass };
-                hasAbove15 = pass.elevation >= 15; // 标记是否达到 15 度
+                hasAboveThreshold  = pass.elevation >= elevationThreshold; // 标记是否达到 15 度
             }
         } else {
             const timeDifference = (new Date(pass.time) - new Date(currentPass.exit.time)) / 1000;
@@ -466,30 +492,30 @@ function groupPasses(passes) {
                 }
 
                 // 标记是否达到 15 度
-                if (pass.elevation >= 15) {
-                    hasAbove15 = true;
+                if (pass.elevation >= elevationThreshold) {
+                    hasAboveThreshold  = true;
                 }
             } else if (pass.elevation > 0) {
                 // 保存当前分组
-                if (hasAbove15) {
+                if (hasAboveThreshold ) {
                     groupedPasses.push(currentPass);
                 }
 
                 // 开始新分组
                 currentPass = { entry: pass, highest: pass, exit: pass };
-                hasAbove15 = pass.elevation >= 15;
+                hasAboveThreshold = pass.elevation >= elevationThreshold;
             } else {
                 // 当仰角回到 0 度时结束分组
-                if (hasAbove15) {
+                if (hasAboveThreshold) {
                     groupedPasses.push(currentPass);
                 }
                 currentPass = null;
-                hasAbove15 = false;
+                hasAboveThreshold = false;
             }
         }
 
         // 如果是最后一个点，强制结束当前分组
-        if (index === passes.length - 1 && currentPass && hasAbove15) {
+        if (index === passes.length - 1 && currentPass && hasAboveThreshold) {
             groupedPasses.push(currentPass);
         }
     });
@@ -653,7 +679,15 @@ function drawTrajectory(ctx, selectedPass, scaleFactor = 0.17) {
 }
 
 
+document.addEventListener('click', function(event) {
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('satelliteDropdown');
 
+    // 检查点击目标是否是输入框或下拉列表的一部分
+    if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none'; // 隐藏下拉菜单
+    }
+});
 
     </script>
 </body>
