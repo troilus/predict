@@ -174,10 +174,60 @@ window.onload = function () {
             height: 0
 
         };
-        startTracking(trajectoryCtx, selectedPass, satrec, observerGd)
+
+
+
+// 获取当前时间
+const currentTime = new Date();
+
+// 将 selectedPass.entryTime 和 selectedPass.exitTime 转换为 Date 对象
+const entryTime = new Date(selectedPass.entryTime);
+const exitTime = new Date(selectedPass.exitTime);
+
+
+// 格式化时间
+const formattedEntryTime = entryTime.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+});
+
+const formattedExitTime = exitTime.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+});
+
+
+
+
+document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
+document.getElementById('satellite-info').textContent = `当前方位：° 当前仰角：° 预测最高仰角：${selectedPass.highestElevation}° `;
+document.getElementById('pass-info').textContent = `开始：${formattedEntryTime} ${selectedPass.entryAzimuth}° | 结束：${formattedExitTime} ${selectedPass.exitAzimuth}°`;
+document.getElementById('time-info').textContent = "当前时间：";
+
+
+
+
+
+
+
+
+
+
+
+
 
      // 绘制卫星过境轨迹
     drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+
+
+
+
         setInterval(() => {
             const now = new Date();
             const positionAndVelocity = satellite.propagate(satrec, now);
@@ -194,18 +244,50 @@ window.onload = function () {
             const distance = satellite.eciToGeodetic(positionEci).height.toFixed(2);
             const height = positionEci.z.toFixed(2);
 
+
             document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
             document.getElementById('satellite-info').textContent = `当前方位：${azimuthdg}° 当前仰角：${elevationdg}° 预测最高仰角：${selectedPass.highestElevation}° `;
-            document.getElementById('pass-info').textContent = `开始：${selectedPass.entryTime.toLocaleString('zh-CN', {  month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) } ${selectedPass.entryAzimuth}° | 结束：${selectedPass.exitTime.toLocaleString('zh-CN', {  month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }) } ${selectedPass.exitAzimuth}°`;
-            document.getElementById('time-info').textContent = `当前时间：${now.toLocaleString('zh-CN', { 
-                month: '2-digit', 
-                day: '2-digit', 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit' 
+            document.getElementById('pass-info').textContent = `开始：${formattedEntryTime} ${selectedPass.entryAzimuth}° | 结束：${formattedExitTime} ${selectedPass.exitAzimuth}°`;
 
-            })}`;
+const formattedTime = now.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+});
+
+// 判断时间状态并设置显示信息
+let timeInfo = `当前时间：${formattedTime}`;
+
+if (now >= entryTime && now <= exitTime) {
+    // 如果当前时间在 entryTime 和 exitTime 之间，计算距离结束时间的剩余时间
+    const timeRemaining = exitTime - now;
+    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    timeInfo += `，距离结束：${hours}h ${minutes}m ${seconds}s`;
+        startTracking(trajectoryCtx, selectedPass, satrec, observerGd);
+} else if (now < entryTime) {
+    // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
+    const timeRemaining = entryTime - now;
+    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    timeInfo += `，距离开始：${hours}h ${minutes}m ${seconds}s`;
+    const satelliteElevation = document.getElementById('satellite-elevation');
+        satelliteElevation.style.display = 'none';
+} else if (now > exitTime) {
+    // 如果当前时间在 exitTime 之后，只显示当前时间
+    timeInfo = `当前时间：${formattedTime}`;
+    const satelliteElevation = document.getElementById('satellite-elevation');
+        satelliteElevation.style.display = 'none';
+}
+
+// 更新显示内容
+document.getElementById('time-info').textContent = timeInfo;
            // updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
+
 
         }, 1000);
     }
@@ -334,10 +416,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
 
             // Store the trajectory points
             trajectoryPoints.push({ x: satelliteX, y: satelliteY });
-        } else if (elevation < 0) {
-        // 当仰角小于或等于0时，确保卫星点不显示
-        ctx.clearRect(0, 0, 300, 300); // 清空图层，避免显示卫星点
-    }
+        }
     } 
 
     // Draw the trajectory line connecting all points
@@ -358,6 +437,10 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
     drawDebugPoint(ctx, trajectoryPoints[(trajectoryPoints.length+1)/2].x, trajectoryPoints[(trajectoryPoints.length+1)/2].y, 'red', 'El'); 
     //drawDebugPoint(ctx, trajectoryPoints[trajectoryPoints.length-1].x, trajectoryPoints[trajectoryPoints.length-1].y, 'green', '');
 
+/*if (elevation < 0) {
+        // 当仰角小于或等于0时，确保卫星点不显示
+        ctx.clearRect(0, 0, 300, 300); // 清空图层，避免显示卫星点
+    }*/
 
 
     return 1;
@@ -427,7 +510,7 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
     const satelliteElevation = document.getElementById('satellite-elevation');
     const barHeight = elevationBar.offsetHeight-9;
 // 需要确保 elevation 在 0 到 90 之间
-if (elevation >= 0 && elevation <= 90) {
+if (elevation > 0 && elevation <= 90) {
 
 
 
