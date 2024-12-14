@@ -101,7 +101,7 @@
     </div>
 
 
-    <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 11px; background-color: #ddd; border: 0px solid #999;">
+    <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 11px; background-color: #ddd; border: 0px solid #999; border-radius: 3px;">
     <div id="satellite-elevation" style="position: absolute; left: 1px; width: 9px; height: 9px; background-color: blue; border-radius: 50%;"></div>
     <div id="arrow-elevation" style="position: absolute; left: 2px; width: 7px; height: 7px; background-color: red; border-radius: 50%;"></div>
 
@@ -434,7 +434,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
 
 
     // 绘制调试点
-    drawDebugPoint(ctx, trajectoryPoints[0].x, trajectoryPoints[0].y, 'green', 'Start');
+    //drawDebugPoint(ctx, trajectoryPoints[0].x, trajectoryPoints[0].y, 'green', 'Start');
     drawDebugPoint(ctx, trajectoryPoints[(trajectoryPoints.length+1)/2].x, trajectoryPoints[(trajectoryPoints.length+1)/2].y, 'red', 'El'); 
     //drawDebugPoint(ctx, trajectoryPoints[trajectoryPoints.length-1].x, trajectoryPoints[trajectoryPoints.length-1].y, 'green', '');
 
