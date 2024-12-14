@@ -217,7 +217,8 @@ document.getElementById('time-info').textContent = "当前时间：";
 
 
 
-
+    const satelliteElevation = document.getElementById('satellite-elevation');
+        satelliteElevation.style.display = 'none';
 
 
 
@@ -433,7 +434,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
 
 
     // 绘制调试点
-    //drawDebugPoint(ctx, trajectoryPoints[0].x, trajectoryPoints[0].y, 'green', '');
+    drawDebugPoint(ctx, trajectoryPoints[0].x, trajectoryPoints[0].y, 'green', 'Start');
     drawDebugPoint(ctx, trajectoryPoints[(trajectoryPoints.length+1)/2].x, trajectoryPoints[(trajectoryPoints.length+1)/2].y, 'red', 'El'); 
     //drawDebugPoint(ctx, trajectoryPoints[trajectoryPoints.length-1].x, trajectoryPoints[trajectoryPoints.length-1].y, 'green', '');
 
@@ -508,6 +509,8 @@ function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) {
             // 显示卫星的仰角
     const elevationBar = document.getElementById('elevation-bar');
     const satelliteElevation = document.getElementById('satellite-elevation');
+    satelliteElevation.style.display = 'block';  // 或 'inline' 根据需要选择
+
     const barHeight = elevationBar.offsetHeight-9;
 // 需要确保 elevation 在 0 到 90 之间
 if (elevation > 0 && elevation <= 90) {
@@ -555,7 +558,14 @@ if (elevation > 0 && elevation <= 90) {
         ctx.fill();
 
 
-    } 
+    } else if (elevation < 0){
+
+        ctx.clearRect(0, 0, 300, 300);
+        trajectoryPoints = drawTrajectory(ctx, selectedPass, satrec, observerGd);
+
+
+
+    }
 }
 
 
