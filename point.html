@@ -21,6 +21,14 @@
   }
 
 
+      @media (prefers-color-scheme: dark) {
+    body {
+            background-color: #2c2c2c;
+
+    };
+
+}
+
 
 
   #info-bar {
@@ -83,6 +91,12 @@
   .start-btn {
       margin-bottom: auto;
   }
+
+
+
+
+
+
 </style>
 
 
@@ -120,8 +134,6 @@
 </body>
 
 
-    <div id="made">Made with ❤ by troilus</div>
-
 
 
     <script src="satellite.js"></script>
@@ -150,7 +162,7 @@
 
 window.onload = function () {
     currentLang = localStorage.getItem('lang')
-
+    console.log(currentLang)
 
     const urlParams = new URLSearchParams(window.location.search);
     const index = urlParams.get('index');

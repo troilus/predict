@@ -61,6 +61,14 @@
             color: black;
         }
 
+        @media (prefers-color-scheme: dark) {
+    .lang-toggle a.active {
+            font-weight: bold;
+            color: white;
+    }
+}
+
+
 .button {
     padding: 8px 15px;
     border: none;
@@ -118,7 +126,12 @@
     z-index: 1000;
     display: none; /* 默认隐藏 */
         }
-
+@media (prefers-color-scheme: dark) {
+    .dropdown-list {
+        background-color: #333; /* 深色模式背景 */
+        border: 1px solid #555;
+    }
+}
         .dropdown-list div {
             padding: 10px;
             cursor: pointer;
@@ -383,6 +396,7 @@ function updateTableHeaders(lang) {
     document.getElementById('location').textContent = locationText;
                 }, function(error) {
                     document.getElementById('location').textContent = translations[currentLang].nolocation
+
                 });
             } else {
                 document.getElementById('location').textContent = '浏览器不支持地理定位。';
@@ -599,6 +613,7 @@ function populateDropdown(satellites) {
 
             const locationText = document.getElementById('location').textContent;
             const match = locationText.match(/(位置：|Location: )([\-0-9.]+), ([\-0-9.]+)/);
+
             const timeFilterChecked = document.getElementById('timeFilter').checked;
   
 
