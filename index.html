@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,8 +35,30 @@
             align-items: center;
         }
 
+                    #made {
+    margin-top: 20px; /* Increases the space above the element */
+    font-size: 14px;  /* Optional: Adjust font size */
+}
+
         h1 {
             margin-bottom: 20px;
+        }
+
+
+                .lang-toggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 14px;
+        }
+        .lang-toggle a {
+            margin: 0 5px;
+            text-decoration: none;
+            color: #919191;
+        }
+        .lang-toggle a.active {
+            font-weight: bold;
+            color: black;
         }
 
 .button {
@@ -157,11 +179,22 @@
                 background-color: var(--hover-color);
                 color: white;
             }
+
+
+
         }
     </style>
 </head>
 <body>
     <h1>🛰</h1>
+
+
+        <!-- 语言切换按钮 -->
+    <div class="lang-toggle">
+        <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a>
+    </div>
+
+
     <!--<button id="getLocation" class="button">获取位置</button>-->
     
 
@@ -172,15 +205,15 @@
 
     <!--<input type="text" id="searchInput" placeholder="搜索卫星..." />-->
 
-<div id="location" style="align-self: left;">位置信息：未获取</div>
+<div id="location" style="align-self: left;"></div>
 
     <div class="checkbox-container">
-        <label for="timeFilter">仅计算 19:00 ~ 23:59</label>
+        <label for="timeFilter"  id="timeFilterLabel" ></label>
         <input type="checkbox" id="timeFilter">
     </div>
 
     <div class="elevation-filter">
-    <label for="elevationThreshold">最高点仰角≥</label>
+    <label for="elevationThreshold"  id="elevationThresholdLabel"></label>
     <select id="elevationThreshold">
         <option value="0">0°</option>
         <option value="5">5°</option>
@@ -204,8 +237,8 @@
 </div>
 
     <button id="calculatePass" class="button">计算过境信息</button>
-        <div id="notesInfo"></div>
-    <div id="passInfo"></div>
+<div id="notesInfo" style="font-weight: bold;"></div>
+<div id="passInfo" style="font-weight: bold;"></div>
 
 
     <div id="made">Made with ❤ by troilus</div>
@@ -214,9 +247,121 @@
     <script src="satellite.js"></script>
 
     <script>
-        let satellites = [];
-        /*document.getElementById('getLocation').addEventListener('click', function() {
-            if (navigator.geolocation) {
+
+
+                // 定义语言内容
+        const translations = {
+            zh: {
+                location: "位置：${latitude}, ${longitude}",
+                locationDefault: "位置信息：未获取",
+                timeFilterLabel: "仅计算 19:00 ~ 23:59",
+                elevationThresholdLabel: "最高点仰角≥",
+                notesInfo: "<p>点击日期查看轨道及对星页面</p>",
+                placeholder: "搜索卫星...",
+                calculatePass:"计算过境信息",
+                                 noTLE:"无TLE信息",
+                                 unabletocalc:"请选择卫星并确认已定位",
+
+        noPassesInfo: "当前条件下未来3天内没有过境信息",
+        tableHeaders: {
+            date: "日期",
+            start: "开始",
+            highest: "最高仰角",
+            end: "结束",
+            time: "时间",
+            azimuth: "方位",
+            elevation: "仰角",
+            nolocation:"无法获取位置，请检查权限设置"
+        }
+
+        },
+
+            en: {
+                location: "Location: ${latitude}, ${longitude}",
+                locationDefault: "Location: Not Retrieved",
+                timeFilterLabel: "Calculate Only from 19:00 ~ 23:59",
+                elevationThresholdLabel: "Elevation ≥",
+                notesInfo: "<p>Click the date to view the orbit page</p>",
+                placeholder: "Search satellites...",
+                 calculatePass:"Calculate",
+                                 noTLE:"TLE not found",
+                                  unabletocalc:"Please select a satellite and confirm that the location has been determined",
+                   noPassesInfo: "No passes found for the next 3 days under the current conditions",
+        tableHeaders: {
+            date: "Date",
+            start: "Start",
+            highest: "Max. El",
+            end: "End",
+            time: "Time",
+            azimuth: "Az",
+            elevation: "El",
+            nolocation:"Unable to access location, please check the permission setting"
+        }
+        }
+        };
+
+        // 设置默认语言
+        let currentLang = 'zh';
+        localStorage.setItem('lang', currentLang);
+
+        // 更新 placeholder 内容
+function updatePlaceholder() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.placeholder = translations[currentLang].placeholder;
+}
+
+
+function updateTable() {
+    let html = `
+        <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
+            <thead>
+                <tr>
+                    <th rowspan="2">${translations[currentLang].table.date}</th>
+                    <th rowspan="2">${translations[currentLang].table.start}</th>
+                    <th colspan="3">${translations[currentLang].table.highestPoint}</th>
+                    <th rowspan="2">${translations[currentLang].table.end}</th>
+                </tr>
+                <tr>
+                    <th>${translations[currentLang].table.time}</th>
+                    <th>${translations[currentLang].table.azimuth}</th>
+                    <th>${translations[currentLang].table.elevation}</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    `;
+
+    document.getElementById('tableContainer').innerHTML = html;
+}
+
+
+function updateTableHeaders(lang) {
+    const passInfoDiv = document.getElementById('passInfo');
+    
+    // 检查是否存在表格
+    const table = passInfoDiv.getElementsByTagName('table')[0];
+    if (table) {
+        // 如果表格存在，更新表头文本
+        const headers = table.getElementsByTagName('th');
+        
+        headers[0].textContent = translations[lang].tableHeaders.date;
+        headers[1].textContent = translations[lang].tableHeaders.start;
+        headers[2].textContent = translations[lang].tableHeaders.highest;
+        headers[3].textContent = translations[lang].tableHeaders.time;
+        headers[4].textContent = translations[lang].tableHeaders.azimuth;
+        headers[5].textContent = translations[lang].tableHeaders.elevation;
+        headers[6].textContent = translations[lang].tableHeaders.end;
+    } else {
+        // 如果没有表格，更新显示的文本
+        passInfoDiv.innerHTML = `<p>${translations[lang].noPassesInfo}</p>`;
+    }
+}
+
+                // 初始化页面内容
+        function updateContent(lang) {
+
+                                    if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
@@ -231,16 +376,79 @@
 
 
 
-                    document.getElementById('location').textContent = `经纬度：${latitudefix}, ${longitudefix} `;
+    const locationText = translations[currentLang].location
+        .replace('${latitude}', latitudefix)
+        .replace('${longitude}', longitudefix);
+
+    document.getElementById('location').textContent = locationText;
                 }, function(error) {
-                    document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
+                    document.getElementById('location').textContent = translations[currentLang].nolocation
                 });
             } else {
                 document.getElementById('location').textContent = '浏览器不支持地理定位。';
             }
-        });*/
+
+
+
+            document.getElementById('location').textContent = translations[lang].location;
+            document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
+            document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
+
+            document.getElementById('calculatePass').textContent = translations[lang].calculatePass;
+
+
+
+        const notesElement = document.getElementById('notesInfo');
+        if (notesElement.innerHTML.trim() !== '') {
+            notesElement.innerHTML = translations[currentLang].notesInfo;
+        }
+
+
+
+
+
+            // 更新语言切换按钮的样式
+            document.getElementById('langZH').classList.toggle('active', lang === 'zh');
+            document.getElementById('langEN').classList.toggle('active', lang === 'en');
+        }
+
+        // 切换语言事件
+        document.getElementById('langZH').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentLang = 'zh';
+            updateContent(currentLang);
+            updatePlaceholder(); // 更新 placeholder 文本
+            updateTableHeaders(currentLang);
+                                localStorage.setItem('lang', currentLang);
+        });
+
+        document.getElementById('langEN').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentLang = 'en';
+            updateContent(currentLang);
+            updatePlaceholder(); // 更新 placeholder 文本
+            updateTableHeaders(currentLang);
+            localStorage.setItem('lang', currentLang);
+
+        });
+
+        // 初始化页面
+        updateContent(currentLang);
+        updatePlaceholder(); // 更新 placeholder 文本
+
+
+
+
+
+
+
+
+        let satellites = [];
+
 
         window.addEventListener('load', function() {
+            document.getElementById('location').textContent = translations[currentLang].locationDefault;
+
 
                         if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
@@ -257,7 +465,12 @@
 
 
 
-                    document.getElementById('location').textContent = `位置：${latitudefix}, ${longitudefix} `;
+
+    const locationText = translations[currentLang].location
+        .replace('${latitude}', latitudefix)
+        .replace('${longitude}', longitudefix);
+
+    document.getElementById('location').textContent = locationText;
                 }, function(error) {
                     document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
                 });
@@ -379,13 +592,13 @@ function populateDropdown(satellites) {
 
         document.getElementById('calculatePass').addEventListener('click', function() {
             const satelliteName = localStorage.getItem('selectedSatelliteName')
-            console.log(satelliteName)
+
 
 
 
 
             const locationText = document.getElementById('location').textContent;
-            const match = locationText.match(/位置：([\-0-9.]+), ([\-0-9.]+)/);
+            const match = locationText.match(/(位置：|Location: )([\-0-9.]+), ([\-0-9.]+)/);
             const timeFilterChecked = document.getElementById('timeFilter').checked;
   
 
@@ -398,7 +611,7 @@ function populateDropdown(satellites) {
                 const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
 
                 if (!satelliteinfo) {
-                    document.getElementById('passInfo').innerHTML = '<p>未找到卫星TLE数据。</p>';
+                    document.getElementById('passInfo').innerHTML = translations[currentLang].noTLE;
                     return;
                 }
 
@@ -411,7 +624,7 @@ function populateDropdown(satellites) {
                 const savedSatelliteDataToLocalStorage=saveSatelliteDataToLocalStorage(groupedPasses, satelliteName)
                 document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTML(groupedPasses);
             } else {
-                document.getElementById('passInfo').innerHTML = '<p>请提供卫星和有效的经纬度。</p>';
+                document.getElementById('passInfo').innerHTML =translations[currentLang].unabletocalc;
             }
         });
 
@@ -551,22 +764,31 @@ function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 function formatGroupedPassesToHTML(groupedPasses) {
     const satelliteName = localStorage.getItem('selectedSatelliteName');
     if (groupedPasses.length === 0) {
-        return "<p>当前条件下未来3天内没有仰角大于等于15度的过境信息。</p>";
+        // Hide the "notesInfo" div on the page
+        document.getElementById("notesInfo").style.display = "none";
+        
+        return `<p>${translations[currentLang].noPassesInfo}</p>`;
+    } else {
+        // Show the "notesInfo" div again if there are grouped passes
+        document.getElementById("notesInfo").style.display = "block";
+        
+        // Continue with the regular pass formatting
+        // Add your logic for formatting passes here, if any
     }
 
     let html = `
         <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
             <thead>
                 <tr>
-                    <th rowspan="2">日期</th>
-                    <th rowspan="2">开始</th>
-                    <th colspan="3">最高点</th>
-                    <th rowspan="2">结束</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.date}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.start}</th>
+                    <th colspan="3">${translations[currentLang].tableHeaders.highest}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.end}</th>
                 </tr>
                 <tr>
-                    <th>时间</th>
-                    <th>方位</th>
-                    <th>仰角</th>
+                    <th>${translations[currentLang].tableHeaders.time}</th>
+                    <th>${translations[currentLang].tableHeaders.azimuth}</th>
+                    <th>${translations[currentLang].tableHeaders.elevation}</th>
                 </tr>
             </thead>
             <tbody>
@@ -584,8 +806,8 @@ function formatGroupedPassesToHTML(groupedPasses) {
         } else {
             rowClass = "day";    // 其余时间，蓝底黄字
         }
-
-        document.getElementById('notesInfo').innerHTML = '<p>点击日期查看轨道及对星页面</p>';
+        lang=currentLang
+        document.getElementById('notesInfo').innerHTML = translations[lang].notesInfo; // 更新 notesInfo 内容
 
         const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
         const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
