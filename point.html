@@ -29,8 +29,6 @@
 
 }
 
-
-
   #info-bar {
       width: 100%;
       background-color: #333;
@@ -48,7 +46,7 @@
       margin: 20px 0;
   }
 
-        #trajectory-canvas {
+#trajectory-canvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -86,10 +84,23 @@
     z-index: 3;         /* Keep above all elements */
   }
 
+          #satorbitpoint {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(0deg);
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+
+
+
 
 
   .start-btn {
-      margin-bottom: auto;
+
   }
 
 
@@ -111,9 +122,7 @@
 
 <div id="canvas-container">
     <canvas id="trajectory-canvas" width="300" height="300"></canvas>
-    <!-- 罗盘 -->
     <div class="compass">
-        <!--<div class="compass-circle"></div>-->
         <canvas class="compass-circle" id="compass-background" width="300" height="300"></canvas>
         <div class="arrow"></div>
     </div>
@@ -126,7 +135,7 @@
 
 </div>
 
-
+    <canvas id="satorbitpoint" width="300" height="300"></canvas>
 
 
 </div>
@@ -148,8 +157,12 @@
       navigator.userAgent.match(/(iPod|iPhone|iPad)/) &&
       navigator.userAgent.match(/AppleWebKit/);
 
+      const satpointCtx = document.getElementById('satorbitpoint').getContext('2d');
+
+
+
+
     function init() {
-      startBtn.addEventListener("click", startCompass);
       navigator.geolocation.getCurrentPosition(locationHandler);
 
       if (!isIOS) {
@@ -162,18 +175,12 @@
 
 window.onload = function () {
     currentLang = localStorage.getItem('lang')
-    console.log(currentLang)
-
     const urlParams = new URLSearchParams(window.location.search);
     const index = urlParams.get('index');
     // 获取 localStorage 中保存的卫星数据
     const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
-
     const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
-
-    //const elevationCtx = document.getElementById('elevation-canvas').getContext('2d');
     const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
-
 
 
     // 绘制罗盘背景
@@ -224,8 +231,6 @@ const formattedExitTime = exitTime.toLocaleString('zh-CN', {
 });
 
 
-
-
 document.getElementById('satellite-name').textContent = `${selectedPass.satelliteName} `;
 document.getElementById('satellite-info').textContent = `当前方位：° 当前仰角：° 预测最高仰角：${selectedPass.highestElevation}° `;
 document.getElementById('pass-info').textContent = `开始：${formattedEntryTime} ${selectedPass.entryAzimuth}° | 结束：${formattedExitTime} ${selectedPass.exitAzimuth}°`;
@@ -233,22 +238,12 @@ document.getElementById('time-info').textContent = "当前时间：";
 
 
 
-
-
-
-
-
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
 
 
-
-
      // 绘制卫星过境轨迹
     drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
-
-
-
 
         setInterval(() => {
             const now = new Date();
@@ -289,7 +284,7 @@ if (now >= entryTime && now <= exitTime) {
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，距离结束：${hours}h ${minutes}m ${seconds}s`;
-        startTracking(trajectoryCtx, selectedPass, satrec, observerGd);
+        startTracking(satpointCtx, selectedPass, satrec, observerGd);
 } else if (now < entryTime) {
     // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
     const timeRemaining = entryTime - now;
@@ -308,7 +303,7 @@ if (now >= entryTime && now <= exitTime) {
 
 // 更新显示内容
 document.getElementById('time-info').textContent = timeInfo;
-           // updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
+
 
 
         }, 1000);
@@ -405,7 +400,7 @@ if (now >= entryTime && now <= exitTime) {
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，End in: ${hours}h ${minutes}m ${seconds}s`;
-        startTracking(trajectoryCtx, selectedPass, satrec, observerGd);
+        startTracking(satpointCtx, selectedPass, satrec, observerGd);
 } else if (now < entryTime) {
     // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
     const timeRemaining = entryTime - now;
@@ -424,7 +419,7 @@ if (now >= entryTime && now <= exitTime) {
 
 // 更新显示内容
 document.getElementById('time-info').textContent = timeInfo;
-           // updateSatellitePosition(trajectoryCtx, selectedPass, satrec, observerGd);
+
 
 
         }, 1000);
@@ -475,7 +470,7 @@ function drawCompassBackground(ctx) {
             const directions = [ 'E-90','N-0', 'W-270', 'S-180'];
             directions.forEach((dir, index) => {
                 const angle = (index * 90) * (Math.PI / 180);
-                const x = centerX + (radius - 20) * Math.cos(angle);
+                const x = centerX + (radius - 40) * Math.cos(angle);
                 const y = centerY - (radius - 20) * Math.sin(angle);
                 ctx.font = '16px Arial';
                 ctx.textAlign = 'center';
@@ -493,7 +488,7 @@ function drawCompassBackground(ctx) {
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(x2, y2);
-                ctx.strokeStyle = 'black';
+                ctx.strokeStyle = 'gray';
                 ctx.lineWidth = i % 90 === 0 ? 2 : 1; // Thicker for cardinal directions
                 ctx.stroke();
             }
@@ -594,11 +589,11 @@ function drawDebugPoint(ctx, x, y, color, label) {
     ctx.fill();
     ctx.font = '12px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(label, x, y - 10);
+    ctx.fillText(label, x+5, y - 5);
 }
 
 // 生成轨迹上的点数组
-function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY, steps = 100) {
+/*function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exitY, steps = 100) {
     const points = [];
     for (let t = 0; t <= 1; t += 1 / steps) {
         const x = Math.pow(1 - t, 2) * entryX +
@@ -610,11 +605,11 @@ function generateTrajectoryPoints(entryX, entryY, highestX, highestY, exitX, exi
         points.push({ x, y });
     }
     return points;
-}
+}*/
 
 
 // 投射红点到曲线的最近点
-function projectPointToCurve(x, y, trajectoryPoints) {
+/*function projectPointToCurve(x, y, trajectoryPoints) {
     let minDistance = Infinity;
     let closestPoint = { x: 0, y: 0 };
 
@@ -627,7 +622,7 @@ function projectPointToCurve(x, y, trajectoryPoints) {
     });
 
     return closestPoint;
-}
+}*/
 
 // 更新卫星位置并绘制实时轨迹
 function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) { 
@@ -684,8 +679,7 @@ if (elevation > 0 && elevation <= 90) {
         // 清空轨迹层，重新绘制
         ctx.clearRect(0, 0, 300, 300);
 
-        // 绘制轨迹和卫星
-        const trajectoryPoints = drawTrajectory(ctx, selectedPass, satrec, observerGd);
+
 
 
 
@@ -699,7 +693,7 @@ if (elevation > 0 && elevation <= 90) {
     } else if (elevation < 0){
 
         ctx.clearRect(0, 0, 300, 300);
-        trajectoryPoints = drawTrajectory(ctx, selectedPass, satrec, observerGd);
+
 
 
 
@@ -707,19 +701,7 @@ if (elevation > 0 && elevation <= 90) {
 }
 
 
-    function startCompass() {
-      if (isIOS) {
-        DeviceOrientationEvent.requestPermission()
-          .then((response) => {
-            if (response === "granted") {
-              window.addEventListener("deviceorientation", handler, true);
-            } else {
-              alert("has to be allowed!");
-            }
-          })
-          .catch(() => alert("not supported"));
-      }
-    }
+
 
 function handler(e) {
 
@@ -738,6 +720,13 @@ function handler(e) {
     trajectoryCanvas.style.transformOrigin = 'center';
     trajectoryCanvas.style.transform = `rotate(${-compass}deg)`;
 
+
+    // 
+    const satorbitpointCanvas = document.getElementById('satorbitpoint');
+    satorbitpointCanvas.style.transformOrigin = 'center';
+    satorbitpointCanvas.style.transform = `rotate(${-compass}deg)`;
+
+
      // Handle arrow position based on beta
     const beta = e.beta;  // Get the beta value from the event
     const arrow = document.querySelector('.arrow');
@@ -755,10 +744,17 @@ function handler(e) {
     const arrowX = centerX;  // Keep the arrow horizontally centered
 
     // Update arrow position
+    if ( arrowY >=10 && arrowY<=150){
     arrow.style.top = `${arrowY - 10}px`; // Adjust top to position the arrow
 
-    // Control red point visibility based on compass angle
+} else if (arrowY>150) {
+arrow.style.top = `${arrowY - 140}px`; // Adjust top to position the arrow
 
+}
+
+
+
+    // Control red point visibility based on compass angle
 
     // 获取仰角条和黄点
 const elevationBar = document.getElementById('elevation-bar');
@@ -805,27 +801,6 @@ arrowElevation.style.top = `${elevationDistance - arrowElevation.offsetHeight / 
       if (pointDegree < 0) {
         pointDegree = pointDegree + 360;
       }
-    }
-
-    function calcDegreeToPoint(latitude, longitude) {
-      // Qibla geolocation
-      const point = {
-        lat: 21.422487,
-        lng: 39.826206
-      };
-
-      const phiK = (point.lat * Math.PI) / 180.0;
-      const lambdaK = (point.lng * Math.PI) / 180.0;
-      const phi = (latitude * Math.PI) / 180.0;
-      const lambda = (longitude * Math.PI) / 180.0;
-      const psi =
-        (180.0 / Math.PI) *
-        Math.atan2(
-          Math.sin(lambdaK - lambda),
-          Math.cos(phi) * Math.tan(phiK) -
-            Math.sin(phi) * Math.cos(lambdaK - lambda)
-        );
-      return Math.round(psi);
     }
 
 
