@@ -164,7 +164,7 @@
 
     function init() {
         startBtn.addEventListener("click", startCompass);
-      navigator.geolocation.getCurrentPosition(locationHandler);
+      //navigator.geolocation.getCurrentPosition(locationHandler);
 
       if (!isIOS) {
         window.addEventListener("deviceorientationabsolute", handler, true);
@@ -826,7 +826,7 @@ arrowElevation.style.top = `${elevationDistance - arrowElevation.offsetHeight / 
 }
 
 
-    let pointDegree;
+  /*  let pointDegree;
 
     function locationHandler(position) {
       const { latitude, longitude } = position.coords;
@@ -857,9 +857,9 @@ arrowElevation.style.top = `${elevationDistance - arrowElevation.offsetHeight / 
         );
       return Math.round(psi);
     }
+*/
 
 
-    
         if (window.DeviceOrientationEvent) {
             window.addEventListener('deviceorientation', function (event) {
                 /*var a = document.getElementById('alpha'),
