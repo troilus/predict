@@ -784,6 +784,7 @@ function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 
 
 function formatGroupedPassesToHTML(groupedPasses) {
+
     const satelliteName = localStorage.getItem('selectedSatelliteName');
 
     if (groupedPasses.length === 0 ) {
@@ -823,6 +824,10 @@ function formatGroupedPassesToHTML(groupedPasses) {
         const entryAzimuth = typeof pass.entry?.azimuth === "number" ? `${pass.entry.azimuth.toFixed(2)}°` : "未知";
         
         const entryHour = new Date(pass.entry.time).getHours();
+
+
+            const now = new Date();
+    const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
         let rowClass = "";
         if (entryHour >= 19 || entryHour < 7) {
             rowClass = "night";  // 19:00-07:00，灰底白字
@@ -843,9 +848,14 @@ function formatGroupedPassesToHTML(groupedPasses) {
         const chartId = `chart-${index}`;
         const chartHTML = `<canvas id="${chartId}" width="17" height="17"></canvas>`;
 
+            // 如果是当前时间区间，则设置第一个格子的背景颜色为绿色
+    const firstCellStyle = isCurrent ? 'style="background-color: green;"' : '';
+
+
+
         html += `
             <tr class="${rowClass}">
-                <td><a href="point.html?index=${index + 1}" target="_blank"  style="color: #ffffbc;"  >${entrydate}</a></td>
+                <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${entrydate}</a></td>
                 <td>${entryTime}, ${entryAzimuth}</td>
                 <td>${highestTime}</td>
                 <td>${highestAzimuth}</td>
