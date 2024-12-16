@@ -163,7 +163,8 @@
 
 
     function init() {
-      //navigator.geolocation.getCurrentPosition(locationHandler);
+        startBtn.addEventListener("click", startCompass);
+      navigator.geolocation.getCurrentPosition(locationHandler);
 
       if (!isIOS) {
         window.addEventListener("deviceorientationabsolute", handler, true);
