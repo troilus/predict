@@ -110,11 +110,6 @@
   }
 
 
-  #trajectory-canvas, 
-#compass-background, 
-#satorbitpoint {
-    transition: transform 0.3s ease-out; /* 平滑过渡效果 */
-}
 
 
 
@@ -658,9 +653,9 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
         const arrow1End = trajectoryPoints[oneThirdIndex];
         drawArrow(arrow1Start.x, arrow1Start.y, arrow1End.x, arrow1End.y, 'red');
 
-        const arrow2Start = trajectoryPoints[twoThirdIndex - 1];
+        /*const arrow2Start = trajectoryPoints[twoThirdIndex - 1];
         const arrow2End = trajectoryPoints[twoThirdIndex];
-        drawArrow(arrow2Start.x, arrow2Start.y, arrow2End.x, arrow2End.y, 'red');
+        drawArrow(arrow2Start.x, arrow2Start.y, arrow2End.x, arrow2End.y, 'red');*/
     }
 
 
