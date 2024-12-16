@@ -351,6 +351,7 @@ function updateTable() {
 
 function updateTableHeaders(lang) {
     const passInfoDiv = document.getElementById('passInfo');
+        const calculated  =  localStorage.getItem('calculated');
     
     // 检查是否存在表格
     const table = passInfoDiv.getElementsByTagName('table')[0];
@@ -365,7 +366,7 @@ function updateTableHeaders(lang) {
         headers[4].textContent = translations[lang].tableHeaders.azimuth;
         headers[5].textContent = translations[lang].tableHeaders.elevation;
         headers[6].textContent = translations[lang].tableHeaders.end;
-    } else {
+    } else if (calculated == 1) {
         // 如果没有表格，更新显示的文本
         passInfoDiv.innerHTML = `<p>${translations[lang].noPassesInfo}</p>`;
     }
@@ -462,6 +463,11 @@ function updateTableHeaders(lang) {
 
         window.addEventListener('load', function() {
             document.getElementById('location').textContent = translations[currentLang].locationDefault;
+            localStorage.removeItem('selectedSatelliteName');
+            localStorage.removeItem('calculated');
+            localStorage.removeItem('selectedSatelliteTLE1');
+            localStorage.removeItem('selectedSatelliteTLE2');
+            localStorage.removeItem('selectedorbit');
 
 
                         if (navigator.geolocation) {
@@ -644,6 +650,7 @@ function populateDropdown(satellites) {
         });
 
 function calculatePasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
+    localStorage.setItem('calculated', '1');
     const passes = [];
     const observerGd = {
         latitude: satellite.degreesToRadians(latitude),
@@ -778,7 +785,8 @@ function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 
 function formatGroupedPassesToHTML(groupedPasses) {
     const satelliteName = localStorage.getItem('selectedSatelliteName');
-    if (groupedPasses.length === 0) {
+
+    if (groupedPasses.length === 0 ) {
         // Hide the "notesInfo" div on the page
         document.getElementById("notesInfo").style.display = "none";
         
