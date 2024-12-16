@@ -615,7 +615,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
 
     // 绘制调试点
     //drawDebugPoint(ctx, trajectoryPoints[0].x, trajectoryPoints[0].y, 'green', 'Start');
-    drawDebugPoint(ctx, trajectoryPoints[(trajectoryPoints.length+1)/2].x, trajectoryPoints[(trajectoryPoints.length+1)/2].y, 'red', 'El'); 
+    //drawDebugPoint(ctx, trajectoryPoints[(trajectoryPoints.length+1)/2].x, trajectoryPoints[(trajectoryPoints.length+1)/2].y, 'red', 'El'); 
     //drawDebugPoint(ctx, trajectoryPoints[trajectoryPoints.length-1].x, trajectoryPoints[trajectoryPoints.length-1].y, 'green', '');
 
 /*if (elevation < 0) {
@@ -650,8 +650,8 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
     }
 
     // Draw arrows at 1/3 and 2/3 of the trajectory
-    const oneThirdIndex = Math.floor(trajectoryPoints.length   / 3);
-    const twoThirdIndex = Math.floor(trajectoryPoints.length * 2 / 3);
+    const oneThirdIndex = Math.floor(trajectoryPoints.length   / 2);
+    //const twoThirdIndex = Math.floor(trajectoryPoints.length * 2 / 3);
 
     if (trajectoryPoints.length > 2) {
         const arrow1Start = trajectoryPoints[oneThirdIndex - 1];
