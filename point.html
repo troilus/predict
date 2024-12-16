@@ -163,7 +163,7 @@
 
 
     function init() {
-      navigator.geolocation.getCurrentPosition(locationHandler);
+      //navigator.geolocation.getCurrentPosition(locationHandler);
 
       if (!isIOS) {
         window.addEventListener("deviceorientationabsolute", handler, true);
@@ -453,6 +453,14 @@ function drawCompassBackground(ctx) {
             ctx.lineWidth = 2;
             ctx.stroke();
 
+
+    // Draw center point
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI); // Small circle with radius 3
+    ctx.fillStyle = 'black'; // Color of the point
+    ctx.fill();
+
+
             // Draw concentric circles for 30° and 60° elevation
             const circleAngles = [30, 60];
             circleAngles.forEach((elevation) => {
@@ -688,6 +696,19 @@ if (elevation > 0 && elevation <= 90) {
         ctx.arc(satelliteX, satelliteY, 5, 0, 2 * Math.PI);
         ctx.fillStyle = 'blue'; // 仰角点颜色
         ctx.fill();
+
+        // 绘制指南针中心点到蓝色点的连线
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY); // 起点为指南针中心
+        ctx.lineTo(satelliteX, satelliteY); // 终点为蓝色点位置
+        ctx.strokeStyle = 'blue'; // 线条颜色
+        ctx.lineWidth = 1; // 线条宽度
+        ctx.stroke();
+
+
+
+
+
 
 
     } else if (elevation < 0){
