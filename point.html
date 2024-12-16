@@ -77,6 +77,7 @@
             z-index: 2;
             transform-origin: center;
             transform: rotate(0deg);
+
         }
   .compass {
       position: relative;
@@ -107,6 +108,15 @@
     background-color: transparent; /* Hollow center */
     z-index: 3;         /* Keep above all elements */
   }
+
+
+  #trajectory-canvas, 
+#compass-background, 
+#satorbitpoint {
+    transition: transform 0.3s ease-out; /* 平滑过渡效果 */
+}
+
+
 
           #satorbitpoint {
             position: absolute;
@@ -827,6 +837,8 @@ if (elevation > 0 && elevation <= 90) {
 function handler(e) {
 
     const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
+
+
 
     // Define the center of the compass
     const centerX = 150;
