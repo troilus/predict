@@ -96,19 +96,18 @@
             z-index: 1;
         }
 
-  .arrow {
+.arrow {
     position: absolute;
-    width: 10px;        /* Set the diameter of the circle */
-    height: 10px;
-    top: -20px;         /* Adjust this based on desired vertical position */
-    left: 50%;
+    width: 0;              /* 宽度设为 0 */
+    height: 0;             /* 高度设为 0 */
+    top: -5px;            /* 根据需要调整垂直位置 */
+    left: 50%;             /* 水平居中 */
     transform: translateX(-50%);
-    border-radius: 50%; /* Makes the element round (circle) */
-    border: 2px solid red; /* Red border */
-    background-color: transparent; /* Hollow center */
-    z-index: 3;         /* Keep above all elements */
-  }
-
+    border-left: 7px solid transparent; /* 左侧透明 */
+    border-right: 7px solid transparent; /* 右侧透明 */
+    border-top: 15px solid red;       /* 下边框为红色，形成三角形 */
+    z-index: 3;            /* 保持在最前面 */
+}
 
 
 
@@ -159,9 +158,9 @@
     </div>
 
 
-    <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 11px; background-color: #ddd; border: 0px solid #999; border-radius: 3px;">
-    <div id="satellite-elevation" style="position: absolute; left: 1px; width: 9px; height: 9px; background-color: blue; border-radius: 50%;"></div>
-    <div id="arrow-elevation" style="position: absolute; left: 2px; width: 7px; height: 7px; background-color: red; border-radius: 50%;"></div>
+    <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 20px; background-color: #ddd; border: 0px solid #999; border-radius: 3px;">
+    <div id="satellite-elevation" style="position: absolute; left: 1px; width: 18px; height: 18px; background-color: #e17822; border-radius: 50%;"></div>
+    <div id="arrow-elevation" style="position: absolute; left: 2px; width: 16px; height: 16px; background-color: #186548; border-radius: 50%;"></div>
 
 
 </div>
@@ -832,8 +831,6 @@ if (elevation > 0 && elevation <= 90) {
 function handler(e) {
 
     const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
-    console.log(compass)
-
 
 
 
@@ -870,10 +867,10 @@ function handler(e) {
     const distance = (90 - beta) / 90 * radius;  // Inverse the scaling to match your requirement
 
     // Calculate the Y position based on beta (upward or downward movement)
-    const arrowY = centerY - distance;  // Adjust Y position to move the arrow vertically
+    const arrowY = centerY-50;  // Adjust Y position to move the arrow vertically
     const arrowX = centerX;  // Keep the arrow horizontally centered
 
-    // Update arrow position
+   /* // Update arrow position
     if ( arrowY >=10 && arrowY<=150){
     arrow.style.top = `${arrowY - 10}px`; // Adjust top to position the arrow
 
@@ -883,7 +880,7 @@ arrow.style.top = `${arrowY - 140}px`; // Adjust top to position the arrow
 }
 
 
-
+*/
     // Control red point visibility based on compass angle
 
     // 获取仰角条和黄点
