@@ -181,6 +181,7 @@
     const compassBackground = document.getElementById('compass-background');
     const compassCtx = compassBackground.getContext('2d');
     const compassCircle = document.querySelector(".compass-circle");
+
     const myPoint = document.querySelector(".my-point");
     const startBtn = document.querySelector(".start-btn");
     const isIOS =
@@ -188,6 +189,7 @@
       navigator.userAgent.match(/AppleWebKit/);
 
       const satpointCtx = document.getElementById('satorbitpoint').getContext('2d');
+
 
 
 
@@ -212,6 +214,8 @@ window.onload = function () {
     const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
     const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
     const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
+
+    let intervalId=-1; // 存储定时器ID
 
 
     // 绘制罗盘背景
@@ -274,7 +278,8 @@ document.getElementById('time-info').textContent = "当前时间：";
 
 
      // 绘制卫星过境轨迹
-    drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+    trajectoryPoints=drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+
 
         setInterval(() => {
             const now = new Date();
@@ -315,7 +320,7 @@ if (now >= entryTime && now <= exitTime) {
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，距离结束：${hours}h ${minutes}m ${seconds}s`;
-        startTracking(satpointCtx, selectedPass, satrec, observerGd);
+        updateSatellitePosition(satpointCtx, trajectoryPoints);
 } else if (now < entryTime) {
     // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
     const timeRemaining = entryTime - now;
@@ -325,11 +330,14 @@ if (now >= entryTime && now <= exitTime) {
     timeInfo += `，距离开始：${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
+        satpointCtx.clearRect(0, 0, 300, 300);
+
 } else if (now > exitTime) {
     // 如果当前时间在 exitTime 之后，只显示当前时间
     timeInfo = `当前时间：${formattedTime}`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
+        satpointCtx.clearRect(0, 0, 300, 300);
 }
 
 // 更新显示内容
@@ -431,7 +439,8 @@ if (now >= entryTime && now <= exitTime) {
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，End in: ${hours}h ${minutes}m ${seconds}s`;
-        startTracking(satpointCtx, selectedPass, satrec, observerGd);
+
+        updateSatellitePosition(satpointCtx, trajectoryPoints);
 
 } else if (now < entryTime) {
     // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
@@ -442,11 +451,17 @@ if (now >= entryTime && now <= exitTime) {
     timeInfo += `，Start in: ${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
+
+
+                  satpointCtx.clearRect(0, 0, 300, 300);
 } else if (now > exitTime) {
     // 如果当前时间在 exitTime 之后，只显示当前时间
     timeInfo = `${formattedTime}`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
+
+
+                  satpointCtx.clearRect(0, 0, 300, 300);
 }
 
 // 更新显示内容
@@ -458,17 +473,6 @@ document.getElementById('time-info').textContent = timeInfo;
         }
     }
 };
-
-
-function startTracking(ctx, selectedPass, satrec, observerGd) {
-    function update() {
-        const now = new Date();
-        updateSatellitePosition(ctx, selectedPass, satrec, observerGd, now);
-
-        requestAnimationFrame(update); // 持续更新
-    }
-    update();
-}
 
 
 
@@ -551,7 +555,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
     const startTime = new Date(selectedPass.entryTime);
     const endTime = new Date(selectedPass.exitTime);
 
-   const steps = 100;
+   const steps = 1000;
     const timeStep = (endTime - startTime) / steps;
 
 
@@ -590,7 +594,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
             const satelliteY = centerY - satelliteRadius * Math.sin((90 - azimuth) * (Math.PI / 180));
 
             // Store the trajectory points
-            trajectoryPoints.push({ x: satelliteX, y: satelliteY });
+            trajectoryPoints.push({ x: satelliteX, y: satelliteY, time: passTime, eleva:elevation});
         }
     } 
 
@@ -659,7 +663,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
 
 
 
-    return 1;
+    return trajectoryPoints;
 }
 
 
@@ -707,33 +711,38 @@ function drawDebugPoint(ctx, x, y, color, label) {
 }*/
 
 // 更新卫星位置并绘制实时轨迹
-function updateSatellitePosition(ctx, selectedPass, satrec, observerGd) { 
+function updateSatellitePosition(ctx, trajectoryPoints) { 
     const now = new Date();
-    const positionAndVelocity = satellite.propagate(satrec, now);
-    const gmst = satellite.gstime(now);
-    const positionEci = positionAndVelocity.position;
-    const lookAngles = satellite.ecfToLookAngles(
-        observerGd,
-        satellite.eciToEcf(positionEci, gmst)
-    );
 
-    const elevation = satellite.radiansToDegrees(lookAngles.elevation);
-    const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
+        // 找到当前时间最近的轨迹点
+    let closestPoint = trajectoryPoints[0];
+
+    let minTimeDiff = Math.abs(now - closestPoint.time);
+        for (let i = 1; i < trajectoryPoints.length; i++) {
+        const timeDiff = Math.abs(now - trajectoryPoints[i].time);
+        if (timeDiff < minTimeDiff) {
+            closestPoint = trajectoryPoints[i];
+            minTimeDiff = timeDiff;
+
+        }
+    }
 
 
-            // 显示卫星的仰角
+                // 显示卫星的仰角
     const elevationBar = document.getElementById('elevation-bar');
     const satelliteElevation = document.getElementById('satellite-elevation');
     satelliteElevation.style.display = 'block';  // 或 'inline' 根据需要选择
 
     const barHeight = elevationBar.offsetHeight-9;
 // 需要确保 elevation 在 0 到 90 之间
-if (elevation > 0 && elevation <= 90) {
+
+
+if (closestPoint.eleva > 0 && closestPoint.eleva <= 90) {
 
 
 
     // 映射卫星的仰角到仰角条的位置 (0 - 90度 -> 0 - barHeight)
-    const satelliteElevationDistance = (90 - elevation) / 90 * barHeight;
+    const satelliteElevationDistance = (90 - closestPoint.eleva) / 90 * barHeight;
 
     // 更新蓝色点的位置
     satelliteElevation.style.top = `${satelliteElevationDistance  - satelliteElevation.offsetHeight / 2}px`;
@@ -744,55 +753,44 @@ if (elevation > 0 && elevation <= 90) {
     satelliteElevation.style.display = 'none';
 }
 
+    // 清空图层，重新绘制当前卫星点
+ctx.clearRect(0, 0, 300, 300);
 
-    if (elevation > 0 && elevation <= 90) {
-        const centerX = 150;
-        const centerY = 150;
-        const radius = 140;
+if (closestPoint.eleva > 0 && closestPoint.eleva <= 90) {
 
-        // 根据仰角计算半径
-        const getRadiusForElevation = (elevation) => radius * (90 - elevation) / 90;
-        const satelliteRadius = getRadiusForElevation(elevation);
+    const centerX = 150;
+    const centerY = 150;
 
-        // 计算卫星在罗盘上的位置
-        const satelliteX = centerX + satelliteRadius * Math.cos((90 - azimuth) * (Math.PI / 180));
-        const satelliteY = centerY - satelliteRadius * Math.sin((90 - azimuth) * (Math.PI / 180));
+    // 绘制卫星实时位置
+    ctx.beginPath();
+    ctx.arc(closestPoint.x, closestPoint.y, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = 'blue';
+    ctx.fill();
 
-        // 清空轨迹层，重新绘制
-        ctx.clearRect(0, 0, 300, 300);
-
-
-
-
-
-        // 绘制罗盘上的卫星仰角点
-        ctx.beginPath();
-        ctx.arc(satelliteX, satelliteY, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'blue'; // 仰角点颜色
-        ctx.fill();
-
-        // 绘制指南针中心点到蓝色点的连线
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY); // 起点为指南针中心
-        ctx.lineTo(satelliteX, satelliteY); // 终点为蓝色点位置
-        ctx.strokeStyle = 'blue'; // 线条颜色
-        ctx.lineWidth = 1; // 线条宽度
-        ctx.stroke();
+    // 绘制中心到卫星的连线
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(closestPoint.x, closestPoint.y);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
 
-
-
-
-
-
-    } else if (elevation < 0){
+}else if (closestPoint.eleva < 0){
 
         ctx.clearRect(0, 0, 300, 300);
-
-
 
 
     }
+
+
+
+
+
+
+
+
+    
 }
 
 
@@ -828,11 +826,11 @@ if (elevation > 0 && elevation <= 90) {
 
 
 
+
+
 function handler(e) {
 
     const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
-
-
 
     // Define the center of the compass
     const centerX = 150;
@@ -917,6 +915,8 @@ arrowElevation.style.top = `${elevationDistance - arrowElevation.offsetHeight / 
 
 
 }
+
+    
 
 
   /*  let pointDegree;
