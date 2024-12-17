@@ -78,7 +78,8 @@
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s;
-    margin-top: 20px;  /* 上间距 */
+    margin-top: 10px;  /* 上间距 */
+        margin-bottom: 10px;  /* 上间距 */
 
 }
 
@@ -158,7 +159,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 3px;
         }
 
 
@@ -229,7 +229,6 @@
     <label for="elevationThreshold"  id="elevationThresholdLabel"></label>
     <select id="elevationThreshold">
         <option value="0">0°</option>
-        <option value="5">5°</option>
         <option value="10">10°</option>
         <option value="15" selected>15°</option>
         <option value="20">20°</option>
@@ -238,14 +237,6 @@
         <option value="35">35°</option>
         <option value="40">40°</option>
         <option value="45">45°</option>
-        <option value="50">50°</option>
-        <option value="55">55°</option>
-        <option value="60">60°</option>
-        <option value="65">65°</option>
-        <option value="70">70°</option>
-        <option value="75">75°</option>
-        <option value="80">80°</option>
-        <option value="85">85°</option>
     </select>
 </div>
 
@@ -269,7 +260,7 @@
                 locationDefault: "位置信息：未获取",
                 timeFilterLabel: "仅计算 19:00 ~ 23:59",
                 elevationThresholdLabel: "最高点仰角≥",
-                notesInfo: "点击仰角查看轨道及对星页面<br>点击日期将过境事件加入日历事项",
+                notesInfo: "点击仰角：对星<br>点击日期：加入日历提醒",
                 placeholder: "搜索卫星...",
                 calculatePass:"计算过境信息",
                                  noTLE:"无TLE信息",
@@ -294,7 +285,7 @@
                 locationDefault: "Location: Not Retrieved",
                 timeFilterLabel: "Calculate Only from 19:00 ~ 23:59",
                 elevationThresholdLabel: "MAX. Elevation ≥",
-                notesInfo: "Click the El to view the orbit page<br>Click the date to add the event to calendar",
+                notesInfo: "Click the El to view the orbit page<br>Click the Date to add the event to calendar",
                 placeholder: "Search satellites...",
                  calculatePass:"Calculate",
                                  noTLE:"TLE not found",
@@ -362,10 +353,11 @@ function updateTableHeaders(lang) {
         headers[0].textContent = translations[lang].tableHeaders.date;
         headers[1].textContent = translations[lang].tableHeaders.start;
         headers[2].textContent = translations[lang].tableHeaders.highest;
-        headers[3].textContent = translations[lang].tableHeaders.time;
-        headers[4].textContent = translations[lang].tableHeaders.azimuth;
-        headers[5].textContent = translations[lang].tableHeaders.elevation;
-        headers[6].textContent = translations[lang].tableHeaders.end;
+        headers[3].textContent = translations[lang].tableHeaders.end;
+        headers[4].textContent = translations[lang].tableHeaders.time;        
+        headers[5].textContent = translations[lang].tableHeaders.azimuth;
+        headers[6].textContent = translations[lang].tableHeaders.elevation;
+
     } else if (calculated == 1) {
         // 如果没有表格，更新显示的文本
         passInfoDiv.innerHTML = `<p>${translations[lang].noPassesInfo}</p>`;
