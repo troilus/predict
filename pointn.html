@@ -190,7 +190,7 @@
 
       const satpointCtx = document.getElementById('satorbitpoint').getContext('2d');
 
-let latestEvent = null; // 存储最新的事件数据
+
 
 
 
@@ -214,6 +214,8 @@ window.onload = function () {
     const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
     const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
     const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
+
+    let intervalId=-1; // 存储定时器ID
 
 
     // 绘制罗盘背景
@@ -318,7 +320,7 @@ if (now >= entryTime && now <= exitTime) {
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，距离结束：${hours}h ${minutes}m ${seconds}s`;
-        startTracking(satpointCtx, trajectoryPoints);
+        updateSatellitePosition(satpointCtx, trajectoryPoints);
 } else if (now < entryTime) {
     // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
     const timeRemaining = entryTime - now;
@@ -328,14 +330,14 @@ if (now >= entryTime && now <= exitTime) {
     timeInfo += `，距离开始：${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
-                  satpointCtx.clearRect(0, 0, 300, 300);
+        satpointCtx.clearRect(0, 0, 300, 300);
 
 } else if (now > exitTime) {
     // 如果当前时间在 exitTime 之后，只显示当前时间
     timeInfo = `当前时间：${formattedTime}`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
-          satpointCtx.clearRect(0, 0, 300, 300);
+        satpointCtx.clearRect(0, 0, 300, 300);
 }
 
 // 更新显示内容
@@ -437,7 +439,8 @@ if (now >= entryTime && now <= exitTime) {
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，End in: ${hours}h ${minutes}m ${seconds}s`;
-        startTracking(satpointCtx, trajectoryPoints);
+
+        updateSatellitePosition(satpointCtx, trajectoryPoints);
 
 } else if (now < entryTime) {
     // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
@@ -448,12 +451,16 @@ if (now >= entryTime && now <= exitTime) {
     timeInfo += `，Start in: ${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
+
+
                   satpointCtx.clearRect(0, 0, 300, 300);
 } else if (now > exitTime) {
     // 如果当前时间在 exitTime 之后，只显示当前时间
     timeInfo = `${formattedTime}`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
+
+
                   satpointCtx.clearRect(0, 0, 300, 300);
 }
 
@@ -466,16 +473,6 @@ document.getElementById('time-info').textContent = timeInfo;
         }
     }
 };
-
-
-function startTracking(satpointCtx, trajectoryPoints){
-
-            setInterval(() => {
-
-
-        updateSatellitePosition(satpointCtx, trajectoryPoints);
-}, 1000);
-}
 
 
 
@@ -829,14 +826,10 @@ if (closestPoint.eleva > 0 && closestPoint.eleva <= 90) {
 
 
 
+
+
 function handler(e) {
 
-// 保存事件数据到 latestEvent
-    latestEvent = e;
-}
-
-function update() {
-    if (latestEvent) {
     const compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
 
     // Define the center of the compass
@@ -925,11 +918,6 @@ arrowElevation.style.top = `${elevationDistance - arrowElevation.offsetHeight / 
 
     
 
-    requestAnimationFrame(update); // 请求下一帧
-}
-
-// 初始化更新循环
-requestAnimationFrame(update);
 
   /*  let pointDegree;
 
