@@ -623,12 +623,10 @@ function populateDropdown(satellites) {
             const timeFilterChecked = document.getElementById('timeFilter').checked;
   
 
-            //if (satelliteName && match) {
-            //const latitude = parseFloat(localStorage.getItem('latitude'));
-               // const longitude = parseFloat(localStorage.getItem('longitude'));
-            if (satelliteName ) {
-                const latitude = parseFloat(33.4);
-                const longitude = parseFloat(104.4);
+            if (satelliteName && match) {
+            const latitude = parseFloat(localStorage.getItem('latitude'));
+            const longitude = parseFloat(localStorage.getItem('longitude'));
+
                 const altitude = parseFloat(localStorage.getItem('altitude'));
 
                 const satellites = JSON.parse(localStorage.getItem('satellites'));
