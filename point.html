@@ -512,7 +512,7 @@ function drawCompassBackground(ctx) {
             ctx.setLineDash([]); // Reset dash style
 
             // Draw cardinal directions
-            const directions = [ 'E-90','N-0', 'W-270', 'S-180'];
+            const directions = [ '','N', '', 'S'];
             directions.forEach((dir, index) => {
                 const angle = (index * 90) * (Math.PI / 180);
                 const x = centerX + (radius - 40) * Math.cos(angle);
