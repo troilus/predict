@@ -269,7 +269,7 @@
                 locationDefault: "位置信息：未获取",
                 timeFilterLabel: "仅计算 19:00 ~ 23:59",
                 elevationThresholdLabel: "最高点仰角≥",
-                notesInfo: "<p>点击日期查看轨道及对星页面</p>",
+                notesInfo: "点击仰角查看轨道及对星页面<br>点击日期加入日历事项",
                 placeholder: "搜索卫星...",
                 calculatePass:"计算过境信息",
                                  noTLE:"无TLE信息",
@@ -862,11 +862,15 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
         html += `
             <tr class="${rowClass}">
-                <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${entrydate}</a></td>
+                 <td>
+  <a href="#" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
+    ${entrydate}
+  </a>
+</td>
                 <td>${entryTime}, ${entryAzimuth}</td>
-                <td><a href="#" style="color: #ffffbc; onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')">${highestTime}</a></td>
+                <td>${highestTime}</td>
                 <td>${highestAzimuth}</td>
-                <td>${highestElevation}${chartHTML}</td>
+                                <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
                 <td>${exitTime}, ${exitAzimuth}</td>
             </tr>
         `;
