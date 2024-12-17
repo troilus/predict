@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🛰</title>
     <style>
         :root {
@@ -851,13 +851,20 @@ function formatGroupedPassesToHTML(groupedPasses) {
             // 如果是当前时间区间，则设置第一个格子的背景颜色为绿色
     const firstCellStyle = isCurrent ? 'style="background-color: green;"' : '';
 
+//日历相关
+    const eventTitle = `${satelliteName} 仰角 ${highestElevation}`;  // 事件标题为卫星名称+仰角
+        const eventDate = pass.highest?.time ? new Date(pass.highest.time) : new Date();
+        const startTime = eventDate.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;
+        // Generate ICS link dynamically for each row
+        const icsLink = generateICSLink(eventTitle, eventDate, startTime, endTime);
 
 
         html += `
             <tr class="${rowClass}">
                 <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${entrydate}</a></td>
                 <td>${entryTime}, ${entryAzimuth}</td>
-                <td>${highestTime}</td>
+                <td><a href="#" style="color: #ffffbc; onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')">${highestTime}</a></td>
                 <td>${highestAzimuth}</td>
                 <td>${highestElevation}${chartHTML}</td>
                 <td>${exitTime}, ${exitAzimuth}</td>
@@ -888,7 +895,54 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
     return html;
 }
+//日历相关
+function generateICSLink(eventTitle, eventDate, startTime, endTime) {
+    const startDateTime = formatDateToICS(eventDate, startTime);
+    const endDateTime = formatDateToICS(eventDate, endTime);
 
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Your Company//NONSGML v1.0//EN
+BEGIN:VEVENT
+SUMMARY:${eventTitle}
+DTSTART:${startDateTime}
+DTEND:${endDateTime}
+UID:${generateUID()}
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${eventTitle}.ics`;  // Download the ICS file
+    return link.href;
+}
+
+function formatDateToICS(date, time) {
+    const dt = new Date(date);
+    const [hour, minute] = time.split(':');
+    dt.setHours(hour, minute);
+    const year = dt.getFullYear();
+    const month = ('0' + (dt.getMonth() + 1)).slice(-2);
+    const day = ('0' + dt.getDate()).slice(-2);
+    const formattedTime = `${year}${month}${day}T${hour}${minute}00Z`;
+    return formattedTime;
+}
+
+function generateUID() {
+    return 'uid-' + Date.now();
+}
+
+// The function to trigger ICS download when a row is clicked
+function downloadICS(eventTitle, eventDate, startTime, endTime) {
+    const icsLink = generateICSLink(eventTitle, eventDate, startTime, endTime);
+    const link = document.createElement('a');
+    link.href = icsLink;
+    link.click();
+}
+
+//日历相关结束
 function drawTrajectory(ctx, selectedPass, scaleFactor = 0.17) { 
     const centerX = 50 * scaleFactor;
     const centerY = 50 * scaleFactor;
