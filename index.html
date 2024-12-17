@@ -269,7 +269,7 @@
                 locationDefault: "位置信息：未获取",
                 timeFilterLabel: "仅计算 19:00 ~ 23:59",
                 elevationThresholdLabel: "最高点仰角≥",
-                notesInfo: "点击仰角查看轨道及对星页面<br>点击日期加入日历事项",
+                notesInfo: "点击仰角查看轨道及对星页面<br>点击日期将过境事件加入日历事项",
                 placeholder: "搜索卫星...",
                 calculatePass:"计算过境信息",
                                  noTLE:"无TLE信息",
@@ -294,7 +294,7 @@
                 locationDefault: "Location: Not Retrieved",
                 timeFilterLabel: "Calculate Only from 19:00 ~ 23:59",
                 elevationThresholdLabel: "MAX. Elevation ≥",
-                notesInfo: "<p>Click the date to view the orbit page</p>",
+                notesInfo: "Click the El to view the orbit page<br>Click the date to add the event to calendar",
                 placeholder: "Search satellites...",
                  calculatePass:"Calculate",
                                  noTLE:"TLE not found",
@@ -623,9 +623,12 @@ function populateDropdown(satellites) {
             const timeFilterChecked = document.getElementById('timeFilter').checked;
   
 
-            if (satelliteName && match) {
-                const latitude = parseFloat(localStorage.getItem('latitude'));
-                const longitude = parseFloat(localStorage.getItem('longitude'));
+            //if (satelliteName && match) {
+            //const latitude = parseFloat(localStorage.getItem('latitude'));
+               // const longitude = parseFloat(localStorage.getItem('longitude'));
+            if (satelliteName ) {
+                const latitude = parseFloat(33.4);
+                const longitude = parseFloat(104.4);
                 const altitude = parseFloat(localStorage.getItem('altitude'));
 
                 const satellites = JSON.parse(localStorage.getItem('satellites'));
@@ -852,18 +855,19 @@ function formatGroupedPassesToHTML(groupedPasses) {
     const firstCellStyle = isCurrent ? 'style="background-color: green;"' : '';
 
 //日历相关
-    const eventTitle = `${satelliteName} 仰角 ${highestElevation}`;  // 事件标题为卫星名称+仰角
-        const eventDate = pass.highest?.time ? new Date(pass.highest.time) : new Date();
+    const eventTitle = `${satelliteName}  ${highestElevation}`;  // 事件标题为卫星名称+仰角
+        const eventDate = pass.entry?.time ? new Date(pass.entry.time) : new Date();
         const startTime = eventDate.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;
         // Generate ICS link dynamically for each row
         const icsLink = generateICSLink(eventTitle, eventDate, startTime, endTime);
+        console.log(icsLink)
 
 
         html += `
             <tr class="${rowClass}">
                  <td>
-  <a href="#" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
+  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
     ${entrydate}
   </a>
 </td>
@@ -903,6 +907,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
 function generateICSLink(eventTitle, eventDate, startTime, endTime) {
     const startDateTime = formatDateToICS(eventDate, startTime);
     const endDateTime = formatDateToICS(eventDate, endTime);
+    console.log(startTime,startDateTime)
 
     const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -913,6 +918,11 @@ DTSTART:${startDateTime}
 DTEND:${endDateTime}
 UID:${generateUID()}
 STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER:-PT10M
+DESCRIPTION:Reminder
+ACTION:DISPLAY
+END:VALARM
 END:VEVENT
 END:VCALENDAR`;
 
@@ -924,13 +934,25 @@ END:VCALENDAR`;
 }
 
 function formatDateToICS(date, time) {
+    // Create a new Date object based on the provided date
     const dt = new Date(date);
+
+    // Split the provided time into hours and minutes
     const [hour, minute] = time.split(':');
+    
+    // Set the hours and minutes from the provided time
     dt.setHours(hour, minute);
-    const year = dt.getFullYear();
-    const month = ('0' + (dt.getMonth() + 1)).slice(-2);
-    const day = ('0' + dt.getDate()).slice(-2);
-    const formattedTime = `${year}${month}${day}T${hour}${minute}00Z`;
+
+    // Get the UTC time from the Date object (since it represents local time initially)
+    const utcYear = dt.getUTCFullYear();
+    const utcMonth = ('0' + (dt.getUTCMonth() + 1)).slice(-2);  // Month is 0-based
+    const utcDay = ('0' + dt.getUTCDate()).slice(-2);
+    const utcHour = ('0' + dt.getUTCHours()).slice(-2);
+    const utcMinute = ('0' + dt.getUTCMinutes()).slice(-2);
+    const utcSecond = ('0' + dt.getUTCSeconds()).slice(-2);
+
+    // Return the formatted time in iCalendar format (UTC time with Z at the end)
+    const formattedTime = `${utcYear}${utcMonth}${utcDay}T${utcHour}${utcMinute}${utcSecond}Z`;
     return formattedTime;
 }
 

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加到日历</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>将事项添加到日历</h1>
+    <p>点击按钮生成一个可下载的日历事件文件</p>
+    <button onclick="generateICS()">生成并下载日历事件</button>
+
+    <script>
+        function generateICS() {
+            const eventTitle = "会议";
+            const eventLocation = "公司会议室";
+            const eventDescription = "请准时参加会议";
+            const eventDate = "2024-12-20";  // 事件日期
+            const eventStartTime = "14:00";  // 事件开始时间
+            const eventEndTime = "15:00";  // 事件结束时间
+
+            // 格式化时间为iCalendar格式（yyyyMMddTHHmmssZ）
+            const startDateTime = formatDateToICS(eventDate, eventStartTime);
+            const endDateTime = formatDateToICS(eventDate, eventEndTime);
+            console.log(eventTitle,eventDate,eventStartTime,eventEndTime)
+
+            // 生成ICS文件内容
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Your Company//NONSGML v1.0//EN
+BEGIN:VEVENT
+SUMMARY:${eventTitle}
+LOCATION:${eventLocation}
+DESCRIPTION:${eventDescription}
+DTSTART:${startDateTime}
+DTEND:${endDateTime}
+UID:${generateUID()}
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER:-PT10M
+DESCRIPTION:Reminder
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+
+            // 创建一个Blob对象，并生成下载链接
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'event.ics';  // 下载文件的名称
+            link.click();
+        }
+
+        // 格式化日期为iCalendar标准格式
+        function formatDateToICS(date, time) {
+            const [year, month, day] = date.split('-');
+            const [hour, minute] = time.split(':');
+            return `${year}${month}${day}T${hour}${minute}00Z`;
+        }
+
+        // 生成唯一的UID
+        function generateUID() {
+            return 'uid-' + Date.now();
+        }
+    </script>
+</body>
+</html>
