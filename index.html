@@ -256,6 +256,8 @@
 
 
     <script src="satellite.js"></script>
+        <script src="suncalc.min.js"></script>
+
 
     <script>
 
@@ -829,12 +831,29 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
             const now = new Date();
     const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
+
+
+
+        // 获取当地的日出和日落时间
+        const latitude = parseFloat(localStorage.getItem('latitude'));
+        const longitude = parseFloat(localStorage.getItem('longitude'));
+        const sunTimes = SunCalc.getTimes(pass.entry.time, latitude, longitude);
+        const sunrise = sunTimes.sunrise;
+        const sunset = sunTimes.sunset;
+
+        // 判断 entryTime 是否在白天或夜晚
         let rowClass = "";
-        if (entryHour >= 19 || entryHour < 7) {
-            rowClass = "night";  // 19:00-07:00，灰底白字
+        if (pass.entry.time >= sunrise && pass.entry.time <= sunset) {
+            rowClass = "day";  // 白天
         } else {
-            rowClass = "day";    // 其余时间，蓝底黄字
+            rowClass = "night";  // 夜晚
         }
+
+
+
+
+
+
         lang=currentLang
         document.getElementById('notesInfo').innerHTML = translations[lang].notesInfo; // 更新 notesInfo 内容
 
@@ -865,12 +884,11 @@ function formatGroupedPassesToHTML(groupedPasses) {
             <tr class="${rowClass}">
                  <td>
   <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
-    ${entrydate}
+    ${entrydate}📅
   </a>
 </td>
                 <td>${entryTime}</td>
                 <td>${highestTime}</td>
-
                                 <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
                 <td>${exitTime}</td>
             </tr>
@@ -1020,6 +1038,7 @@ document.addEventListener('click', function(event) {
     }
 });
 
+///判断白天黑夜
 
 
     </script>
