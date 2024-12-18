@@ -1130,10 +1130,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let content = `<h3>${selectedsat}</h3>`;
     data.forEach(item => {
       content += `
-        <p><strong>Description:</strong> ${item.description}</p>
+        <strong>Description:</strong> ${item.description}
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <p><strong>downlink:</strong> ${formatFrequency(item.downlink_low)}</p>
-          <p><strong>uplink:</strong> ${formatFrequency(item.uplink_low)}</p>
+          <strong>downlink:</strong> ${formatFrequency(item.downlink_low)}
+          <strong>uplink:</strong> ${formatFrequency(item.uplink_low)}
         </div>
         <hr>
       `;
