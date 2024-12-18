@@ -281,6 +281,7 @@ window.onload = function () {
 
     // 显示卫星信息
     const satelliteName = localStorage.getItem('selectedSatelliteName');
+    document.title = '🌎 ' + satelliteName;
     const satelliteTLE1 = localStorage.getItem('selectedSatelliteTLE1');
     const satelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
 
