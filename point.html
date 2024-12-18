@@ -210,7 +210,7 @@
 
 
 </div>
-    <button class="info-btn">卫星频率信息</button>
+    <button class="info-btn" id="info-btn">卫星频率信息</button>
 <div id="popup" class="popup">
   <div class="popup-content">
     <button id="close-btn" class="close-btn">×</button>
@@ -326,7 +326,7 @@ document.getElementById('satellite-name').textContent = `${selectedPass.satellit
 document.getElementById('satellite-info').textContent = `当前方位：° 当前仰角：° 预测最高仰角：${selectedPass.highestElevation}° `;
 document.getElementById('pass-info').textContent = `开始：${formattedEntryTime} ${selectedPass.entryAzimuth}° | 结束：${formattedExitTime} ${selectedPass.exitAzimuth}°`;
 document.getElementById('time-info').textContent = "当前时间：";
-document.getElementById('info-btn').textContent = "卫星频率信息：";
+document.getElementById('info-btn').textContent = "卫星频率信息";
 
 
     const satelliteElevation = document.getElementById('satellite-elevation');
