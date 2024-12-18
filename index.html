@@ -359,8 +359,8 @@ function updateTableHeaders(lang) {
         headers[2].textContent = translations[lang].tableHeaders.highest;
         headers[3].textContent = translations[lang].tableHeaders.end;
         headers[4].textContent = translations[lang].tableHeaders.time;        
-        headers[5].textContent = translations[lang].tableHeaders.azimuth;
-        headers[6].textContent = translations[lang].tableHeaders.elevation;
+        //headers[5].textContent = translations[lang].tableHeaders.azimuth;
+        headers[5].textContent = translations[lang].tableHeaders.elevation;
 
     } else if (calculated == 1) {
         // 如果没有表格，更新显示的文本
@@ -804,12 +804,11 @@ function formatGroupedPassesToHTML(groupedPasses) {
                 <tr>
                     <th rowspan="2">${translations[currentLang].tableHeaders.date}</th>
                     <th rowspan="2">${translations[currentLang].tableHeaders.start}</th>
-                    <th colspan="3">${translations[currentLang].tableHeaders.highest}</th>
+                    <th colspan="2">${translations[currentLang].tableHeaders.highest}</th>
                     <th rowspan="2">${translations[currentLang].tableHeaders.end}</th>
                 </tr>
                 <tr>
                     <th>${translations[currentLang].tableHeaders.time}</th>
-                    <th>${translations[currentLang].tableHeaders.azimuth}</th>
                     <th>${translations[currentLang].tableHeaders.elevation}</th>
                 </tr>
             </thead>
@@ -856,7 +855,6 @@ function formatGroupedPassesToHTML(groupedPasses) {
         const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;
         // Generate ICS link dynamically for each row
         const icsLink = generateICSLink(eventTitle, eventDate, startTime, endTime);
-        console.log(icsLink)
 
 
         html += `
@@ -866,11 +864,11 @@ function formatGroupedPassesToHTML(groupedPasses) {
     ${entrydate}
   </a>
 </td>
-                <td>${entryTime}, ${entryAzimuth}</td>
+                <td>${entryTime}</td>
                 <td>${highestTime}</td>
-                <td>${highestAzimuth}</td>
+
                                 <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
-                <td>${exitTime}, ${exitAzimuth}</td>
+                <td>${exitTime}</td>
             </tr>
         `;
     });
@@ -902,7 +900,6 @@ function formatGroupedPassesToHTML(groupedPasses) {
 function generateICSLink(eventTitle, eventDate, startTime, endTime) {
     const startDateTime = formatDateToICS(eventDate, startTime);
     const endDateTime = formatDateToICS(eventDate, endTime);
-    console.log(startTime,startDateTime)
 
     const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
