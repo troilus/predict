@@ -133,34 +133,41 @@
 
 
 /* Basic styling for the popup */
-.popup {
-  display: none;
+#popup {
   position: fixed;
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  background-color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 999;
+  top: 15%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none; /* 初始隐藏 */
+  justify-content: center;
+  align-items: center;
+              z-index: 4;
+}
+
+#popup .popup-content {
+  position: relative;
   padding: 20px;
+  max-width: 600px;
+  max-height: 80%;
+  overflow-y: auto;
+  background-color: white;
   border-radius: 10px;
 }
 
-.popup-content {
-  position: relative;
-}
-
-.close-btn {
+#close-btn {
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: transparent;
-  border: none;
-  font-size: 20px;
   cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
 }
 
+#satellite-feqinfo {
+  max-height: 400px; /* 设定最大高度 */
+  overflow-y: auto;  /* 超出时出现垂直滚动条 */
+}
 
 
 </style>
@@ -1021,49 +1028,37 @@ document.addEventListener('DOMContentLoaded', function() {
   const infoButton = document.querySelector('.info-btn');
   const popup = document.getElementById('popup');
   const closeButton = document.getElementById('close-btn');
-  const satelliteInfo = document.getElementById('satellitef-feqinfo');
+  const satelliteInfo = document.getElementById('satellite-feqinfo');
   
+  // Authorization token (use the correct token here)
+  const authorizationToken = '04dbc5423ace07e1caad69925c275a4d4d48d342';
+
   infoButton.addEventListener('click', function() {
     // Fetch the selected satellite NORAD catalog ID from localStorage
     const selectedSatelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
+    const selectedsat = localStorage.getItem('selectedSatelliteName');
     if (!selectedSatelliteTLE2) {
       alert('No satellite selected');
       return;
     }
 
-    // Extract the NORAD catalog ID from TLE1 string (assuming it's the second part)
+    // Extract the NORAD catalog ID from TLE2 string (assuming it's the second part)
     const noradCatId = selectedSatelliteTLE2.split(' ')[1];
 
-    // Construct the API URL with the extracted NORAD catalog ID
-    const apiUrl = `https://db.satnogs.org/api/transmitters/?alive=&format=json&mode=&sat_id=&satellite__norad_cat_id=${noradCatId}&service=&status=&type=&uplink_mode=&uuid=`;
+    // Check if we already have frequency information for this NORAD catalog ID in localStorage
+    const storedData = localStorage.getItem('freqinfo');
+    const freqInfo = storedData ? JSON.parse(storedData) : {};
 
-    // Fetch data from the API
-    fetch(apiUrl)
-      .then(response => response.json())
-      .then(data => {
-        if (data.length === 0) {
-          satelliteInfo.innerHTML = '<p>No frequency information available.</p>';
-        } else {
-          // Loop through the fetched data and display it
-          let content = '<h3>卫星频率信息</h3>';
-          data.forEach(item => {
-            content += `
-              <p><strong>Description:</strong> ${item.description}</p>
-              <p><strong>Status:</strong> ${item.status}</p>
-              <p><strong>Frequency:</strong> ${item.downlink_low ? item.downlink_low : 'N/A'}</p>
-              <p><strong>Mode:</strong> ${item.mode}</p>
-              <p><strong>Service:</strong> ${item.service}</p>
-              <p><strong>Citation:</strong> <a href="${item.citation}" target="_blank">${item.citation}</a></p>
-              <hr>
-            `;
-          });
-          satelliteInfo.innerHTML = content;
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching satellite data:', error);
-        satelliteInfo.innerHTML = '<p>Error fetching data.</p>';
-      });
+    // Show loading text before fetching data
+    satelliteInfo.innerHTML = '<p>Loading...</p>';
+
+    // If we have data for this NORAD catalog ID, use it
+    if (freqInfo[noradCatId]) {
+      displayFrequencyData(freqInfo[noradCatId], selectedsat);
+    } else {
+      // Otherwise, fetch data from the API
+      fetchSatelliteData(noradCatId, selectedsat);
+    }
 
     // Show the popup
     popup.style.display = 'block';
@@ -1080,6 +1075,62 @@ document.addEventListener('DOMContentLoaded', function() {
       popup.style.display = 'none';
     }
   });
+
+  // Function to fetch data from the API
+  function fetchSatelliteData(noradCatId, selectedsat) {
+    const apiUrl = `https://c0rs.xanyi.eu.org/c0rs/?https://db.satnogs.org/api/transmitters/?alive=true&format=json&satellite__norad_cat_id=${noradCatId}&status=active`;
+
+    fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${authorizationToken}` // Adding the authorization header
+      }
+    })
+    .then(response => response.json()) // Parse the JSON response
+    .then(data => {
+      if (data.length === 0) {
+        satelliteInfo.innerHTML = '<p>No frequency information available.</p>';
+      } else {
+        // Add data to freqinfo with the corresponding noradCatId
+        const freqInfo = JSON.parse(localStorage.getItem('freqinfo') || '{}');
+        freqInfo[noradCatId] = data; // Store the data under the noradCatId
+
+        // Store updated data back to localStorage
+        localStorage.setItem('freqinfo', JSON.stringify(freqInfo));
+
+        // Display the fetched data
+        displayFrequencyData(data, selectedsat);
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching satellite data:', error);
+      satelliteInfo.innerHTML = '<p>Error fetching data.</p>';
+    });
+  }
+
+  // Function to format frequency to MHz (e.g., 136650000 => 136.650 MHz)
+  function formatFrequency(freq) {
+    return freq ? (freq / 1000000).toFixed(3) + ' MHz' : 'N/A';
+  }
+
+  // Function to display frequency data in the popup
+  function displayFrequencyData(data, selectedsat) {
+    let content = `<h3>${selectedsat}</h3>`;
+    data.forEach(item => {
+      content += `
+        <p><strong>Description:</strong> ${item.description}</p>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <p><strong>downlink:</strong> ${formatFrequency(item.downlink_low)}</p>
+          <p><strong>uplink:</strong> ${formatFrequency(item.uplink_low)}</p>
+        </div>
+        <hr>
+      `;
+    });
+
+    // Display the content in satelliteInfo
+    satelliteInfo.innerHTML = content;
+  }
 });
 
 //频率表结束
