@@ -47,6 +47,13 @@
 
 
 
+#download-link {
+  display: none;
+  text-decoration: none;
+  color: black;
+}
+
+
                     #made {
     margin-top: 20px; /* Increases the space above the element */
     font-size: 14px;  /* Optional: Adjust font size */
@@ -210,6 +217,12 @@
     <div id="satellite-feqinfo"></div>
   </div>
 </div>
+
+    <div>
+      <!-- Record button -->
+      <button id="record-btn">开始录音</button>
+      <button id="download-btn"  style="display: none;">下载音频</button>
+    </div>
 
 
     <button class="start-btn">iOS设备传感器授权</button>
@@ -1135,6 +1148,89 @@ document.addEventListener('DOMContentLoaded', function() {
 
 //频率表结束
 
+
+//录音开始
+document.addEventListener('DOMContentLoaded', function() {
+  const recordBtn = document.getElementById('record-btn');
+  const downloadbtn = document.getElementById('download-btn');
+  const downloadBtn = document.getElementById('download-btn');
+  const popup = document.getElementById('popup');
+  
+  let isRecording = false;
+  let mediaRecorder;
+  let audioChunks = [];
+  let audioBlob;
+  let audioUrl;
+  let audioFile;
+    let fileSizeInMB = 0;
+
+  // Function to handle recording button
+  recordBtn.addEventListener('click', function() {
+    if (isRecording) {
+      // Stop recording
+      mediaRecorder.stop();
+      recordBtn.textContent = '开始录音';
+      downloadBtn.style.display = 'inline-block';  // Show the download button
+    } else {
+      // Start recording
+      startRecording();
+      recordBtn.textContent = `结束录音`;
+      downloadBtn.style.display = 'none';  // Hide download button until recording ends
+    }
+    isRecording = !isRecording;
+  });
+
+  // Function to start recording
+  function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(function(stream) {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+
+        mediaRecorder.ondataavailable = function(event) {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = function() {
+          audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          audioUrl = URL.createObjectURL(audioBlob);
+          audioFile = new File([audioBlob], `${getSatelliteName()}-${getCurrentTimestamp()}.wav`, { type: 'audio/wav' });
+
+
+
+
+                    // Calculate the size of the recorded file in MB
+          fileSizeInMB = audioBlob.size / (1024 * 1024);  // Size in MB
+
+            downloadbtn.textContent = `下载音频 - ${fileSizeInMB.toFixed(2)}MB`;
+
+          // Prepare audio for download
+          downloadBtn.addEventListener('click', function() {
+            const link = document.createElement('a');
+            link.href = audioUrl;
+            link.download = audioFile.name;
+            link.click();
+          });
+        };
+      })
+      .catch(function(error) {
+        console.error("Error accessing audio devices:", error);
+      });
+  }
+
+  // Function to get the satellite name (you can replace this logic with actual satellite name)
+  function getSatelliteName() {
+    return localStorage.getItem('selectedSatelliteName') || 'Satellite';
+  }
+
+  // Function to get the current timestamp
+  function getCurrentTimestamp() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}_${String(now.getMinutes()).padStart(2, '0')}_${String(now.getSeconds()).padStart(2, '0')}`;
+  }
+});
+
+//录音结束
 
     init();
   </script>
