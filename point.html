@@ -1152,9 +1152,8 @@ document.addEventListener('DOMContentLoaded', function() {
 //录音开始
 document.addEventListener('DOMContentLoaded', function() {
   const recordBtn = document.getElementById('record-btn');
-  const downloadbtn = document.getElementById('download-btn');
-  const downloadBtn = document.getElementById('download-btn');
-  const popup = document.getElementById('popup');
+
+  const download = document.getElementById('download-btn');
   
   let isRecording = false;
   let mediaRecorder;
@@ -1174,6 +1173,9 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       // Start recording
       startRecording();
+            // Clear previous recording data before starting a new recording
+      audioChunks = [];
+      fileSizeInMB = 0;  // Reset file size
       recordBtn.textContent = `结束录音`;
       downloadBtn.style.display = 'none';  // Hide download button until recording ends
     }
@@ -1202,21 +1204,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Calculate the size of the recorded file in MB
           fileSizeInMB = audioBlob.size / (1024 * 1024);  // Size in MB
 
-            downloadbtn.textContent = `下载音频 - ${fileSizeInMB.toFixed(2)}MB`;
+          // Update the download button text with the file size
+          downloadBtn.textContent = `下载音频 - ${fileSizeInMB.toFixed(2)}MB`;
 
-          // Prepare audio for download
-          downloadBtn.addEventListener('click', function() {
-            const link = document.createElement('a');
-            link.href = audioUrl;
-            link.download = audioFile.name;
-            link.click();
-          });
+          // Clear previous event listeners before adding a new one
+          downloadBtn.removeEventListener('click', downloadAudio);
+
+          // Bind a new event listener for downloading the audio file
+          downloadBtn.addEventListener('click', downloadAudio);
+
+
+
         };
       })
       .catch(function(error) {
         console.error("Error accessing audio devices:", error);
       });
   }
+
+
+    // 下载音频的函数
+  function downloadAudio() {
+    const link = document.createElement('a');
+    link.href = audioUrl;
+    link.download = audioFile.name;
+    link.click();
+  }
+
+
 
   // Function to get the satellite name (you can replace this logic with actual satellite name)
   function getSatelliteName() {
