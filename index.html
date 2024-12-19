@@ -35,6 +35,15 @@
             align-items: center;
         }
 
+
+        .search-container {
+            display: flex;
+            align-items: center;
+justify-content: center;
+            width: 100%;
+                        margin-bottom: 10px;
+        }
+
                     #made {
     margin-top: 20px; /* Increases the space above the element */
     font-size: 14px;  /* Optional: Adjust font size */
@@ -43,6 +52,9 @@
         h1 {
             margin-bottom: 20px;
         }
+
+
+
 
 
                 .lang-toggle {
@@ -67,7 +79,10 @@
             color: white;
     }
 }
-
+.button-container {
+    display: flex;
+    gap: 10px;  /* 按钮之间的间距 */
+}
 
 .button {
     padding: 8px 15px;
@@ -151,14 +166,15 @@
             font-size: 14px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            margin-bottom: 10px;
+
             box-sizing: border-box;
         }
 
         .checkbox-container {
             display: flex;
             align-items: center;
-            gap: 10px;
+            margin: 4px;
+
         }
 
 
@@ -202,6 +218,7 @@
     </style>
 </head>
 <body>
+    <div id="location" style="align-self: left;"></div>
     <h1>🛰</h1>
 
 
@@ -211,24 +228,25 @@
     </div>
 
 
+
     <!--<button id="getLocation" class="button">获取位置</button>-->
-    
+<div class="search-container">
 
 <div class="custom-dropdown">
     <input type="text" id="searchInput" placeholder="搜索卫星..." />
     <div class="dropdown-list" id="satelliteDropdown"></div>
+
 </div>
+<button id="starButton" class="star-button"  style="display:none;  border: none; font-size: 17px;   line-height: 50%;">☆</button> <!-- 五角星按钮 -->
+</div>
+
 
     <!--<input type="text" id="searchInput" placeholder="搜索卫星..." />-->
 
-<div id="location" style="align-self: left;"></div>
 
-    <div class="checkbox-container">
-        <label for="timeFilter"  id="timeFilterLabel" ></label>
-        <input type="checkbox" id="timeFilter">
-    </div>
+    <div class="search-container">
 
-    <div class="elevation-filter">
+            <div class="elevation-filter">
     <label for="elevationThreshold"  id="elevationThresholdLabel"></label>
     <select id="elevationThreshold">
         <option value="0">0°</option>
@@ -243,7 +261,22 @@
     </select>
 </div>
 
-    <button id="calculatePass" class="button">计算过境信息</button>
+
+    <div class="checkbox-container">
+        <label for="timeFilter"  id="timeFilterLabel" ></label>
+        <input type="checkbox" id="timeFilter">
+    </div>
+
+
+</div>
+
+
+
+
+<div class="button-container">
+    <button id="calculatePass" class="button">显示选中卫星过境信息</button>
+    <button id="calculatePassfavorite" class="button">显示收藏卫星过境信息</button>
+</div>
 <div id="notesInfo" style="font-weight: bold;"></div>
 <div id="passInfo" style="font-weight: bold; width: 100%; text-align: center;"  ></div>
 
@@ -269,13 +302,14 @@
                 locationDefault: "位置信息：未获取",
                 timeFilterLabel: "仅计算 19:00 ~ 23:59",
                 elevationThresholdLabel: "最高点仰角≥",
-                notesInfo: "点击仰角：对星<br>点击日期：加入日历提醒",
+                notesInfo: "点击仰角：对星，点击日期：加入日历提醒",
                 placeholder: "搜索卫星...",
-                calculatePass:"计算过境信息",
+                calculatePass:"显示选中卫星过境信息",
                                  noTLE:"无TLE信息",
                                  unabletocalc:"请选择卫星并确认已定位",
 
         noPassesInfo: "当前条件下未来3天内没有过境信息",
+        noFavorites: "还没有收藏的卫星",
         tableHeaders: {
             date: "日期",
             start: "开始",
@@ -284,7 +318,8 @@
             time: "时间",
             azimuth: "方位",
             elevation: "仰角",
-            nolocation:"无法获取位置，请检查权限设置"
+            nolocation:"无法获取位置，请检查权限设置",
+            satellite:"卫星"
         }
 
         },
@@ -300,6 +335,7 @@
                                  noTLE:"TLE not found",
                                   unabletocalc:"Please select a satellite and confirm that the location has been determined",
                    noPassesInfo: "No passes found for the next 3 days under the current conditions",
+                           noFavorites: "There is no favorite SAT",
         tableHeaders: {
             date: "Date",
             start: "Start",
@@ -308,7 +344,8 @@
             time: "Time",
             azimuth: "Az",
             elevation: "El",
-            nolocation:"Unable to access location, please check the permission setting"
+            nolocation:"Unable to access location, please check the permission setting",
+                        satellite:"SAT"
         }
         }
         };
@@ -359,13 +396,13 @@ function updateTableHeaders(lang) {
         // 如果表格存在，更新表头文本
         const headers = table.getElementsByTagName('th');
         
-        headers[0].textContent = translations[lang].tableHeaders.date;
-        headers[1].textContent = translations[lang].tableHeaders.start;
-        headers[2].textContent = translations[lang].tableHeaders.highest;
-        headers[3].textContent = translations[lang].tableHeaders.end;
-        headers[4].textContent = translations[lang].tableHeaders.time;        
-        //headers[5].textContent = translations[lang].tableHeaders.azimuth;
-        headers[5].textContent = translations[lang].tableHeaders.elevation;
+        headers[0].textContent = translations[lang].tableHeaders.satellite;
+        headers[1].textContent = translations[lang].tableHeaders.date;
+        headers[2].textContent = translations[lang].tableHeaders.start;
+        headers[3].textContent = translations[lang].tableHeaders.highest;
+        headers[4].textContent = translations[lang].tableHeaders.end;        
+        headers[6].textContent = translations[lang].tableHeaders.elevation;
+        headers[5].textContent = translations[lang].tableHeaders.time;
 
     } else if (calculated == 1) {
         // 如果没有表格，更新显示的文本
@@ -451,7 +488,7 @@ function updateTableHeaders(lang) {
         // 初始化页面
         updateContent(currentLang);
         updatePlaceholder(); // 更新 placeholder 文本
-
+         updateFavoriteButtonText()
 
 
 
@@ -546,6 +583,68 @@ function parseSatellitesData(data) {
 
             return satellites;
         }
+//收藏相关功能
+function isFavorite(satelliteName) {
+    // 从 localStorage 获取 favorites
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '{}');
+
+    // 判断卫星是否存在于 favorites 中
+    return favorites.names && favorites.names[satelliteName] !== undefined;
+}
+
+function toggleFavorite(satelliteName) {
+    // 获取 current favorites 数据
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '{}');
+
+
+
+        // 初始化 favorites.names 如果尚未存在
+    if (!favorites.names) {
+        favorites.names = {};
+    }
+
+    const satelliteNames = Object.keys(favorites.names);
+
+    if (satelliteNames.includes(satelliteName)) {
+        // 如果该卫星已经是收藏项，删除它
+        delete favorites.names[satelliteName]
+        starButton.textContent = '⚪'; // 恢复为五角星
+
+    } else {
+        // 如果该卫星不是收藏项，加入收藏
+        favorites.names[satelliteName] = ""; 
+        starButton.textContent = '🟡'; // 改为方块
+
+    }
+
+    // 更新 localStorage 中的 favorites
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+            updateFavoriteButtonText()
+}
+
+
+function updateFavoriteButtonText() {
+    // 读取localStorage中的favorites
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || {};
+
+    // 获取 names 对象中的键并统计数量
+    const favoriteCount = Object.keys(favorites.names).length;
+
+    // 获取按钮并修改文本
+    const calculatePassfavoriteButton = document.getElementById('calculatePassfavorite');
+    if (calculatePassfavoriteButton && currentLang=='zh') {
+        calculatePassfavoriteButton.textContent = `显示收藏卫星过境信息 *${favoriteCount}`;
+    } else if(calculatePassfavoriteButton && currentLang=='en')
+    calculatePassfavoriteButton.textContent = `Show favorite SATs orbit *${favoriteCount}`;
+}
+
+
+
+
+
+
+
+//收藏相关功能结束
 
 function populateDropdown(satellites) {
     const searchInput = document.getElementById('searchInput');
@@ -553,6 +652,7 @@ function populateDropdown(satellites) {
 
     // 初始化下拉菜单
     function renderDropdown(filteredSatellites) {
+        starButton.style.display = 'none';
         dropdown.innerHTML = ''; // 清空列表
         filteredSatellites.forEach(satellite => {
             const div = document.createElement('div');
@@ -561,6 +661,16 @@ function populateDropdown(satellites) {
             div.addEventListener('click', function () {
                 searchInput.value = satellite.name; // 将选择的值填入输入框
                 dropdown.style.display = 'none'; // 隐藏下拉菜单
+                    // 显示五角星按钮
+                    starButton.style.display = 'inline-block';
+
+
+                    // 判断是否为收藏，并更新按钮
+                    if (isFavorite(satellite.name)) {
+                        starButton.textContent = '🟡'; // 如果是收藏，显示方块
+                    } else {
+                        starButton.textContent = '⚪'; // 否则显示五角星
+                    }
 
                 // 获取并存储卫星数据
                 const noradId = satellite.tle[1].split(' ')[1];
@@ -568,6 +678,13 @@ function populateDropdown(satellites) {
                 localStorage.setItem('selectedSatelliteName', satellite.name);
                 localStorage.setItem('selectedSatelliteTLE1', satellite.tle[0]);
                 localStorage.setItem('selectedSatelliteTLE2', satellite.tle[1]);
+
+                    // 设置点击按钮的事件，点击后切换收藏状态
+                    starButton.onclick = function () {
+                        toggleFavorite(satellite.name);
+                    };
+
+
             });
             dropdown.appendChild(div);
         });
@@ -612,7 +729,7 @@ function populateDropdown(satellites) {
             const dropdown = document.getElementById('satelliteDropdown');
             dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
         });*/
-
+//计算选中卫星
         document.getElementById('calculatePass').addEventListener('click', function() {
             const satelliteName = localStorage.getItem('selectedSatelliteName')
 
@@ -652,7 +769,67 @@ function populateDropdown(satellites) {
                 document.getElementById('passInfo').innerHTML =translations[currentLang].unabletocalc;
             }
         });
+//计算已收藏卫星
+        document.getElementById('calculatePassfavorite').addEventListener('click', function() {
+            //const satelliteName = localStorage.getItem('selectedSatelliteName')
+            const locationText = document.getElementById('location').textContent;
+            const match = locationText.match(/(位置：|Location: )([\-0-9.]+), ([\-0-9.]+)/);
 
+            const timeFilterChecked = document.getElementById('timeFilter').checked;
+
+                    // 获取所有卫星数据
+        const satellites = JSON.parse(localStorage.getItem('satellites'));
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '{}');
+        
+        if (!favorites.names) {
+            document.getElementById('passInfo').innerHTML = translations[currentLang].noFavorites;
+            return;
+        }
+
+
+
+  
+
+            if (match) {
+            const latitude = parseFloat(localStorage.getItem('latitude'));
+            const longitude = parseFloat(localStorage.getItem('longitude'));
+            const altitude = parseFloat(localStorage.getItem('altitude'));
+
+    // 遍历每个收藏的卫星
+            const allGroupedPasses = [];
+            for (const satelliteName in favorites.names) {
+                const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
+
+            if (!satelliteinfo) {
+                continue;  // 如果该卫星的详细信息没有找到，跳过此卫星
+            }
+
+        // 存储所有收藏卫星的分组 passes
+
+
+
+                const satrec = satellite.twoline2satrec(satelliteinfo.tle[0], satelliteinfo.tle[1]);
+                           
+                const currentTime = new Date();
+                const passesfavorite = calculatePassesfavorite(satrec, latitude, longitude, altitude, currentTime, timeFilterChecked);
+
+                const groupedPasses = groupPassesfavorite(passesfavorite);
+                //const savedSatelliteDataToLocalStorage=saveSatelliteDataToLocalStorage(groupedPasses, satelliteName)
+
+            // 将当前卫星的分组 passes 保存到 allGroupedPasses 数组
+            allGroupedPasses.push({
+                satelliteName,
+                groupedPasses
+            });
+
+            }
+
+                document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTMLfavorite(allGroupedPasses);
+             }else {
+                document.getElementById('passInfo').innerHTML =translations[currentLang].unabletocalc;
+            }
+        });
+//计算单个选中卫星3天
 function calculatePasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
     localStorage.setItem('calculated', '1');
     const passes = [];
@@ -703,6 +880,64 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
 
     return passes;
 }
+//计算单个选中卫星3天结束
+
+//计算收藏卫星开始
+
+function calculatePassesfavorite(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
+    localStorage.setItem('calculated', '1');
+    const passes = [];
+    const observerGd = {
+        latitude: satellite.degreesToRadians(latitude),
+        longitude: satellite.degreesToRadians(longitude),
+        height: 0
+    };
+
+    const endTime = new Date(currentTime.getTime() + 1 * 24 * 60 * 60 * 1000);
+    const timeStep = 1 * 1000; // 1秒步长（单位：毫秒）
+
+    for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
+        const passTime = new Date(time);
+
+        const positionAndVelocity = satellite.propagate(satrec, passTime);
+        if (positionAndVelocity && positionAndVelocity.position) {
+            const gmst = satellite.gstime(passTime);
+
+            const lookAngles = satellite.ecfToLookAngles(
+                observerGd,
+                satellite.eciToEcf(positionAndVelocity.position, gmst)
+            );
+
+            if (lookAngles) {
+                const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
+
+                // 仰角大于 0 度的记录添加到 passes
+                if (elevationDegrees > 0) {
+                    const pass = {
+                        time: passTime,
+                        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
+                        elevation: elevationDegrees,
+                    };
+
+                    if (filterNightTime) {
+                        const passHour = passTime.getHours();
+                        if (passHour < 19 || passHour >= 24) {
+                            continue; // 跳过夜间范围外的记录
+                        }
+                    }
+
+                    passes.push(pass);
+                }
+            }
+        }
+    }
+
+    return passes;
+}
+
+
+
+//计算收藏卫星结束
 
 function groupPasses(passes) {
     const groupedPasses = [];
@@ -763,6 +998,67 @@ function groupPasses(passes) {
 }
 
 
+
+function groupPassesfavorite(passes) {
+
+    const groupedPasses = [];
+    let currentPass = null;
+    let hasAboveThreshold  = false; // 是否出现过仰角 >= 15 的点
+        const elevationThreshold = parseFloat(document.getElementById('elevationThreshold').value);
+
+
+    passes.forEach((pass, index) => {
+        if (!currentPass) {
+            // 初始化分组，当仰角从 0 度变为正值时开始记录
+            if (pass.elevation > 0) {
+                currentPass = { entry: pass, highest: pass, exit: pass };
+                hasAboveThreshold  = pass.elevation >= elevationThreshold; // 标记是否达到 15 度
+            }
+        } else {
+            const timeDifference = (new Date(pass.time) - new Date(currentPass.exit.time)) / 1000;
+
+            if (pass.elevation > 0 && timeDifference <= 600) { 
+                // 更新出口点
+                currentPass.exit = pass;
+
+                // 更新最高点
+                if (pass.elevation > currentPass.highest.elevation) {
+                    currentPass.highest = pass;
+                }
+
+                // 标记是否达到 15 度
+                if (pass.elevation >= elevationThreshold) {
+                    hasAboveThreshold  = true;
+                }
+            } else if (pass.elevation > 0) {
+                // 保存当前分组
+                if (hasAboveThreshold ) {
+                    groupedPasses.push(currentPass);
+                }
+
+                // 开始新分组
+                currentPass = { entry: pass, highest: pass, exit: pass };
+                hasAboveThreshold = pass.elevation >= elevationThreshold;
+            } else {
+                // 当仰角回到 0 度时结束分组
+                if (hasAboveThreshold) {
+                    groupedPasses.push(currentPass);
+                }
+                currentPass = null;
+                hasAboveThreshold = false;
+            }
+        }
+
+        // 如果是最后一个点，强制结束当前分组
+        if (index === passes.length - 1 && currentPass && hasAboveThreshold) {
+            groupedPasses.push(currentPass);
+
+        }
+    });
+
+    return groupedPasses;
+}
+
 function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 
     const satelliteData = groupedPasses.map((pass, index) => {
@@ -786,7 +1082,7 @@ function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 
 
 
-
+//输出单个卫星html
 function formatGroupedPassesToHTML(groupedPasses) {
 
     const satelliteName = localStorage.getItem('selectedSatelliteName');
@@ -911,6 +1207,150 @@ function formatGroupedPassesToHTML(groupedPasses) {
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     drawTrajectory(ctx, pass);
+                }
+            }
+        });
+    }, 0);
+
+    return html;
+}
+//输出单个卫星html结束
+//输出已收藏的所有卫星html
+function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
+
+
+
+    if (allGroupedPasses.length === 0 ) {
+        // Hide the "notesInfo" div on the page
+        document.getElementById("notesInfo").style.display = "none";
+        
+        return `<p>${translations[currentLang].noPassesInfo}</p>`;
+    } else {
+        // Show the "notesInfo" div again if there are grouped passes
+        document.getElementById("notesInfo").style.display = "block";
+        
+        // Continue with the regular pass formatting
+        // Add your logic for formatting passes here, if any
+    }
+    let allPasses = [];
+        // Sort allGroupedPasses by the entry time of passes for each satellite
+
+
+
+    let html = `
+        <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
+            <thead>
+                <tr>
+                <th rowspan="2">${translations[currentLang].tableHeaders.satellite}</th>  <!-- 新增卫星名称列 -->
+                    <th rowspan="2">${translations[currentLang].tableHeaders.date}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.start}</th>
+                    <th colspan="2">${translations[currentLang].tableHeaders.highest}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.end}</th>
+                </tr>
+                <tr>
+                    <th>${translations[currentLang].tableHeaders.time}</th>
+                    <th>${translations[currentLang].tableHeaders.elevation}</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+   allGroupedPasses.forEach((satelliteGroup) => {
+        const satelliteName = satelliteGroup.satelliteName;  // 当前卫星名称
+        const groupedPasses = satelliteGroup.groupedPasses;
+
+
+
+                groupedPasses.forEach((pass, index) => {
+     
+            const sortKey = pass.entry.time;
+
+            allPasses.push({
+                satelliteName,
+                pass,
+                sortKey
+            });
+        });
+    });
+
+// 按照 sortKey 对所有 passes 进行排序
+allPasses.sort((a, b) => {
+    return a.sortKey - b.sortKey;  // 通过时间戳进行比较，按时间排序
+});
+
+
+
+
+    allPasses.forEach((item, index) => {
+        const satelliteName = item.satelliteName;
+        const pass = item.pass;
+
+        const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
+        const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        
+        const now = new Date();
+        const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
+
+        const latitude = parseFloat(localStorage.getItem('latitude'));
+        const longitude = parseFloat(localStorage.getItem('longitude'));
+        const sunTimes = SunCalc.getTimes(pass.entry.time, latitude, longitude);
+        const sunrise = sunTimes.sunrise;
+        const sunset = sunTimes.sunset;
+
+        let rowClass = "";
+        if (pass.entry.time >= sunrise && pass.entry.time <= sunset) {
+            rowClass = "day";  // 白天
+        } else {
+            rowClass = "night";  // 夜晚
+        }
+
+        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
+        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+
+        const chartId = `chart-${index}`;
+        const chartHTML = `<canvas id="${chartId}" width="17" height="17"></canvas>`;
+
+        const firstCellStyle = isCurrent ? 'style="background-color: green;"' : '';
+
+        const eventTitle = `${satelliteName}  ${highestElevation}`;  // 事件标题为卫星名称+仰角
+        const eventDate = pass.entry?.time ? new Date(pass.entry.time) : new Date();
+        const startTime = eventDate.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;
+
+        html += `
+            <tr class="${rowClass}">
+                <td>${satelliteName}</td>  <!-- 显示卫星名称 -->
+                <td>
+                    <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
+                        ${entrydate}
+                    </a>
+                </td>
+                <td>${entryTime}</td>
+                <td>${highestTime}</td>
+                <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
+                <td>${exitTime}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+        </tbody>
+    </table>
+    `;
+
+
+    // Append the HTML to the page
+    document.getElementById('passInfo').innerHTML = html;
+
+    // Now that the table is added, draw the trajectories
+    setTimeout(() => {
+        allPasses.forEach((item, index) => {
+            const canvas = document.getElementById(`chart-${index}`);
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    drawTrajectory(ctx, item.pass);
                 }
             }
         });
