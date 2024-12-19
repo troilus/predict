@@ -1288,7 +1288,7 @@ allPasses.sort((a, b) => {
 const satelliteName = item.satelliteName;
 
 // 只取前 5 个字符，如果长度超过 5 就加上省略号
-const shortenedSatelliteName = satelliteName.length > 5 ? satelliteName.slice(0, 5) + '...' : satelliteName;
+const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (satelliteName.length > 5 ? '...' : '');
         const pass = item.pass;
 
         const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
