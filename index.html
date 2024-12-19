@@ -274,8 +274,9 @@ justify-content: center;
 
 
 <div class="button-container">
-    <button id="calculatePass" class="button">显示选中卫星过境信息</button>
-    <button id="calculatePassfavorite" class="button">显示收藏卫星过境信息</button>
+        <button id="calculatePassfavorite" class="button">显示收藏</button>
+    <button id="calculatePass" class="button">显示选中</button>
+
 </div>
 <div id="notesInfo" style="font-weight: bold;"></div>
 <div id="passInfo" style="font-weight: bold; width: 100%; text-align: center;"  ></div>
@@ -304,7 +305,7 @@ justify-content: center;
                 elevationThresholdLabel: "最高点仰角≥",
                 notesInfo: "点击仰角：对星，点击日期：加入日历提醒",
                 placeholder: "搜索卫星...",
-                calculatePass:"显示选中卫星过境信息",
+                calculatePass:"显示选中",
                                  noTLE:"无TLE信息",
                                  unabletocalc:"请选择卫星并确认已定位",
 
@@ -633,7 +634,7 @@ function updateFavoriteButtonText() {
     // 获取按钮并修改文本
     const calculatePassfavoriteButton = document.getElementById('calculatePassfavorite');
     if (calculatePassfavoriteButton && currentLang=='zh') {
-        calculatePassfavoriteButton.textContent = `显示收藏卫星过境信息 *${favoriteCount}`;
+        calculatePassfavoriteButton.textContent = `显示收藏  *${favoriteCount}`;
     } else if(calculatePassfavoriteButton && currentLang=='en')
     calculatePassfavoriteButton.textContent = `Show favorite SATs orbit *${favoriteCount}`;
 }
@@ -1232,6 +1233,8 @@ function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
         // Continue with the regular pass formatting
         // Add your logic for formatting passes here, if any
     }
+
+
     let allPasses = [];
         // Sort allGroupedPasses by the entry time of passes for each satellite
 
@@ -1282,7 +1285,10 @@ allPasses.sort((a, b) => {
 
 
     allPasses.forEach((item, index) => {
-        const satelliteName = item.satelliteName;
+const satelliteName = item.satelliteName;
+
+// 只取前 5 个字符，如果长度超过 5 就加上省略号
+const shortenedSatelliteName = satelliteName.length > 5 ? satelliteName.slice(0, 5) + '...' : satelliteName;
         const pass = item.pass;
 
         const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
@@ -1320,7 +1326,7 @@ allPasses.sort((a, b) => {
 
         html += `
             <tr class="${rowClass}">
-                <td>${satelliteName}</td>  <!-- 显示卫星名称 -->
+                <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
                 <td>
                     <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
                         ${entrydate}
