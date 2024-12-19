@@ -21,13 +21,12 @@
   }
 
 
-      @media (prefers-color-scheme: dark) {
-    body {
-            background-color: #2c2c2c;
 
-    };
-
-}
+          /* 默认情况下，链接颜色为黑色 */
+  .link {
+    color: #333 ;
+    text-decoration: none;
+  }
 
 
 #progress-bar-container {
@@ -173,6 +172,51 @@
 }
 
 
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #2c2c2c; /* 深色模式下的背景色 */
+    }
+
+    #info-bar {
+        background-color: #0a1649; /* 深色模式下的顶部信息栏背景色 */
+    }
+
+    #progress-bar-container {
+        background-color: #444; /* 深色模式下的进度条背景色 */
+    }
+
+    #progress-bar {
+        background-color: #56c6c6; /* 深色模式下的进度条颜色 */
+    }
+
+    #download-link {
+        color: #ddd; /* 深色模式下下载链接的颜色 */
+    }
+
+    #popup .popup-content {
+        background-color: #333; /* 深色模式下弹窗背景色 */
+        color: #fff; /* 深色模式下的文字颜色 */
+    }
+
+    #satellite-feqinfo {
+        color: #ccc; /* 深色模式下信息区域的文字颜色 */
+    }
+                    .link {
+      color: #ddd; /* 或者选择其他合适的颜色，如蓝色 */
+    }
+
+                    #made {
+      color: #ddd; /* 或者选择其他合适的颜色，如蓝色 */
+}
+
+.arrow {
+
+        border-top-color: #94ff00;       /* 下边框为红色，形成三角形 */
+;
+}
+
+}
+
 </style>
 
 
@@ -198,6 +242,9 @@
     <div id="elevation-bar" style="position: absolute; left: -25px; top: 0; height: 300px; width: 20px; background-color: #ddd; border: 0px solid #999; border-radius: 3px;">
     <div id="satellite-elevation" style="position: absolute; left: 1px; width: 18px; height: 18px; background-color: #e17822; border-radius: 50%;"></div>
     <div id="arrow-elevation" style="position: absolute; left: 6px; width: 8px; height: 8px; background-color: #186548; border-radius: 50%;"></div>
+
+
+
 
 
 </div>
@@ -536,10 +583,22 @@ function drawCompassBackground(ctx) {
             const centerY = 150;
             const radius = 140;
 
+
+    // 检测是否为深色模式
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // 设置颜色
+    const strokeColor = isDarkMode ? 'white' : 'black';  // 外圈和文字的颜色
+    const fillColor = isDarkMode ? 'white' : 'black';    // 中心点的颜色
+    const circleStrokeColor = isDarkMode ? 'gray' : 'gray'; // 圆圈的颜色
+    const tickColor = isDarkMode ? 'lightgray' : 'gray'; // 刻度线的颜色
+
+
+
             // Draw outer circle
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-            ctx.strokeStyle = 'black';
+                ctx.strokeStyle = strokeColor;
             ctx.lineWidth = 2;
             ctx.stroke();
 
@@ -547,7 +606,7 @@ function drawCompassBackground(ctx) {
     // Draw center point
     ctx.beginPath();
     ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI); // Small circle with radius 3
-    ctx.fillStyle = 'black'; // Color of the point
+    ctx.fillStyle = fillColor; // 中心点的颜色
     ctx.fill();
 
 
@@ -573,6 +632,7 @@ function drawCompassBackground(ctx) {
                 ctx.font = '16px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
+                ctx.fillStyle = strokeColor; // 方向文字的颜色
                 ctx.fillText(dir, x, y);
             });
 
@@ -586,14 +646,47 @@ function drawCompassBackground(ctx) {
                 ctx.beginPath();
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(x2, y2);
-                ctx.strokeStyle = 'gray';
+                ctx.strokeStyle = tickColor;
                 ctx.lineWidth = i % 90 === 0 ? 2 : 1; // Thicker for cardinal directions
                 ctx.stroke();
             }
         }
 
 
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(event) {
+    drawCompassBackground(compassCtx);  // 重新绘制
+    const satelliteName = localStorage.getItem('selectedSatelliteName');
+    const satelliteTLE1 = localStorage.getItem('selectedSatelliteTLE1');
+    const satelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
 
+        const urlParams = new URLSearchParams(window.location.search);
+            const index = urlParams.get('index');
+
+
+
+
+
+        const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
+
+        const observerGd = {
+            latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
+            longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
+            height: 0
+
+}
+
+        const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
+
+        const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
+    const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
+
+    trajectoryPoints=drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+
+
+    //drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+    updateSatellitePosition(satpointCtx, trajectoryPoints);
+
+});
 
 function getRadiusForElevation(elevation, radius) {
     if (elevation <= 30) return radius - (radius * 0.25) * (elevation / 30);
@@ -613,6 +706,15 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
 
 
     const trajectoryPoints = [];
+    // 检测是否为深色模式
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // 设置颜色
+    const trajectoryColor = isDarkMode ? 'cyan' : 'blue'; // 轨迹线的颜色
+    const arrowColor = isDarkMode ? '#94ff00' : 'red';     // 箭头的颜色
+    const pointColor = isDarkMode ? 'yellow' : 'green'; // 轨迹点的颜色
+
+
     
     // Loop through selectedPass (pass times or observations) and calculate satellite position
     for (let i = 0; i <= steps; i++) {
@@ -659,7 +761,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
         ctx.lineTo(trajectoryPoints[i].x, trajectoryPoints[i].y);
 
     }
-    ctx.strokeStyle = 'blue'; // Trajectory line color
+    ctx.strokeStyle = trajectoryColor; // 轨迹线的颜色
     ctx.lineWidth = 2;
     ctx.stroke();
 
@@ -707,7 +809,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
     if (trajectoryPoints.length > 2) {
         const arrow1Start = trajectoryPoints[oneThirdIndex - 1];
         const arrow1End = trajectoryPoints[oneThirdIndex];
-        drawArrow(arrow1Start.x, arrow1Start.y, arrow1End.x, arrow1End.y, 'red');
+        drawArrow(arrow1Start.x, arrow1Start.y, arrow1End.x, arrow1End.y, arrowColor);
 
         /*const arrow2Start = trajectoryPoints[twoThirdIndex - 1];
         const arrow2End = trajectoryPoints[twoThirdIndex];
@@ -781,6 +883,18 @@ function updateSatellitePosition(ctx, trajectoryPoints) {
     }
 
 
+// 检测是否为深色模式
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // 设置颜色
+    const satelliteColor = isDarkMode ? 'cyan' : 'blue';  // 卫星点颜色
+    const lineColor = isDarkMode ? 'lime' : 'blue';       // 中心到卫星的连线颜色
+    const elevationBarColor = isDarkMode ? '#333' : '#ddd'; // 仰角条背景色
+    const elevationPointColor = isDarkMode ? '#ff0' : '#0066cc'; // 仰角点颜色
+
+
+
+
                 // 显示卫星的仰角
     const elevationBar = document.getElementById('elevation-bar');
     const satelliteElevation = document.getElementById('satellite-elevation');
@@ -817,14 +931,14 @@ if (closestPoint.eleva > 0 && closestPoint.eleva <= 90) {
     // 绘制卫星实时位置
     ctx.beginPath();
     ctx.arc(closestPoint.x, closestPoint.y, 5, 0, 2 * Math.PI);
-    ctx.fillStyle = 'blue';
+    ctx.fillStyle = satelliteColor; // 使用深色模式的卫星颜色
     ctx.fill();
 
     // 绘制中心到卫星的连线
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.lineTo(closestPoint.x, closestPoint.y);
-    ctx.strokeStyle = 'blue';
+    ctx.strokeStyle = satelliteColor; // 使用深色模式的卫星颜色
     ctx.lineWidth = 1;
     ctx.stroke();
 
@@ -1253,7 +1367,8 @@ document.addEventListener('DOMContentLoaded', function() {
     gamma: <span id="gamma"></span><br/>-->
 
 <div id="made">
-  Made with ❤ by troilus.   <a href="https://github.com/troilus/predict" target="_blank" style="color: black;">Code</a> 
+  Made with ❤ by troilus. 
+  <a href="https://github.com/troilus/predict" target="_blank" class="link">Code</a>
 </div>
 
 </html>

@@ -13,6 +13,12 @@
             --font-family: 'Arial', sans-serif;
         }
 
+          /* 默认情况下，链接颜色为黑色 */
+  .link {
+    color: #333 ;
+    text-decoration: none;
+  }
+
                 /* 19:00~07:00 (夜间) */
         .night {
             background-color: #494953;
@@ -35,7 +41,10 @@
             align-items: center;
         }
 
-
+                    #made {
+    margin-top: 20px; /* Increases the space above the element */
+    font-size: 14px;  /* Optional: Adjust font size */
+}
         .search-container {
             display: flex;
             align-items: center;
@@ -44,10 +53,7 @@ justify-content: center;
                         margin-bottom: 10px;
         }
 
-                    #made {
-    margin-top: 20px; /* Increases the space above the element */
-    font-size: 14px;  /* Optional: Adjust font size */
-}
+
 
         h1 {
             margin-bottom: 20px;
@@ -236,6 +242,10 @@ justify-content: center;
                 color: white;
             }
 
+                .link {
+      color: #ddd; /* 或者选择其他合适的颜色，如蓝色 */
+    }
+
 
 
         }
@@ -328,7 +338,8 @@ justify-content: center;
 
 
 <div id="made">
-  Made with ❤ by troilus.   <a href="https://github.com/troilus/predict" target="_blank" style="color: black;">Code</a> 
+  Made with ❤ by troilus. 
+  <a href="https://github.com/troilus/predict" target="_blank" class="link">Code</a>
 </div>
 
 
