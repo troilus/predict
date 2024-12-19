@@ -349,7 +349,7 @@ justify-content: center;
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
                 elevationThresholdLabel: "最高仰角≥",
-                notesInfo: "点击仰角：对星，点击日期：加入日历提醒",
+                notesInfo: "点击仰角：对星，点击开始时间：加入日历提醒",
                 placeholder: "搜索卫星...",
                 calculatePass:"显示选中",
                                  noTLE:"无TLE信息",
@@ -1140,6 +1140,11 @@ function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 //输出单个卫星html
 function formatGroupedPassesToHTML(groupedPasses) {
 
+        let prevEntryDate = "";  // Store the previous entry date for comparison
+    let prevRowIndex = -1;   // Store the index of the previous row
+
+    
+
     const satelliteName = localStorage.getItem('selectedSatelliteName');
 
     if (groupedPasses.length === 0 ) {
@@ -1171,6 +1176,12 @@ function formatGroupedPassesToHTML(groupedPasses) {
             </thead>
             <tbody>
     `;
+
+
+
+
+
+
 
     groupedPasses.forEach((pass, index) => {
         const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
@@ -1229,21 +1240,32 @@ function formatGroupedPassesToHTML(groupedPasses) {
         const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;
         // Generate ICS link dynamically for each row
         const icsLink = generateICSLink(eventTitle, eventDate, startTime, endTime);
+       // Check if the entrydate is the same as the previous one
+        if (entrydate === prevEntryDate) {
+            // If the same, merge the cell
+            html += `
+                <tr class="${rowClass}">
+                    <td></td>  <!-- Empty cell for the merged date -->
+                    <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
+                    <td>${highestTime}</td>
+                    <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
+                    <td>${exitTime}</td>
+                </tr>
+            `;
+        } else {
+            // If it's a new entrydate, show the date and store it for future comparison
+            html += `
+                <tr class="${rowClass}">
+                    <td>${entrydate}</td>
+                    <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
+                    <td>${highestTime}</td>
+                    <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
+                    <td>${exitTime}</td>
+                </tr>
+            `;
+            prevEntryDate = entrydate; // Update the previous entrydate
+        }
 
-
-        html += `
-            <tr class="${rowClass}">
-                 <td>
-  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
-    ${entrydate}
-  </a>
-</td>
-                <td>${entryTime}</td>
-                <td>${highestTime}</td>
-                                <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
-                <td>${exitTime}</td>
-            </tr>
-        `;
     });
 
     html += `
