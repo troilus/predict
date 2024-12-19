@@ -824,6 +824,7 @@ function populateDropdown(satellites) {
         });
 //计算已收藏卫星
         document.getElementById('calculatePassfavorite').addEventListener('click', function() {
+
             //const satelliteName = localStorage.getItem('selectedSatelliteName')
             const locationText = document.getElementById('location').textContent;
             const match = locationText.match(/(位置：|Location: )([\-0-9.]+), ([\-0-9.]+)/);
@@ -867,7 +868,7 @@ function populateDropdown(satellites) {
                 const passesfavorite = calculatePassesfavorite(satrec, latitude, longitude, altitude, currentTime, timeFilterChecked);
 
                 const groupedPasses = groupPassesfavorite(passesfavorite);
-                //const savedSatelliteDataToLocalStorage=saveSatelliteDataToLocalStorage(groupedPasses, satelliteName)
+
 
             // 将当前卫星的分组 passes 保存到 allGroupedPasses 数组
             allGroupedPasses.push({
@@ -876,6 +877,8 @@ function populateDropdown(satellites) {
             });
 
             }
+
+
 
                 document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTMLfavorite(allGroupedPasses);
              }else {
@@ -1115,7 +1118,6 @@ function groupPassesfavorite(passes) {
 }
 
 function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
-
     const satelliteData = groupedPasses.map((pass, index) => {
         return {
             satelliteName: satelliteName,
@@ -1134,6 +1136,25 @@ function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
 }
 
 
+function savefavoriteSatelliteDataToLocalStorage(allPasses) {
+    const satelliteData = allPasses.map((item, index) => {
+        const pass = item.pass;
+
+        return {
+            satelliteName: item.satelliteName,
+            entryTime: pass.entry?.time ? new Date(pass.entry.time) : "未知时间",
+            entryAzimuth: pass.entry?.azimuth ? pass.entry.azimuth.toFixed(2) : "未知",
+            highestTime: pass.highest?.time ? new Date(pass.highest.time) : "未知时间",
+            highestAzimuth: pass.highest?.azimuth ? pass.highest.azimuth.toFixed(2) : "未知",
+            highestElevation: pass.highest?.elevation ? pass.highest.elevation.toFixed(2) : "未知",
+            exitTime: pass.exit?.time ? new Date(pass.exit.time) : "未知时间",
+            exitAzimuth: pass.exit?.azimuth ? pass.exit.azimuth.toFixed(2) : "未知"
+        };
+    });
+
+    // 使用卫星名称作为键，将数据存储到 localStorage
+    localStorage.setItem('selectedorbit', JSON.stringify(satelliteData));
+}
 
 
 
@@ -1352,6 +1373,8 @@ function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
         });
     });
 
+
+
 // 按照 sortKey 对所有 passes 进行排序
 allPasses.sort((a, b) => {
     return a.sortKey - b.sortKey;  // 通过时间戳进行比较，按时间排序
@@ -1359,6 +1382,8 @@ allPasses.sort((a, b) => {
 
 
 
+
+const savedSatelliteDataToLocalStorage=savefavoriteSatelliteDataToLocalStorage(allPasses)
 
     allPasses.forEach((item, index) => {
 const satelliteName = item.satelliteName;
@@ -1398,7 +1423,10 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
         const eventTitle = `${satelliteName}  ${highestElevation}`;  // 事件标题为卫星名称+仰角
         const eventDate = pass.entry?.time ? new Date(pass.entry.time) : new Date();
         const startTime = eventDate.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;
+        const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;                
+
+
+
 
         html += `
             <tr class="${rowClass}">
