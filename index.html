@@ -237,7 +237,10 @@ justify-content: center;
     <div class="dropdown-list" id="satelliteDropdown"></div>
 
 </div>
-<button id="starButton" class="star-button"  style="display:none;  border: none; font-size: 17px;   line-height: 100%; backface-visibility: hidden;">☆</button> <!-- 五角星按钮 -->
+
+<button id="starButton" class="star-button" style="display:none; border: none; background: transparent; font-size: 17px; padding: 0; width: auto; height: auto; text-align: center;">
+  ⚪
+</button>
 </div>
 
 
@@ -1185,7 +1188,7 @@ function formatGroupedPassesToHTML(groupedPasses) {
             <tr class="${rowClass}">
                  <td>
   <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
-    ${entrydate}📅
+    ${entrydate}
   </a>
 </td>
                 <td>${entryTime}</td>
