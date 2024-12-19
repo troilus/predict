@@ -663,12 +663,20 @@ function drawCompassBackground(ctx) {
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(event) {
     drawCompassBackground(compassCtx);  // 重新绘制
-    const satelliteName = localStorage.getItem('selectedSatelliteName');
-    const satelliteTLE1 = localStorage.getItem('selectedSatelliteTLE1');
-    const satelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
-
+    const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
         const urlParams = new URLSearchParams(window.location.search);
-            const index = urlParams.get('index');
+    const index = urlParams.get('index');
+        const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
+        const satelliteName = selectedPass.satelliteName
+            // 从 localStorage 获取 satellites 数据
+    const satellites = JSON.parse(localStorage.getItem('satellites'));
+    // 查找匹配的卫星
+    const satellited = satellites.find(s => s.name === satelliteName);
+
+
+    const satelliteTLE1 = satellited.tle[0];
+    const satelliteTLE2 = satellited.tle[1];
+
 
 
 
@@ -685,12 +693,10 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', fun
 
         const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
 
-        const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
-    const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
 
     trajectoryPoints=drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
 
-
+    trajectoryCtx.clearRect(0, 0, 300, 300)
     drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
     updateSatellitePosition(satpointCtx, trajectoryPoints);
 
