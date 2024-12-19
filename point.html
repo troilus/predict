@@ -80,7 +80,7 @@
             position: absolute;
             top: 0;
             left: 0;
-            z-index: 2;
+            z-index: 3;
             transform-origin: center;
             transform: rotate(0deg);
 
@@ -125,7 +125,7 @@
             transform: rotate(0deg);
             width: 100%;
             height: 100%;
-            z-index: 1;
+            z-index: 4;
         }
 
 
@@ -234,7 +234,7 @@
 <div id="canvas-container">
     <canvas id="trajectory-canvas" width="300" height="300"></canvas>
     <div class="compass">
-        <canvas class="compass-circle" id="compass-background" width="300" height="300"></canvas>
+        <canvas class="compass-circle" id="compass-background" width="300" height="300" z-index="3" ></canvas>
         <div class="arrow"></div>
     </div>
 
@@ -698,7 +698,19 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', fun
     satpointCtx.clearRect(0, 0, 300, 300)
     trajectoryCtx.clearRect(0, 0, 300, 300)
     drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
-    updateSatellitePosition(satpointCtx, trajectoryPoints);
+            const now = new Date();
+            const entryTime = new Date(selectedPass.entryTime);
+const exitTime = new Date(selectedPass.exitTime);
+
+if (now >= entryTime && now <= exitTime) {
+    // 如果当前时间在 entryTime 和 exitTime 之间，计算距离结束时间的剩余时间
+    const timeRemaining = exitTime - now;
+    const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+    timeInfo += `，距离结束：${hours}h ${minutes}m ${seconds}s`;
+        updateSatellitePosition(satpointCtx, trajectoryPoints);
+} 
 
 });
 
