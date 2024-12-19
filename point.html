@@ -695,7 +695,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', fun
 
 
     trajectoryPoints=drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
-
+    satpointCtx.clearRect(0, 0, 300, 300)
     trajectoryCtx.clearRect(0, 0, 300, 300)
     drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
     updateSatellitePosition(satpointCtx, trajectoryPoints);
