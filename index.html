@@ -79,6 +79,30 @@ justify-content: center;
             color: white;
     }
 }
+
+
+.elevation-filter {
+    display: flex;
+    align-items: center; /* 垂直居中对齐 */
+    gap: 8px; /* 控制 label 和 select 之间的间距 */
+}
+
+#elevationThresholdLabel {
+    margin: 0;
+}
+
+
+
+
+.days-filter {
+    display: flex;
+    align-items: center; /* 垂直居中对齐 */
+    gap: 8px; /* 控制 label 和 select 之间的间距 */
+}
+
+#daysLabel {
+    margin: 0;
+}
 .button-container {
     display: flex;
     gap: 10px;  /* 按钮之间的间距 */
@@ -248,6 +272,17 @@ justify-content: center;
 
 
     <div class="search-container">
+                <div class="days-filter">
+    <label for="days"  id="daysLabel"></label>
+    <select id="days">
+        <option value="1">1</option>
+        <option value="3" selected>3</option>
+        <option value="5" >5</option>
+        <option value="10">10</option>
+        <option value="15">15</option>
+
+    </select>
+</div>
 
             <div class="elevation-filter">
     <label for="elevationThreshold"  id="elevationThresholdLabel"></label>
@@ -269,6 +304,13 @@ justify-content: center;
         <label for="timeFilter"  id="timeFilterLabel" ></label>
         <input type="checkbox" id="timeFilter">
     </div>
+
+
+
+
+
+
+
 
 
 </div>
@@ -304,8 +346,9 @@ justify-content: center;
             zh: {
                 location: "位置：${latitude}, ${longitude}",
                 locationDefault: "位置信息：未获取",
-                timeFilterLabel: "仅计算 19:00 ~ 23:59",
-                elevationThresholdLabel: "最高点仰角≥",
+                timeFilterLabel: "仅19:00~23:59",
+                daysLabel: "天数:",
+                elevationThresholdLabel: "最高仰角≥",
                 notesInfo: "点击仰角：对星，点击日期：加入日历提醒",
                 placeholder: "搜索卫星...",
                 calculatePass:"显示选中",
@@ -333,6 +376,7 @@ justify-content: center;
                 locationDefault: "Location: Not Retrieved",
                 timeFilterLabel: "Calculate Only from 19:00 ~ 23:59",
                 elevationThresholdLabel: "MAX. Elevation ≥",
+                daysLabel: "Days:",
                 notesInfo: "Click the El to view the orbit page<br>Click the Date to add the event to calendar",
                 placeholder: "Search satellites...",
                  calculatePass:"Calculate",
@@ -449,6 +493,7 @@ function updateTableHeaders(lang) {
 
             document.getElementById('location').textContent = translations[lang].location;
             document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
+            document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
             document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
 
             document.getElementById('calculatePass').textContent = translations[lang].calculatePass;
@@ -846,8 +891,8 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
         longitude: satellite.degreesToRadians(longitude),
         height: 0
     };
-
-    const endTime = new Date(currentTime.getTime() + 3 * 24 * 60 * 60 * 1000);
+    const days = parseFloat(document.getElementById('days').value);
+    const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
     const timeStep = 1 * 1000; // 1秒步长（单位：毫秒）
 
     for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
@@ -901,7 +946,9 @@ function calculatePassesfavorite(satrec, latitude, longitude, altitude, currentT
         height: 0
     };
 
-    const endTime = new Date(currentTime.getTime() + 1 * 24 * 60 * 60 * 1000);
+    const days = parseFloat(document.getElementById('days').value);
+
+    const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
     const timeStep = 1 * 1000; // 1秒步长（单位：毫秒）
 
     for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
