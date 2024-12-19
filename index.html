@@ -626,17 +626,21 @@ function toggleFavorite(satelliteName) {
 
 function updateFavoriteButtonText() {
     // 读取localStorage中的favorites
-    const favorites = JSON.parse(localStorage.getItem('favorites')) || {};
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || {};  // 如果不存在则返回空对象
+
+    // 确保favorites.names存在且是一个对象，如果没有，则初始化为空对象
+    const favoriteNames = favorites.names || {};
 
     // 获取 names 对象中的键并统计数量
-    const favoriteCount = Object.keys(favorites.names).length;
+    const favoriteCount = Object.keys(favoriteNames).length;
 
     // 获取按钮并修改文本
     const calculatePassfavoriteButton = document.getElementById('calculatePassfavorite');
-    if (calculatePassfavoriteButton && currentLang=='zh') {
+    if (calculatePassfavoriteButton && currentLang == 'zh') {
         calculatePassfavoriteButton.textContent = `显示收藏  *${favoriteCount}`;
-    } else if(calculatePassfavoriteButton && currentLang=='en')
-    calculatePassfavoriteButton.textContent = `Show favorite SATs orbit *${favoriteCount}`;
+    } else if (calculatePassfavoriteButton && currentLang == 'en') {
+        calculatePassfavoriteButton.textContent = `Show favorite SATs orbit *${favoriteCount}`;
+    }
 }
 
 
