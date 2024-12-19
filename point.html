@@ -323,10 +323,18 @@ window.onload = function () {
 
 
     // 显示卫星信息
-    const satelliteName = localStorage.getItem('selectedSatelliteName');
+
+    const satelliteName = selectedPass.satelliteName
+    // 从 localStorage 获取 satellites 数据
+    const satellites = JSON.parse(localStorage.getItem('satellites'));
+    // 查找匹配的卫星
+    const satellited = satellites.find(s => s.name === satelliteName);
+ 
+
     document.title = '🌎 ' + satelliteName;
-    const satelliteTLE1 = localStorage.getItem('selectedSatelliteTLE1');
-    const satelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
+    const satelliteTLE1 = satellited.tle[0];
+    const satelliteTLE2 = satellited.tle[1];
+    console.log(satelliteName,satellited.tle[0],satellited.tle[1])
 
     if (satelliteName && satelliteTLE1 && satelliteTLE2) {
         const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
