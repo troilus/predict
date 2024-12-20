@@ -377,6 +377,8 @@ justify-content: center;
   <a href="https://github.com/troilus/predict" target="_blank" class="link">Code</a>
 </div>
 
+<div id="TLEinfo"></div>
+
 
 
 
@@ -390,12 +392,12 @@ justify-content: center;
                 // 定义语言内容
         const translations = {
             zh: {
-                location: "位置：${latitude}, ${longitude}",
-                locationDefault: "位置信息：未获取",
+                location: "定位: ${latitude}, ${longitude}  星历: ${gettleversion}",
+                locationDefault: "位置信息: 未获取",
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
                 elevationThresholdLabel: "最高仰角≥",
-                notesInfo: "点击仰角：对星，点击开始时间：加入日历提醒",
+                notesInfo: "点击仰角: 对星，点击开始时间: 加入日历提醒",
                 placeholder: "搜索卫星...",
                 calculatePass:"显示选中",
                                  noTLE:"无TLE信息",
@@ -418,7 +420,7 @@ justify-content: center;
         },
 
             en: {
-                location: "Location: ${latitude}, ${longitude}",
+                location: "Location: ${latitude}, ${longitude}  TLE: ${gettleversion}",
                 locationDefault: "Location: Not Retrieved",
                 timeFilterLabel: "Only19:00~23:59",
                 elevationThresholdLabel: "MAX. El ≥",
@@ -490,12 +492,12 @@ function updateTableHeaders(lang) {
         // 如果表格存在，更新表头文本
         const headers = table.getElementsByTagName('th');
         
-        headers[0].textContent = translations[lang].tableHeaders.satellite;
-        headers[1].textContent = translations[lang].tableHeaders.date;
-        headers[2].textContent = translations[lang].tableHeaders.start;
+        headers[0].textContent = translations[lang].tableHeaders.date;
+        headers[1].textContent = translations[lang].tableHeaders.start;
+        headers[2].textContent = translations[lang].tableHeaders.satellite;
         headers[3].textContent = translations[lang].tableHeaders.highest;
         headers[4].textContent = translations[lang].tableHeaders.end;        
-        headers[6].textContent = translations[lang].tableHeaders.elevation;
+        //headers[6].textContent = translations[lang].tableHeaders.elevation;
         headers[5].textContent = translations[lang].tableHeaders.time;
 
     } else if (calculated == 1) {
@@ -507,7 +509,13 @@ function updateTableHeaders(lang) {
                 // 初始化页面内容
         function updateContent(lang) {
 
-                if (navigator.geolocation) {
+
+
+            gettleversion().then(tleversion => {
+                const tleversionfix =tleversion;
+
+
+                                if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
@@ -515,18 +523,15 @@ function updateTableHeaders(lang) {
                     const longitudefix = position.coords.longitude.toFixed(2);
                     const altitude = position.coords.altitude;
                     const accuracy = position.coords.accuracy.toFixed(1);
+
                     localStorage.setItem('latitude', latitude);
                     localStorage.setItem('longitude', longitude);
                     localStorage.setItem('altitude', altitude);
-
-
-
-
-    const locationText = translations[currentLang].location
-        .replace('${latitude}', latitudefix)
-        .replace('${longitude}', longitudefix);
-
-    document.getElementById('notesInfo').textContent = locationText;
+                    const locationText = translations[currentLang].location
+                            .replace('${latitude}', latitudefix)
+                            .replace('${longitude}', longitudefix)
+                            .replace('${gettleversion}', tleversion);
+                    document.getElementById('notesInfo').textContent = locationText;
                 }, function(error) {
                     document.getElementById('notesInfo').textContent = translations[currentLang].nolocation
 
@@ -535,6 +540,9 @@ function updateTableHeaders(lang) {
                 document.getElementById('notesInfo').textContent = '浏览器不支持地理定位。';
             }
 
+            }).catch(error => {
+                console.error("Error fetching TLE version: ", error);
+            });
 
 
             document.getElementById('notesInfo').textContent = translations[lang].location;
@@ -543,22 +551,22 @@ function updateTableHeaders(lang) {
             document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
 
             document.getElementById('calculatePass').textContent = translations[lang].calculatePass;
-
-
-
-        const notesElement = document.getElementById('notesInfo');
-        if (notesElement.innerHTML.trim() !== '') {
-            notesElement.innerHTML = translations[currentLang].notesInfo;
-        }
-
-
-
-
-
-            // 更新语言切换按钮的样式
+            const notesElement = document.getElementById('notesInfo');
+            if (notesElement.innerHTML.trim() !== '') {
+                notesElement.innerHTML = translations[currentLang].notesInfo;
+            }
             document.getElementById('langZH').classList.toggle('active', lang === 'zh');
             document.getElementById('langEN').classList.toggle('active', lang === 'en');
         }
+
+
+
+
+
+
+
+
+
 
         // 切换语言事件
         document.getElementById('langZH').addEventListener('click', (e) => {
@@ -604,9 +612,11 @@ function updateTableHeaders(lang) {
             localStorage.removeItem('selectedSatelliteTLE2');
             localStorage.removeItem('selectedorbit');
             localStorage.removeItem('freqinfo');
+            // Get tleversion asynchronously
+            gettleversion().then(tleversion => {
 
 
-                        if (navigator.geolocation) {
+          if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
@@ -624,7 +634,8 @@ function updateTableHeaders(lang) {
 
     const locationText = translations[currentLang].location
         .replace('${latitude}', latitudefix)
-        .replace('${longitude}', longitudefix);
+        .replace('${longitude}', longitudefix)
+        .replace('${gettleversion}', tleversion);
 
     document.getElementById('notesInfo').textContent = locationText;
                 }, function(error) {
@@ -640,9 +651,12 @@ function updateTableHeaders(lang) {
             //fetch('https://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
             fetch('/satonline.txt')
                 .then(response => {
+
+
                     if (!response.ok) {
                         throw new Error('网络响应失败');
                     }
+
                     return response.text();
                 })
                 .then(data => {
@@ -654,7 +668,34 @@ function updateTableHeaders(lang) {
                 .catch(error => {
                     console.error('无法加载文件:', error);
                 });
+
+
+
+            }).catch(error => {
+                console.error("Error fetching TLE version: ", error);
+            });
+
+
+              
         });
+
+function gettleversion() {
+    return new Promise((resolve, reject) => {
+        fetch('/satonline.txt')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应失败');
+                }
+                
+                const lastModifiedfix = new Date(response.headers.get('Last-Modified'));
+                const tleversion = formatDate(lastModifiedfix); // Assuming formatDate is a valid function
+                resolve(tleversion); // Resolve the promise with the tleversion
+            })
+            .catch(error => {
+                reject(error); // Reject the promise in case of an error
+            });
+    });
+}
 
 function parseSatellitesData(data) {
             const lines = data.split('\n');
@@ -729,7 +770,7 @@ function updateFavoriteButtonText() {
 
     // 获取 names 对象中的键并统计数量
     const favoriteCount = Object.keys(favoriteNames).length;
-    console.log(currentLang)
+
 
     // 获取按钮并修改文本
     const calculatePassfavoriteButton = document.getElementById('calculatePassfavorite');
@@ -950,7 +991,7 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
     };
     const days = parseFloat(document.getElementById('days').value);
     const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
-    const timeStep = 1 * 1000; // 1秒步长（单位：毫秒）
+    const timeStep = 1 * 1000; // 1秒步长（单位: 毫秒）
 
     for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
         const passTime = new Date(time);
@@ -1006,7 +1047,7 @@ function calculatePassesfavorite(satrec, latitude, longitude, altitude, currentT
     const days = parseFloat(document.getElementById('days').value);
 
     const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
-    const timeStep = 1 * 1000; // 1秒步长（单位：毫秒）
+    const timeStep = 1 * 1000; // 1秒步长（单位: 毫秒）
 
     for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
         const passTime = new Date(time);
@@ -1392,7 +1433,7 @@ function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
         return `<p>${translations[currentLang].noPassesInfo}</p>`;
     } else {
         // Show the "notesInfo" div again if there are grouped passes
-           console.log(allGroupedPasses.length)     
+   
         document.getElementById("notesInfo").style.display = "block";
         
         // Continue with the regular pass formatting
@@ -1409,9 +1450,10 @@ function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
         <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
             <thead>
                 <tr>
-                <th rowspan="2">${translations[currentLang].tableHeaders.satellite}</th>  <!-- 新增卫星名称列 -->
+
                     <th rowspan="2">${translations[currentLang].tableHeaders.date}</th>
                     <th rowspan="2">${translations[currentLang].tableHeaders.start}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.satellite}</th>  <!-- 新增卫星名称列 -->
                     <th colspan="2">${translations[currentLang].tableHeaders.highest}</th>
                     <th rowspan="2">${translations[currentLang].tableHeaders.end}</th>
                 </tr>
@@ -1498,14 +1540,13 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
 
 
     
-        if (entrydate === prevEntryDate && shortenedSatelliteName=== prevSat) {
+        if (entrydate === prevEntryDate ) {
             // If the same, merge the cell
         html += `
             <tr class="${rowClass}">
                 <td></td>  <!-- Empty cell for the merged date -->
-                <td></td>  <!-- Empty cell for the merged date -->
-                </td>
                 <td>${entryTime}</td>
+                <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
                 <td>${highestTime}</td>
                 <td ${firstCellStyle}>
   <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
@@ -1520,13 +1561,14 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
             // If it's a new entrydate, show the date and store it for future comparison
         html += `
             <tr class="${rowClass}">
-                <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
-                <td>${entrydate}</td>
+                            <td>${entrydate}</td>
                 <td>
                     <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
                         ${entryTime}
                     </a>
                 </td>
+                <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
+
                 <td>${highestTime}</td>
                 <td ${firstCellStyle}>
   <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
@@ -1571,6 +1613,22 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
 
     return html;
 }
+
+
+
+// 格式化日期为 'YYYY-MM-DD HH:mm' 格式
+function formatDate(date) {
+    //const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');  // 月份是从0开始的，所以要加1
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${month}-${day} ${hours}:${minutes}`;
+}
+
+
+
 //日历相关
 function generateICSLink(eventTitle, eventDate, startTime, endTime) {
     const startDateTime = formatDateToICS(eventDate, startTime);
