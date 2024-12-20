@@ -6,11 +6,11 @@
     <title>🛰</title>
     <style>
         :root {
-            --primary-color: #4CAF50;
-            --secondary-color: #f0f0f0;
-            --text-color: #333;
-            --hover-color: #45a049;
-            --font-family: 'Arial', sans-serif;
+            --primary-color: #007AFF; /* iOS 蓝色 */
+            --secondary-color: #F2F2F7; /* iOS 浅灰背景色 */
+            --text-color: #000000;
+            --hover-color: #0051D5;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
           /* 默认情况下，链接颜色为黑色 */
@@ -39,6 +39,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            -webkit-font-smoothing: antialiased;
         }
 
                     #made {
@@ -115,20 +116,23 @@ justify-content: center;
 }
 
 .button {
-    padding: 8px 15px;
+    padding: 12px 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 12px;
     background-color: var(--primary-color);
     color: white;
     font-size: 16px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
     margin-top: 10px;  /* 上间距 */
         margin-bottom: 10px;  /* 上间距 */
 
 }
 
-        .button:hover {
+        .button:active {
+            transform: scale(0.98);
             background-color: var(--hover-color);
         }
 
@@ -139,19 +143,23 @@ justify-content: center;
 
         .custom-dropdown button {
             width: 100%;
-            height: 40px;
+            height: 44px;
             text-align: left;
             background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 14px;
-            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .dropdown-item {
-    padding: 5px;
-    cursor: pointer;
+    padding: 12px 16px;
+    border-bottom: 1px solid #E5E5EA;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
 }
 
 .dropdown-item:hover {
@@ -166,7 +174,8 @@ justify-content: center;
     left: 0;
     right: 0;
     background-color: white;
-    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     max-height: 400px;
     overflow-y: auto;
     z-index: 1000;
@@ -174,7 +183,7 @@ justify-content: center;
         }
 @media (prefers-color-scheme: dark) {
     .dropdown-list {
-        background-color: #333; /* 深色模式背景 */
+        background-color: #1C1C1E; /* 深色模式背景 */
         border: 1px solid #555;
     }
 }
@@ -191,12 +200,13 @@ justify-content: center;
 
         #searchInput {
             width: 100%;
-            /*max-width: 300px;*/
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-
+            height: 44px;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: none;
+            border-radius: 12px;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             box-sizing: border-box;
         }
 
@@ -216,10 +226,9 @@ justify-content: center;
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --primary-color: #3e8e41;
+                --primary-color: #0A84FF;
                 --secondary-color: #2c2c2c;
-                --text-color: #ddd;
-                --hover-color: #2e7033;
+                --text-color: #FFFFFF;
             }
 
             body {
@@ -228,8 +237,8 @@ justify-content: center;
 
             .custom-dropdown button, 
             #searchInput, 
-            #passInfo {
-                background-color: #444;
+         {
+                background-color: #1C1C1E;
                 border: 1px solid #555;
                 color: var(--text-color);
 
@@ -248,6 +257,32 @@ justify-content: center;
 
 
 
+        }
+        table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        th, td {
+            padding-top: 10px;
+                        padding-bottom: 10px;
+            border: 1px solid #E5E5EA;
+        }
+
+        @media (prefers-color-scheme: dark) {
+   
+
+        table {
+            background: #333;
+
+        }
+
+
+            .dropdown-item {
+                border-bottom-color: #38383A;
+            }
         }
     </style>
 </head>
@@ -333,8 +368,8 @@ justify-content: center;
     <button id="calculatePass" class="button">显示选中</button>
 
 </div>
-<div id="notesInfo" style="font-weight: bold;"></div>
-<div id="passInfo" style="font-weight: bold; width: 100%; text-align: center;"  ></div>
+<div id="notesInfo" style="font-weight: bold; padding-bottom: 10px;"></div>
+<div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
 
 
 <div id="made">
@@ -385,8 +420,8 @@ justify-content: center;
             en: {
                 location: "Location: ${latitude}, ${longitude}",
                 locationDefault: "Location: Not Retrieved",
-                timeFilterLabel: "Calculate Only from 19:00 ~ 23:59",
-                elevationThresholdLabel: "MAX. Elevation ≥",
+                timeFilterLabel: "Only19:00~23:59",
+                elevationThresholdLabel: "MAX. El ≥",
                 daysLabel: "Days:",
                 notesInfo: "Click the El to view the orbit page<br>Click the Date to add the event to calendar",
                 placeholder: "Search satellites...",
@@ -472,7 +507,7 @@ function updateTableHeaders(lang) {
                 // 初始化页面内容
         function updateContent(lang) {
 
-                                    if (navigator.geolocation) {
+                if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
@@ -491,18 +526,18 @@ function updateTableHeaders(lang) {
         .replace('${latitude}', latitudefix)
         .replace('${longitude}', longitudefix);
 
-    document.getElementById('location').textContent = locationText;
+    document.getElementById('notesInfo').textContent = locationText;
                 }, function(error) {
-                    document.getElementById('location').textContent = translations[currentLang].nolocation
+                    document.getElementById('notesInfo').textContent = translations[currentLang].nolocation
 
                 });
             } else {
-                document.getElementById('location').textContent = '浏览器不支持地理定位。';
+                document.getElementById('notesInfo').textContent = '浏览器不支持地理定位。';
             }
 
 
 
-            document.getElementById('location').textContent = translations[lang].location;
+            document.getElementById('notesInfo').textContent = translations[lang].location;
             document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
             document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
             document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
@@ -533,6 +568,7 @@ function updateTableHeaders(lang) {
             updatePlaceholder(); // 更新 placeholder 文本
             updateTableHeaders(currentLang);
                                 localStorage.setItem('lang', currentLang);
+                                        updateFavoriteButtonText()
         });
 
         document.getElementById('langEN').addEventListener('click', (e) => {
@@ -542,13 +578,14 @@ function updateTableHeaders(lang) {
             updatePlaceholder(); // 更新 placeholder 文本
             updateTableHeaders(currentLang);
             localStorage.setItem('lang', currentLang);
+                    updateFavoriteButtonText()
 
         });
 
         // 初始化页面
         updateContent(currentLang);
         updatePlaceholder(); // 更新 placeholder 文本
-         updateFavoriteButtonText()
+        updateFavoriteButtonText()
 
 
 
@@ -560,7 +597,7 @@ function updateTableHeaders(lang) {
 
 
         window.addEventListener('load', function() {
-            document.getElementById('location').textContent = translations[currentLang].locationDefault;
+            document.getElementById('notesInfo').textContent = translations[currentLang].locationDefault;
             localStorage.removeItem('selectedSatelliteName');
             localStorage.removeItem('calculated');
             localStorage.removeItem('selectedSatelliteTLE1');
@@ -589,12 +626,12 @@ function updateTableHeaders(lang) {
         .replace('${latitude}', latitudefix)
         .replace('${longitude}', longitudefix);
 
-    document.getElementById('location').textContent = locationText;
+    document.getElementById('notesInfo').textContent = locationText;
                 }, function(error) {
-                    document.getElementById('location').textContent = '无法获取位置，请检查权限设置。';
+                    document.getElementById('notesInfo').textContent = '无法获取位置，请检查权限设置。';
                 });
             } else {
-                document.getElementById('location').textContent = '浏览器不支持地理定位。';
+                document.getElementById('notesInfo').textContent = '浏览器不支持地理定位。';
             }
 
 
@@ -692,6 +729,7 @@ function updateFavoriteButtonText() {
 
     // 获取 names 对象中的键并统计数量
     const favoriteCount = Object.keys(favoriteNames).length;
+    console.log(currentLang)
 
     // 获取按钮并修改文本
     const calculatePassfavoriteButton = document.getElementById('calculatePassfavorite');
@@ -801,8 +839,11 @@ function populateDropdown(satellites) {
 
 
 
-            const locationText = document.getElementById('location').textContent;
-            const match = locationText.match(/(位置：|Location: )([\-0-9.]+), ([\-0-9.]+)/);
+            const locationText = document.getElementById('notesInfo').textContent;
+
+            const confirmloc = localStorage.getItem('latitude');
+            const isNumeric = (str) => /[0-9.-]/.test(str);
+            const match = isNumeric(confirmloc)
 
             const timeFilterChecked = document.getElementById('timeFilter').checked;
   
@@ -837,8 +878,10 @@ function populateDropdown(satellites) {
         document.getElementById('calculatePassfavorite').addEventListener('click', function() {
 
             //const satelliteName = localStorage.getItem('selectedSatelliteName')
-            const locationText = document.getElementById('location').textContent;
-            const match = locationText.match(/(位置：|Location: )([\-0-9.]+), ([\-0-9.]+)/);
+            const locationText = document.getElementById('notesInfo').textContent;
+            const confirmloc = localStorage.getItem('latitude');
+            const isNumeric = (str) => /[0-9.-]/.test(str);
+            const match = isNumeric(confirmloc)
 
             const timeFilterChecked = document.getElementById('timeFilter').checked;
 
@@ -1280,7 +1323,12 @@ function formatGroupedPassesToHTML(groupedPasses) {
                     <td></td>  <!-- Empty cell for the merged date -->
                     <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
                     <td>${highestTime}</td>
-                    <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
+<td ${firstCellStyle}>
+  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+    ${highestElevation}
+    ${chartHTML}
+  </a>
+</td>
                     <td>${exitTime}</td>
                 </tr>
             `;
@@ -1291,7 +1339,12 @@ function formatGroupedPassesToHTML(groupedPasses) {
                     <td>${entrydate}</td>
                     <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
                     <td>${highestTime}</td>
-                    <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
+<td ${firstCellStyle}>
+  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+    ${highestElevation}
+    ${chartHTML}
+  </a>
+</td>
                     <td>${exitTime}</td>
                 </tr>
             `;
@@ -1327,15 +1380,19 @@ function formatGroupedPassesToHTML(groupedPasses) {
 //输出已收藏的所有卫星html
 function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
 
-
+    let prevEntryDate = "";  // Store the previous entry date for comparison
+    let prevSat = "";  // Store the previous entry date for comparison
+    let prevRowIndex = -1;   // Store the index of the previous row
 
     if (allGroupedPasses.length === 0 ) {
         // Hide the "notesInfo" div on the page
+
         document.getElementById("notesInfo").style.display = "none";
         
         return `<p>${translations[currentLang].noPassesInfo}</p>`;
     } else {
         // Show the "notesInfo" div again if there are grouped passes
+           console.log(allGroupedPasses.length)     
         document.getElementById("notesInfo").style.display = "block";
         
         // Continue with the regular pass formatting
@@ -1383,8 +1440,8 @@ function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
             });
         });
     });
-
-
+        lang=currentLang
+document.getElementById('notesInfo').innerHTML = translations[lang].notesInfo; // 更新 notesInfo 内容
 
 // 按照 sortKey 对所有 passes 进行排序
 allPasses.sort((a, b) => {
@@ -1404,7 +1461,7 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
         const pass = item.pass;
 
         const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
-        const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : "未知时间";
         
         const now = new Date();
         const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
@@ -1424,7 +1481,7 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
 
         const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
         const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
-        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit'}) : "未知时间";
 
         const chartId = `chart-${index}`;
         const chartHTML = `<canvas id="${chartId}" width="17" height="17"></canvas>`;
@@ -1439,20 +1496,55 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
 
 
 
+
+    
+        if (entrydate === prevEntryDate && shortenedSatelliteName=== prevSat) {
+            // If the same, merge the cell
         html += `
             <tr class="${rowClass}">
-                <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
-                <td>
-                    <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
-                        ${entrydate}
-                    </a>
+                <td></td>  <!-- Empty cell for the merged date -->
+                <td></td>  <!-- Empty cell for the merged date -->
                 </td>
                 <td>${entryTime}</td>
                 <td>${highestTime}</td>
-                <td ${firstCellStyle}><a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc;">${highestElevation}${chartHTML}</a></td>
+                <td ${firstCellStyle}>
+  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+    ${highestElevation}
+    ${chartHTML}
+  </a>
+</td>
                 <td>${exitTime}</td>
             </tr>
         `;
+        } else {
+            // If it's a new entrydate, show the date and store it for future comparison
+        html += `
+            <tr class="${rowClass}">
+                <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
+                <td>${entrydate}</td>
+                <td>
+                    <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
+                        ${entryTime}
+                    </a>
+                </td>
+                <td>${highestTime}</td>
+                <td ${firstCellStyle}>
+  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+    ${highestElevation}
+    ${chartHTML}
+  </a>
+</td>
+                <td>${exitTime}</td>
+            </tr>
+        `;
+            prevEntryDate = entrydate; // Update the previous entrydate
+            prevSat = shortenedSatelliteName
+        }
+
+
+
+
+
     });
 
     html += `
