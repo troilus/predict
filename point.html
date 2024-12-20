@@ -25,6 +25,13 @@
                   -webkit-font-smoothing: antialiased;
   }
 
+.button-container {
+    display: flex;
+    gap: 10px;  /* 按钮之间的间距 */
+}
+
+
+
 
 
           /* 默认情况下，链接颜色为黑色 */
@@ -138,7 +145,19 @@
 
 
 
-  .start-btn {
+ .info-btn, .record-btn, .download-btn {
+        padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    background-color: #2e71d1;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
+    margin-top: 10px;  /* 上间距 */
+        margin-bottom: 10px;  /* 上间距 */
 
   }
 
@@ -146,10 +165,15 @@
 /* Basic styling for the popup */
 #popup {
   position: fixed;
-  top: 15%;
+  top: 50%;  /* 定位在页面的垂直中间 */
+  left: 50%; /* 定位在页面的水平中间 */
+  transform: translate(-50%, -50%); /* 通过平移将其从中心调整到完全居中 */
   display: none; /* 初始隐藏 */
+  z-index: 4;
+  width: 100%;
   align-items: center;
-              z-index: 4;
+  justify-content: center;
+
 }
 
 #popup .popup-content {
@@ -158,7 +182,7 @@
   max-width: 600px;
   max-height: 80%;
   overflow-y: auto;
-  background-color: white;
+  background-color: #f2f2f7;
   border-radius: 10px;
 }
 
@@ -168,6 +192,7 @@
   right: 10px;
   cursor: pointer;
   font-size: 20px;
+
   font-weight: bold;
 }
 
@@ -228,7 +253,7 @@
 <body>
 
     <div id="info-bar">
-        <p id="satellite-name"></p>
+        <p id="satellite-name" style="font-weight:bold;"></p>
         <p id="satellite-info"></p>
         <p id="pass-info"></p>
         <p id="time-info"></p>
@@ -258,22 +283,34 @@
 
 
 </div>
+
+<div class="button-container">
+
+
     <button class="info-btn" id="info-btn">卫星频率信息</button>
-<div id="popup" class="popup">
+
+    <div>
+      <!-- Record button -->
+      <button id="record-btn" class="record-btn">开始录音</button>
+      <button id="download-btn"  class="download-btn" style="display: none;">下载音频</button>
+    </div>
+
+
+
+    </div>
+
+        <button class="start-btn" >iOS设备传感器授权</button>
+
+
+        <div id="popup" class="popup">
   <div class="popup-content">
     <button id="close-btn" class="close-btn">×</button>
     <div id="satellite-feqinfo"></div>
   </div>
 </div>
 
-    <div>
-      <!-- Record button -->
-      <button id="record-btn">开始录音</button>
-      <button id="download-btn"  style="display: none;">下载音频</button>
-    </div>
 
 
-    <button class="start-btn">iOS设备传感器授权</button>
 </body>
 
 
@@ -339,7 +376,7 @@ window.onload = function () {
     document.title = '🌎' + satelliteName;
     const satelliteTLE1 = satellited.tle[0];
     const satelliteTLE2 = satellited.tle[1];
-    console.log(satelliteName,satellited.tle[0],satellited.tle[1])
+
 
     if (satelliteName && satelliteTLE1 && satelliteTLE2) {
         const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
@@ -601,8 +638,8 @@ function drawCompassBackground(ctx) {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     // 设置颜色
-    const strokeColor = isDarkMode ? 'white' : 'black';  // 外圈和文字的颜色
-    const fillColor = isDarkMode ? 'white' : 'black';    // 中心点的颜色
+    const strokeColor = isDarkMode ? 'white' : '#494953';  // 外圈和文字的颜色
+    const fillColor = isDarkMode ? 'white' : '#494953';    // 中心点的颜色
     const circleStrokeColor = isDarkMode ? 'gray' : 'gray'; // 圆圈的颜色
     const tickColor = isDarkMode ? 'lightgray' : 'gray'; // 刻度线的颜色
 
@@ -612,7 +649,7 @@ function drawCompassBackground(ctx) {
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
                 ctx.strokeStyle = strokeColor;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
             ctx.stroke();
 
 
@@ -741,7 +778,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     // 设置颜色
-    const trajectoryColor = isDarkMode ? 'cyan' : 'blue'; // 轨迹线的颜色
+    const trajectoryColor = isDarkMode ? 'cyan' : '#007aff'; // 轨迹线的颜色
     const arrowColor = isDarkMode ? '#94ff00' : 'red';     // 箭头的颜色
     const pointColor = isDarkMode ? 'yellow' : 'green'; // 轨迹点的颜色
 
@@ -815,7 +852,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
         const dy = y2 - y1;
         const angle = Math.atan2(dy, dx);
 
-        // Draw line
+// Draw line
         ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
@@ -918,8 +955,8 @@ function updateSatellitePosition(ctx, trajectoryPoints) {
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     // 设置颜色
-    const satelliteColor = isDarkMode ? 'cyan' : 'blue';  // 卫星点颜色
-    const lineColor = isDarkMode ? 'lime' : 'blue';       // 中心到卫星的连线颜色
+    const satelliteColor = isDarkMode ? 'cyan' : '#007aff';  // 卫星点颜色
+    const lineColor = isDarkMode ? 'lime' : '#007aff';       // 中心到卫星的连线颜色
     const elevationBarColor = isDarkMode ? '#333' : '#ddd'; // 仰角条背景色
     const elevationPointColor = isDarkMode ? '#ff0' : '#0066cc'; // 仰角点颜色
 
@@ -962,6 +999,11 @@ if (closestPoint.eleva > 0 && closestPoint.eleva <= 90) {
     // 绘制卫星实时位置
     ctx.beginPath();
     ctx.arc(closestPoint.x, closestPoint.y, 5, 0, 2 * Math.PI);
+    // 绘制黑色轮廓
+ctx.strokeStyle = 'black';  // 设置轮廓颜色为黑色
+ctx.lineWidth = 2;          // 设置轮廓宽度
+ctx.stroke();               // 绘制轮廓
+
     ctx.fillStyle = satelliteColor; // 使用深色模式的卫星颜色
     ctx.fill();
 
@@ -1272,16 +1314,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // Function to display frequency data in the popup
   function displayFrequencyData(data, selectedsat) {
     let content = `<h3>${selectedsat}</h3>`;
-    data.forEach(item => {
-      content += `
-        <strong>Description:</strong> ${item.description}
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <strong>downlink:</strong> ${formatFrequency(item.downlink_low)}
-          <strong>uplink:</strong> ${formatFrequency(item.uplink_low)}
-        </div>
-        <hr>
-      `;
-    });
+data.forEach(item => { 
+  content += `
+    <strong>📡${item.description}</strong> 
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span>🔻 ${formatFrequency(item.downlink_low)}</span>
+      <span>🔺 ${formatFrequency(item.uplink_low)}</span>
+    </div>
+    <hr>
+  `;
+});
 
     // Display the content in satelliteInfo
     satelliteInfo.innerHTML = content;
