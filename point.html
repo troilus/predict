@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <title>🌎</title>
+    <title>🌎ORBIT</title>
     <style>
 
   body {
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
       display: flex;
@@ -16,8 +20,9 @@
       align-items: center;
       justify-content: flex-start;
       min-height: 100vh;
-      background-color: #f4f4f4;
+      background-color: #f2f2f7;
       position: relative;
+                  -webkit-font-smoothing: antialiased;
   }
 
 
@@ -61,7 +66,7 @@
 
   #info-bar {
       width: 100%;
-      background-color: #0e40c5;
+      background-color: #2e71d1;
       color: white;
       padding: 10px;
       text-align: center;
@@ -331,7 +336,7 @@ window.onload = function () {
     const satellited = satellites.find(s => s.name === satelliteName);
  
 
-    document.title = '🌎 ' + satelliteName;
+    document.title = '🌎' + satelliteName;
     const satelliteTLE1 = satellited.tle[0];
     const satelliteTLE2 = satellited.tle[1];
     console.log(satelliteName,satellited.tle[0],satellited.tle[1])
@@ -1393,8 +1398,7 @@ document.addEventListener('DOMContentLoaded', function() {
     gamma: <span id="gamma"></span><br/>-->
 
 <div id="made">
-  Made with ❤ by troilus. 
-  <a href="https://github.com/troilus/predict" target="_blank" class="link">Code</a>
+Made with ❤ by troilus
 </div>
 
 </html>

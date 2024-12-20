@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <title>🛰</title>
     <style>
         :root {
@@ -52,8 +56,16 @@
 justify-content: center;
             width: 100%;
                         margin-bottom: 10px;
+                        gap:5px;
         }
 
+        .config-container {
+            display: flex;
+            align-items: center;
+justify-content: center;
+            width: 100%;
+                        margin-bottom: 10px;
+        }
 
 
         h1 {
@@ -91,7 +103,8 @@ justify-content: center;
 .elevation-filter {
     display: flex;
     align-items: center; /* 垂直居中对齐 */
-    gap: 8px; /* 控制 label 和 select 之间的间距 */
+        /* gap: 8px; 控制 label 和 select 之间的间距 */
+
 }
 
 #elevationThresholdLabel {
@@ -104,7 +117,7 @@ justify-content: center;
 .days-filter {
     display: flex;
     align-items: center; /* 垂直居中对齐 */
-    gap: 8px; /* 控制 label 和 select 之间的间距 */
+
 }
 
 #daysLabel {
@@ -288,12 +301,12 @@ justify-content: center;
 </head>
 <body>
     <div id="location" style="align-self: left;"></div>
-    <h1>🛰</h1>
+    <h1>🌎ORBIT</h1>
 
 
         <!-- 语言切换按钮 -->
     <div class="lang-toggle">
-        <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a>
+        <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a> |  <a href="https://github.com/troilus/predict" target="_blank" class="link">CODE</a>
     </div>
 
 
@@ -316,7 +329,7 @@ justify-content: center;
     <!--<input type="text" id="searchInput" placeholder="搜索卫星..." />-->
 
 
-    <div class="search-container">
+    <div class="config-container">
                 <div class="days-filter">
     <label for="days"  id="daysLabel"></label>
     <select id="days">
@@ -373,8 +386,7 @@ justify-content: center;
 
 
 <div id="made">
-  Made with ❤ by troilus. 
-  <a href="https://github.com/troilus/predict" target="_blank" class="link">Code</a>
+  Made with ❤ by troilus
 </div>
 
 <div id="TLEinfo"></div>
@@ -422,12 +434,12 @@ justify-content: center;
             en: {
                 location: "Location: ${latitude}, ${longitude}  TLE: ${gettleversion}",
                 locationDefault: "Location: Not Retrieved",
-                timeFilterLabel: "Only19:00~23:59",
+                timeFilterLabel: "19:00~23:59 Only",
                 elevationThresholdLabel: "MAX. El ≥",
                 daysLabel: "Days:",
                 notesInfo: "Click the El to view the orbit page<br>Click the Date to add the event to calendar",
                 placeholder: "Search satellites...",
-                 calculatePass:"Calculate",
+                 calculatePass:"Show selected",
                                  noTLE:"TLE not found",
                                   unabletocalc:"Please select a satellite and confirm that the location has been determined",
                    noPassesInfo: "No passes found for the next 3 days under the current conditions",
@@ -777,7 +789,7 @@ function updateFavoriteButtonText() {
     if (calculatePassfavoriteButton && currentLang == 'zh') {
         calculatePassfavoriteButton.textContent = `显示收藏  *${favoriteCount}`;
     } else if (calculatePassfavoriteButton && currentLang == 'en') {
-        calculatePassfavoriteButton.textContent = `Show favorite SATs orbit *${favoriteCount}`;
+        calculatePassfavoriteButton.textContent = `Show favorites *${favoriteCount}`;
     }
 }
 
