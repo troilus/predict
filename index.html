@@ -1557,7 +1557,11 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
         html += `
             <tr class="${rowClass}">
                 <td></td>  <!-- Empty cell for the merged date -->
-                <td>${entryTime}</td>
+                <td>
+                    <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
+                        ${entryTime}
+                    </a>
+                </td>
                 <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
                 <td>${highestTime}</td>
                 <td ${firstCellStyle}>
