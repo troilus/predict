@@ -1226,22 +1226,42 @@ document.addEventListener('DOMContentLoaded', function() {
   const popup = document.getElementById('popup');
   const closeButton = document.getElementById('close-btn');
   const satelliteInfo = document.getElementById('satellite-feqinfo');
+      const urlParams = new URLSearchParams(window.location.search);
+    const index = urlParams.get('index');
   
   // Authorization token (use the correct token here)
   const authorizationToken = '04dbc5423ace07e1caad69925c275a4d4d48d342';
 
   infoButton.addEventListener('click', function() {
-    // Fetch the selected satellite NORAD catalog ID from localStorage
-    const selectedSatelliteTLE2 = localStorage.getItem('selectedSatelliteTLE2');
-    const selectedsat = localStorage.getItem('selectedSatelliteName');
+
+
+
+
+    const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
+    const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
+    const satelliteName = selectedPass.satelliteName
+    const satellites = JSON.parse(localStorage.getItem('satellites'));
+    const satellited = satellites.find(s => s.name === satelliteName);
+
+        // Fetch the selected satellite NORAD catalog ID from localStorage
+    const selectedSatelliteTLE2 = satellited.tle[1];
+    const selectedsat = satelliteName
     if (!selectedSatelliteTLE2) {
       alert('No satellite selected');
       return;
     }
 
+
+
+
+ 
+
+
+
     // Extract the NORAD catalog ID from TLE2 string (assuming it's the second part)
     const noradCatId = selectedSatelliteTLE2.split(' ')[1];
 
+    console.log(satelliteName,noradCatId)
     // Check if we already have frequency information for this NORAD catalog ID in localStorage
     const storedData = localStorage.getItem('freqinfo');
     const freqInfo = storedData ? JSON.parse(storedData) : {};
