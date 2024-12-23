@@ -1260,8 +1260,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Extract the NORAD catalog ID from TLE2 string (assuming it's the second part)
     const noradCatId = selectedSatelliteTLE2.split(' ')[1];
-
-    console.log(satelliteName,noradCatId)
     // Check if we already have frequency information for this NORAD catalog ID in localStorage
     const storedData = localStorage.getItem('freqinfo');
     const freqInfo = storedData ? JSON.parse(storedData) : {};

@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
-    <title>🛰</title>
+    <title>🛰ORBIT</title>
     <style>
         :root {
             --primary-color: #007AFF; /* iOS 蓝色 */
@@ -496,23 +496,36 @@ function updateTable() {
 
 function updateTableHeaders(lang) {
     const passInfoDiv = document.getElementById('passInfo');
-        const calculated  =  localStorage.getItem('calculated');
+ const calculated  =  localStorage.getItem('calculated');
     
     // 检查是否存在表格
     const table = passInfoDiv.getElementsByTagName('table')[0];
     if (table) {
+
+        if (calculated ==1){
         // 如果表格存在，更新表头文本
         const headers = table.getElementsByTagName('th');
         
         headers[0].textContent = translations[lang].tableHeaders.date;
         headers[1].textContent = translations[lang].tableHeaders.start;
+        //headers[2].textContent = translations[lang].tableHeaders.satellite;
+        headers[2].textContent = translations[lang].tableHeaders.highest;
+        headers[3].textContent = translations[lang].tableHeaders.end;        
+        headers[5].textContent = translations[lang].tableHeaders.elevation;
+        headers[4].textContent = translations[lang].tableHeaders.time;
+} else  if (calculated ==2){
+            const headers = table.getElementsByTagName('th');
+        headers[0].textContent = translations[lang].tableHeaders.date;
+        headers[1].textContent = translations[lang].tableHeaders.start;
         headers[2].textContent = translations[lang].tableHeaders.satellite;
+        headers[6].textContent = translations[lang].tableHeaders.elevation;
         headers[3].textContent = translations[lang].tableHeaders.highest;
         headers[4].textContent = translations[lang].tableHeaders.end;        
-        //headers[6].textContent = translations[lang].tableHeaders.elevation;
+
         headers[5].textContent = translations[lang].tableHeaders.time;
 
-    } else if (calculated == 1) {
+}
+    } else {
         // 如果没有表格，更新显示的文本
         passInfoDiv.innerHTML = `<p>${translations[lang].noPassesInfo}</p>`;
     }
@@ -1048,7 +1061,7 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
 //计算收藏卫星开始
 
 function calculatePassesfavorite(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
-    localStorage.setItem('calculated', '1');
+    localStorage.setItem('calculated', '2');
     const passes = [];
     const observerGd = {
         latitude: satellite.degreesToRadians(latitude),
