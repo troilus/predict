@@ -381,7 +381,7 @@ justify-content: center;
     <button id="calculatePass" class="button">显示选中</button>
 
 </div>
-<div id="notesInfo" style="font-weight: bold; padding-bottom: 10px;"></div>
+<div id="notesInfo" style="font-weight: bold; padding-bottom: 10px; font-size: 11px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
 <div id="made">
   Made with ❤ by troilus
@@ -402,12 +402,12 @@ justify-content: center;
                 // 定义语言内容
         const translations = {
             zh: {
-                location: "📍${latitude}, ${longitude} 🗺${locatormg}<br>📅星历: ${gettleversion}",
+                location: "📍${latitude}, ${longitude} 🗺${locatormg} 📅星历: ${gettleversion}",
                 locationDefault: "❌位置信息: 未获取",
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
                 elevationThresholdLabel: "最高仰角≥",
-                notesInfo: "ℹ️点击仰角: 对星   ⏰点击开始时间: 加入日历提醒",
+                notesInfo: "ℹ️点击仰角: 对星 | ⏰点击开始时间: 加入日历提醒",
                 placeholder: "🔎搜索卫星...",
                 calculatePass:"显示选中",
                                  noTLE:"⚠无TLE信息",
@@ -415,6 +415,7 @@ justify-content: center;
 
         noPassesInfo: "⚠当前条件下未来3天内没有过境信息",
         noFavorites: "⚠还没有收藏的卫星",
+                    nolocation:"⚠无法获取位置，请检查权限设置",
         calculating:"🔎预测中...",
         tableHeaders: {
             date: "日期",
@@ -424,14 +425,14 @@ justify-content: center;
             time: "时间",
             azimuth: "方位",
             elevation: "仰角",
-            nolocation:"无法获取位置，请检查权限设置",
+
             satellite:"卫星"
         }
 
         },
 
             en: {
-                location: "📍${latitude}, 🗺${longitude} ${locatormg}<br>📅TLE: ${gettleversion}",
+                location: "📍${latitude}, 🗺${longitude} ${locatormg} 📅TLE: ${gettleversion}",
                 locationDefault: "❌Location: Not Retrieved",
                 timeFilterLabel: "19:00~23:59 Only",
                 elevationThresholdLabel: "MAX. El ≥",
@@ -444,6 +445,7 @@ justify-content: center;
                    noPassesInfo: "⚠No passes found for the next 3 days under the current conditions",
                            noFavorites: "⚠There is no favorite SAT",
                            calculating:"🔎Calculating...",
+                                       nolocation:"⚠Unable to access location, please check the permission setting",
         tableHeaders: {
             date: "Date",
             start: "Start",
@@ -452,7 +454,7 @@ justify-content: center;
             time: "Time",
             azimuth: "Az",
             elevation: "El",
-            nolocation:"Unable to access location, please check the permission setting",
+
                         satellite:"SAT"
         }
         }
@@ -654,7 +656,8 @@ function updateTableHeaders(lang) {
                     localStorage.setItem('altitude', altitude);
 
 
-    locator=calculateMaidenhead(latitude, longitude)
+    // Call calculateMaidenhead and use callback to execute further logic
+    const locator = calculateMaidenhead(latitude, longitude);
 
 
     const locationText = translations[currentLang].location

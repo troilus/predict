@@ -497,7 +497,7 @@ const formattedExitTime = exitTime.toLocaleString('zh-CN', {
 
 
 document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} `;
-document.getElementById('satellite-info').textContent = `📍当前方位：° 当前仰角：° 🔝预测仰角：${selectedPass.highestElevation}° `;
+document.getElementById('satellite-info').textContent = `📍当前方位：° 当前仰角：° | 🔝预测仰角：${selectedPass.highestElevation}° `;
 document.getElementById('pass-info').textContent = `🔼开始：${formattedEntryTime}  | 🔽结束：${formattedExitTime} `;
 document.getElementById('time-info').textContent = "🕜当前时间：";
 document.getElementById('info-btn').textContent = "卫星频率信息";
@@ -529,7 +529,7 @@ document.getElementById('info-btn').textContent = "卫星频率信息";
 
 
             document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} `;
-            document.getElementById('satellite-info').textContent = `📍当前方位：${azimuthdg}° 当前仰角：${elevationdg}° 🔝预测仰角：${selectedPass.highestElevation}° `;
+            document.getElementById('satellite-info').textContent = `📍当前方位：${azimuthdg}° 当前仰角：${elevationdg}° | 🔝预测仰角：${selectedPass.highestElevation}° `;
             document.getElementById('pass-info').textContent = `🔼开始：${formattedEntryTime}  | 🔽结束：${formattedExitTime}`;
 
 const formattedTime = now.toLocaleString('zh-CN', {
@@ -549,7 +549,7 @@ if (now >= entryTime && now <= exitTime) {
     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    timeInfo += `|⌛距离结束：${hours}h ${minutes}m ${seconds}s`;
+    timeInfo += ` | ⌛距离结束：${hours}h ${minutes}m ${seconds}s`;
         //updateSatellitePosition(satpointCtx, trajectoryPoints);
         updateSatellitePositionsvg(trajectoryPoints);
 } else if (now < entryTime) {
@@ -558,7 +558,7 @@ if (now >= entryTime && now <= exitTime) {
     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    timeInfo += `|⌛距离开始：${hours}h ${minutes}m ${seconds}s`;
+    timeInfo += ` | ⌛距离开始：${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
         //satpointCtx.clearRect(0, 0, 300, 300);
@@ -613,7 +613,7 @@ const formattedExitTime = exitTime.toLocaleString('zh-CN', {
 
 document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} `;
 document.getElementById('satellite-info').textContent = `📍AzNow: ° ElNow: ° 🔝MaxEl：${selectedPass.highestElevation}° `;
-document.getElementById('pass-info').textContent = `🔼Start: ${formattedEntryTime}  | 🔽End: ${formattedExitTime} `;
+document.getElementById('pass-info').textContent = `🔼Start: ${formattedEntryTime} | 🔽End: ${formattedExitTime} `;
 document.getElementById('time-info').textContent = "";
 document.getElementById('info-btn').textContent = "Sat Freq Info";
 document.getElementById('record-btn').textContent = "Start record";
@@ -653,7 +653,7 @@ document.getElementById('info-btn').textContent = "Sat Freq Info";
 
 
             document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} `;
-            document.getElementById('satellite-info').textContent = `📍AzNow: ${azimuthdg}° ElNow: ${elevationdg}° 🔝MaxEl: ${selectedPass.highestElevation}° `;
+            document.getElementById('satellite-info').textContent = `📍AzNow: ${azimuthdg}° ElNow: ${elevationdg}° | 🔝MaxEl: ${selectedPass.highestElevation}° `;
             document.getElementById('pass-info').textContent = `🔼Start: ${formattedEntryTime} | 🔽End: ${formattedExitTime} `;
 
 const formattedTime = now.toLocaleString('zh-CN', {
@@ -673,7 +673,7 @@ if (now >= entryTime && now <= exitTime) {
     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    timeInfo += `|⌛End in: ${hours}h ${minutes}m ${seconds}s`;
+    timeInfo += `| ⌛End in: ${hours}h ${minutes}m ${seconds}s`;
 
         //updateSatellitePosition(satpointCtx, trajectoryPoints);
                 updateSatellitePositionsvg(trajectoryPoints);
@@ -684,7 +684,7 @@ if (now >= entryTime && now <= exitTime) {
     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    timeInfo += `|⌛Start in: ${hours}h ${minutes}m ${seconds}s`;
+    timeInfo += `| ⌛Start in: ${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
 
