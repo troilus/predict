@@ -549,7 +549,7 @@ if (now >= entryTime && now <= exitTime) {
     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    timeInfo += `，⌛距离结束：${hours}h ${minutes}m ${seconds}s`;
+    timeInfo += `|⌛距离结束：${hours}h ${minutes}m ${seconds}s`;
         //updateSatellitePosition(satpointCtx, trajectoryPoints);
         updateSatellitePositionsvg(trajectoryPoints);
 } else if (now < entryTime) {
@@ -558,7 +558,7 @@ if (now >= entryTime && now <= exitTime) {
     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    timeInfo += `，⌛距离开始：${hours}h ${minutes}m ${seconds}s`;
+    timeInfo += `|⌛距离开始：${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
         //satpointCtx.clearRect(0, 0, 300, 300);
@@ -673,7 +673,7 @@ if (now >= entryTime && now <= exitTime) {
     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    timeInfo += `，🕜End in: ${hours}h ${minutes}m ${seconds}s`;
+    timeInfo += `|⌛End in: ${hours}h ${minutes}m ${seconds}s`;
 
         //updateSatellitePosition(satpointCtx, trajectoryPoints);
                 updateSatellitePositionsvg(trajectoryPoints);
@@ -684,7 +684,7 @@ if (now >= entryTime && now <= exitTime) {
     const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-    timeInfo += `，⌛Start in: ${hours}h ${minutes}m ${seconds}s`;
+    timeInfo += `|⌛Start in: ${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
 
@@ -694,7 +694,7 @@ if (now >= entryTime && now <= exitTime) {
         trajectorySvg.innerHTML = '';
 } else if (now > exitTime) {
     // 如果当前时间在 exitTime 之后，只显示当前时间
-    timeInfo = `⌛${formattedTime}`;
+    timeInfo = `🕜${formattedTime}`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
 
