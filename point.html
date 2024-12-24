@@ -334,6 +334,20 @@
 
 
 
+      //录音相关
+      let recordingInterval; // 用于存储定时器的 ID
+let recordingDuration = 0; // 录音持续时间（秒）
+
+
+
+
+
+
+      //录音相关
+
+
+
+
 
     function init() {
         startBtn.addEventListener("click", startCompass);
@@ -1374,28 +1388,59 @@ document.addEventListener('DOMContentLoaded', function() {
       downloadBtn.style.display = 'inline-block';  // Show the download button
     } else {
       // Start recording
+    recordBtn.textContent = `结束录音`;
       startRecording();
+
             // Clear previous recording data before starting a new recording
       audioChunks = [];
       fileSizeInMB = 0;  // Reset file size
-      recordBtn.textContent = `结束录音`;
+
       downloadBtn.style.display = 'none';  // Hide download button until recording ends
     }
     isRecording = !isRecording;
   });
+
+  // Function to update recording status (size and duration)
+function updateRecordingStatus(audioChunks) {
+  recordingInterval = setInterval(() => {
+    const currentSize = audioChunks.reduce((total, chunk) => total + chunk.size, 0) / (1024 * 1024); // MB
+    recordingDuration += 1; // 每秒递增
+    console.log(`录音大小: ${currentSize.toFixed(2)} MB, 时长: ${recordingDuration} 秒`);
+
+    // 如果需要，可以在页面上显示
+    const statusDisplay = document.getElementById('record-btn'); // 假设有一个 DOM 元素用于显示
+    if (statusDisplay) {
+      statusDisplay.textContent = `结束录音(${currentSize.toFixed(2)} MB,  ${recordingDuration}s )`;
+    }
+  }, 1000); // 每秒更新一次
+}
+
+// 停止更新录音状态
+function stopRecordingStatus() {
+  clearInterval(recordingInterval); // 停止定时器
+  recordingDuration = 0; // 重置时长
+}
 
   // Function to start recording
   function startRecording() {
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(function(stream) {
         mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.start();
+        mediaRecorder.start(1000);
 
         mediaRecorder.ondataavailable = function(event) {
           audioChunks.push(event.data);
         };
 
+        updateRecordingStatus(audioChunks);
+
         mediaRecorder.onstop = function() {
+
+                    // 停止所有轨道以释放麦克风资源
+        stream.getTracks().forEach(track => track.stop());
+          stopRecordingStatus(); // 停止更新录音状态
+
+
           audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
           audioUrl = URL.createObjectURL(audioBlob);
           audioFile = new File([audioBlob], `${getSatelliteName()}-${getCurrentTimestamp()}.wav`, { type: 'audio/wav' });
