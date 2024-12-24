@@ -315,7 +315,7 @@ justify-content: center;
 <div class="search-container">
 
 <div class="custom-dropdown">
-    <input type="text" id="searchInput" placeholder="搜索卫星..." />
+    <input type="text" id="searchInput" placeholder="🔎搜索卫星..." />
     <div class="dropdown-list" id="satelliteDropdown"></div>
 
 </div>
@@ -402,19 +402,20 @@ justify-content: center;
                 // 定义语言内容
         const translations = {
             zh: {
-                location: "定位: ${latitude}, ${longitude} ${locatormg}  星历: ${gettleversion}",
-                locationDefault: "位置信息: 未获取",
+                location: "📍定位: ${latitude}, ${longitude} 🗺${locatormg}  📅星历: ${gettleversion}",
+                locationDefault: "❌位置信息: 未获取",
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
                 elevationThresholdLabel: "最高仰角≥",
-                notesInfo: "点击仰角: 对星，点击开始时间: 加入日历提醒",
-                placeholder: "搜索卫星...",
+                notesInfo: "ℹ️点击仰角: 对星   ⏰点击开始时间: 加入日历提醒",
+                placeholder: "🔎搜索卫星...",
                 calculatePass:"显示选中",
-                                 noTLE:"无TLE信息",
-                                 unabletocalc:"请选择卫星并确认已定位",
+                                 noTLE:"⚠无TLE信息",
+                                 unabletocalc:"⚠请选择卫星并确认已定位",
 
-        noPassesInfo: "当前条件下未来3天内没有过境信息",
-        noFavorites: "还没有收藏的卫星",
+        noPassesInfo: "⚠当前条件下未来3天内没有过境信息",
+        noFavorites: "⚠还没有收藏的卫星",
+        calculating:"🔎预测中...",
         tableHeaders: {
             date: "日期",
             start: "开始",
@@ -430,18 +431,19 @@ justify-content: center;
         },
 
             en: {
-                location: "Location: ${latitude}, ${longitude} ${locatormg}  TLE: ${gettleversion}",
-                locationDefault: "Location: Not Retrieved",
+                location: "📍Location: ${latitude}, 🗺${longitude} ${locatormg}  📅TLE: ${gettleversion}",
+                locationDefault: "❌Location: Not Retrieved",
                 timeFilterLabel: "19:00~23:59 Only",
                 elevationThresholdLabel: "MAX. El ≥",
                 daysLabel: "Days:",
-                notesInfo: "Click the El to view the orbit page<br>Click the Date to add the event to calendar",
-                placeholder: "Search satellites...",
+                notesInfo: "ℹ️Click the El to view the orbit page   ⏰Click the Date to add the event to calendar",
+                placeholder: "🔎Search satellites...",
                  calculatePass:"Show selected",
-                                 noTLE:"TLE not found",
-                                  unabletocalc:"Please select a satellite and confirm that the location has been determined",
-                   noPassesInfo: "No passes found for the next 3 days under the current conditions",
-                           noFavorites: "There is no favorite SAT",
+                                 noTLE:"⚠TLE not found",
+                                  unabletocalc:"⚠Please select a satellite and confirm that the location has been determined",
+                   noPassesInfo: "⚠No passes found for the next 3 days under the current conditions",
+                           noFavorites: "⚠There is no favorite SAT",
+                           calculating:"🔎Calculating...",
         tableHeaders: {
             date: "Date",
             start: "Start",
@@ -930,7 +932,7 @@ function populateDropdown(satellites) {
 //计算选中卫星
         document.getElementById('calculatePass').addEventListener('click', function() {
             const satelliteName = localStorage.getItem('selectedSatelliteName')
-
+            document.getElementById('passInfo').innerHTML =translations[currentLang].calculating;
 
 
 
@@ -973,6 +975,7 @@ function populateDropdown(satellites) {
 //计算已收藏卫星
         document.getElementById('calculatePassfavorite').addEventListener('click', function() {
 
+
             //const satelliteName = localStorage.getItem('selectedSatelliteName')
             const locationText = document.getElementById('notesInfo').textContent;
             const confirmloc = localStorage.getItem('latitude');
@@ -1009,8 +1012,6 @@ function populateDropdown(satellites) {
             }
 
         // 存储所有收藏卫星的分组 passes
-
-
 
                 const satrec = satellite.twoline2satrec(satelliteinfo.tle[0], satelliteinfo.tle[1]);
                            
