@@ -1405,7 +1405,6 @@ function updateRecordingStatus(audioChunks) {
   recordingInterval = setInterval(() => {
     const currentSize = audioChunks.reduce((total, chunk) => total + chunk.size, 0) / (1024 * 1024); // MB
     recordingDuration += 1; // 每秒递增
-    console.log(`录音大小: ${currentSize.toFixed(2)} MB, 时长: ${recordingDuration} 秒`);
 
     // 如果需要，可以在页面上显示
     const statusDisplay = document.getElementById('record-btn'); // 假设有一个 DOM 元素用于显示

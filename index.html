@@ -383,8 +383,6 @@ justify-content: center;
 </div>
 <div id="notesInfo" style="font-weight: bold; padding-bottom: 10px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
-
-
 <div id="made">
   Made with ❤ by troilus
 </div>
@@ -404,7 +402,7 @@ justify-content: center;
                 // 定义语言内容
         const translations = {
             zh: {
-                location: "定位: ${latitude}, ${longitude}  星历: ${gettleversion}",
+                location: "定位: ${latitude}, ${longitude} ${locatormg}  星历: ${gettleversion}",
                 locationDefault: "位置信息: 未获取",
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
@@ -432,7 +430,7 @@ justify-content: center;
         },
 
             en: {
-                location: "Location: ${latitude}, ${longitude}  TLE: ${gettleversion}",
+                location: "Location: ${latitude}, ${longitude} ${locatormg}  TLE: ${gettleversion}",
                 locationDefault: "Location: Not Retrieved",
                 timeFilterLabel: "19:00~23:59 Only",
                 elevationThresholdLabel: "MAX. El ≥",
@@ -654,13 +652,15 @@ function updateTableHeaders(lang) {
                     localStorage.setItem('altitude', altitude);
 
 
-
+    locator=calculateMaidenhead(latitude, longitude)
 
 
     const locationText = translations[currentLang].location
         .replace('${latitude}', latitudefix)
         .replace('${longitude}', longitudefix)
+        .replace('${locatormg}', locator)
         .replace('${gettleversion}', tleversion);
+
 
     document.getElementById('notesInfo').textContent = locationText;
                 }, function(error) {
@@ -704,6 +704,36 @@ function updateTableHeaders(lang) {
               
         });
 
+// Function to calculate Maidenhead locator
+function calculateMaidenhead(latitude, longitude) {
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        throw new Error("Invalid latitude or longitude values. Latitude must be between -90 and 90, and longitude between -180 and 180.");
+    }
+
+    // Adjust longitude to a 0-360 range
+    longitude += 180;
+
+    // Calculate the Maidenhead components
+    const A = "ABCDEFGHIJKLMNOPQRSTUVWX";
+
+    // First pair: Field (20x10 degrees)
+    const fieldLon = Math.floor(longitude / 20);
+    const fieldLat = Math.floor((latitude + 90) / 10);
+
+    // Second pair: Square (2x1 degrees)
+    const squareLon = Math.floor((longitude % 20) / 2);
+    const squareLat = Math.floor((latitude + 90) % 10);
+
+    // Third pair: Subsquare (5x2.5 minutes)
+    const subsquareLon = Math.floor(((longitude % 2) * 60) / 5);
+    const subsquareLat = Math.floor((((latitude + 90) % 1) * 60) / 2.5);
+
+    // Construct the Maidenhead locator
+    const locator = `${A[fieldLon]}${A[fieldLat]}${squareLon}${squareLat}${A[subsquareLon]}${A[subsquareLat]}`;
+
+    return locator;
+}
+//        
 function gettleversion() {
     return new Promise((resolve, reject) => {
         fetch('/satonline.txt')
