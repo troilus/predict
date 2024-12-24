@@ -242,8 +242,32 @@
 .arrow {
 
         border-top-color: #94ff00;       /* 下边框为红色，形成三角形 */
-;
+
 }
+
+    .compass-circle-outer {
+        stroke: white;
+    }
+    
+    .compass-circle-30,
+    .compass-circle-60 {
+        stroke: gray;
+    }
+    
+    .direction-text {
+        fill: white;
+    }
+    
+    .compass-center {
+        fill: white;
+    }
+    
+    .tick-marks line {
+        stroke: lightgray;
+    }
+
+
+
 
 }
 
@@ -264,7 +288,30 @@
 <div id="canvas-container">
     <canvas id="trajectory-canvas" width="300" height="300"></canvas>
     <div class="compass">
-        <canvas class="compass-circle" id="compass-background" width="300" height="300" z-index="3" ></canvas>
+
+        <!-- 替换 canvas 为 SVG -->
+        <!-- <canvas class="compass-circle" id="compass-background" width="300" height="300" z-index="3" ></canvas> -->
+        <svg class="compass-background" id="compass-backgroundsvg" width="300" height="300" viewBox="-150 -150 300 300">
+                        <!-- 刻度线 -->
+            <g class="tick-marks"></g>
+            <!-- 外圈圆环 -->
+            <circle class="compass-circle-outer" cx="0" cy="0" r="140" fill="none" stroke="#494953" stroke-width="3"/>
+            
+            <!-- 30°和60°圆环 -->
+            <circle class="compass-circle-30" cx="0" cy="0" r="93.3" fill="none" stroke="gray" stroke-width="1" stroke-dasharray="5,5"/>
+            <circle class="compass-circle-60" cx="0" cy="0" r="46.6" fill="none" stroke="gray" stroke-width="1" stroke-dasharray="5,5"/>
+            
+
+            
+            <!-- 方向标记 -->
+            <g class="cardinal-marks">
+                <text x="0" y="-110" text-anchor="middle" class="direction-text">N</text>
+                <text x="0" y="120" text-anchor="middle" class="direction-text">S</text>
+            </g>
+            
+            <!-- 中心点 -->
+            <circle class="compass-center" cx="0" cy="0" r="3" fill="#494953"/>
+        </svg>
         <div class="arrow"></div>
     </div>
 
@@ -319,9 +366,10 @@
     <script src="satellite.js"></script>
 
   <script>
-    const compassBackground = document.getElementById('compass-background');
-    const compassCtx = compassBackground.getContext('2d');
+    //const compassBackground = document.getElementById('compass-background');
+    //背景改SVG const compassCtx = compassBackground.getContext('2d');
     const compassCircle = document.querySelector(".compass-circle");
+    const compassbackground = document.getElementById('compass-backgroundsvg');
 
     const myPoint = document.querySelector(".my-point");
     const startBtn = document.querySelector(".start-btn");
@@ -374,7 +422,9 @@ window.onload = function () {
 
 
     // 绘制罗盘背景
-    drawCompassBackground(compassCtx);
+    //drawCompassBackground(compassCtx);
+    drawCompassbackground();
+
 
 
 
@@ -559,7 +609,7 @@ document.getElementById('info-btn').textContent = "Sat Freq Info";
 
 
      // 绘制卫星过境轨迹
-    drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
 
 
 
@@ -642,7 +692,7 @@ document.getElementById('time-info').textContent = timeInfo;
 
 
 
-function drawCompassBackground(ctx) {
+/*function drawCompassBackground(ctx) {
             const centerX = 150;
             const centerY = 150;
             const radius = 140;
@@ -714,11 +764,42 @@ function drawCompassBackground(ctx) {
                 ctx.lineWidth = i % 90 === 0 ? 2 : 1; // Thicker for cardinal directions
                 ctx.stroke();
             }
-        }
+        }*/
+
+function drawCompassbackground() {
+    const tickMarksGroup = document.querySelector('.tick-marks');
+    
+    // 清除现有刻度
+    while (tickMarksGroup.firstChild) {
+        tickMarksGroup.removeChild(tickMarksGroup.firstChild);
+    }
+    
+    // 绘制刻度线
+    for (let i = 0; i < 360; i += 10) {
+        const angle = (i - 90) * (Math.PI / 180);
+        const r1 = 140;
+        const r2 = i % 90 === 0 ? 125 : 130;
+        
+        const x1 = Math.cos(angle) * r1;
+        const y1 = Math.sin(angle) * r1;
+        const x2 = Math.cos(angle) * r2;
+        const y2 = Math.sin(angle) * r2;
+        
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.setAttribute("stroke", "gray");
+        line.setAttribute("stroke-width", i % 90 === 0 ? "2" : "1");
+        
+        tickMarksGroup.appendChild(line);
+    }
+}
 
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(event) {
-    drawCompassBackground(compassCtx);  // 重新绘制
+    //背景改SVG drawCompassBackground(compassCtx);  // 重新绘制
     const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
         const urlParams = new URLSearchParams(window.location.search);
     const index = urlParams.get('index');
@@ -1091,8 +1172,9 @@ function handler(e) {
     const centerY = 150;
 
     // Rotate compass circle
-    compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
-    compassBackground.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
+    //背景改SVG  compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
+    //背景改SVG compassBackground.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
+    compassbackground.style.transform = `rotate(${-compass}deg)`;
 
     // Rotate trajectory canvas
     const trajectoryCanvas = document.getElementById('trajectory-canvas');
