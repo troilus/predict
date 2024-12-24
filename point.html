@@ -97,13 +97,24 @@
             transform: rotate(0deg);
 
         }
-  .compass {
-      position: relative;
+  #trajectory-svg, .compass {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 300px;
       height: 300px;
-      margin: auto;
   }
 
+  .compass {
+      z-index: -1; /* 背景层 */
+  }
+
+
+
+
+  #satorbitpointsvg {
+      z-index: 3; /* 轨迹层 */
+  }
         .compass-circle {
             position: absolute;
             top: 50%;
@@ -111,7 +122,7 @@
             transform: translate(-50%, -50%) rotate(0deg);
             width: 100%;
             height: 100%;
-            z-index: 1;
+            z-index: -1;
         }
 
 .arrow {
@@ -287,6 +298,7 @@
 </div>
 <div id="canvas-container">
     <canvas id="trajectory-canvas" width="300" height="300"></canvas>
+    <svg id="trajectory-svg" width="300" height="300"></svg>
     <div class="compass">
 
         <!-- 替换 canvas 为 SVG -->
@@ -326,7 +338,8 @@
 
 </div>
 
-    <canvas id="satorbitpoint" width="300" height="300"></canvas>
+   <!-- <canvas id="satorbitpoint" width="300" height="300"></canvas> -->
+    <svg id="satorbitpointsvg" width="300" height="300"></svg>
 
 
 </div>
@@ -377,7 +390,7 @@
       navigator.userAgent.match(/(iPod|iPhone|iPad)/) &&
       navigator.userAgent.match(/AppleWebKit/);
 
-      const satpointCtx = document.getElementById('satorbitpoint').getContext('2d');
+      //const satpointCtx = document.getElementById('satorbitpoint').getContext('2d');
 
 
 
@@ -417,6 +430,9 @@ window.onload = function () {
     const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
     const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
     const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
+    const trajectorySVG = document.getElementById('trajectory-svg');
+
+
 
     let intervalId=-1; // 存储定时器ID
 
@@ -492,7 +508,7 @@ document.getElementById('info-btn').textContent = "卫星频率信息";
 
 
      // 绘制卫星过境轨迹
-    trajectoryPoints=drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+    trajectoryPoints=drawTrajectorySVG(trajectorySVG, selectedPass, satrec, observerGd);
 
 
         setInterval(() => {
@@ -534,7 +550,8 @@ if (now >= entryTime && now <= exitTime) {
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，距离结束：${hours}h ${minutes}m ${seconds}s`;
-        updateSatellitePosition(satpointCtx, trajectoryPoints);
+        //updateSatellitePosition(satpointCtx, trajectoryPoints);
+        updateSatellitePositionsvg(trajectoryPoints);
 } else if (now < entryTime) {
     // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
     const timeRemaining = entryTime - now;
@@ -544,14 +561,18 @@ if (now >= entryTime && now <= exitTime) {
     timeInfo += `，距离开始：${hours}h ${minutes}m ${seconds}s`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
-        satpointCtx.clearRect(0, 0, 300, 300);
+        //satpointCtx.clearRect(0, 0, 300, 300);
+    const trajectorySvg = document.getElementById('satorbitpointsvg');
+    trajectorySvg.innerHTML = '';
 
 } else if (now > exitTime) {
     // 如果当前时间在 exitTime 之后，只显示当前时间
     timeInfo = `当前时间：${formattedTime}`;
     const satelliteElevation = document.getElementById('satellite-elevation');
         satelliteElevation.style.display = 'none';
-        satpointCtx.clearRect(0, 0, 300, 300);
+        //satpointCtx.clearRect(0, 0, 300, 300);
+        const trajectorySvg = document.getElementById('satorbitpointsvg');
+        trajectorySvg.innerHTML = '';
 }
 
 // 更新显示内容
@@ -609,7 +630,7 @@ document.getElementById('info-btn').textContent = "Sat Freq Info";
 
 
      // 绘制卫星过境轨迹
-drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+     drawTrajectorySVG(trajectorySVG, selectedPass, satrec, observerGd);
 
 
 
@@ -654,7 +675,8 @@ if (now >= entryTime && now <= exitTime) {
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，End in: ${hours}h ${minutes}m ${seconds}s`;
 
-        updateSatellitePosition(satpointCtx, trajectoryPoints);
+        //updateSatellitePosition(satpointCtx, trajectoryPoints);
+                updateSatellitePositionsvg(trajectoryPoints);
 
 } else if (now < entryTime) {
     // 如果当前时间在 entryTime 之前，计算距离开始时间的剩余时间
@@ -667,7 +689,9 @@ if (now >= entryTime && now <= exitTime) {
         satelliteElevation.style.display = 'none';
 
 
-                  satpointCtx.clearRect(0, 0, 300, 300);
+                  //satpointCtx.clearRect(0, 0, 300, 300);
+        const trajectorySvg = document.getElementById('satorbitpointsvg');
+        trajectorySvg.innerHTML = '';
 } else if (now > exitTime) {
     // 如果当前时间在 exitTime 之后，只显示当前时间
     timeInfo = `${formattedTime}`;
@@ -675,7 +699,9 @@ if (now >= entryTime && now <= exitTime) {
         satelliteElevation.style.display = 'none';
 
 
-                  satpointCtx.clearRect(0, 0, 300, 300);
+                  //satpointCtx.clearRect(0, 0, 300, 300);
+        const trajectorySvg = document.getElementById('satorbitpointsvg');
+        trajectorySvg.innerHTML = '';
 }
 
 // 更新显示内容
@@ -798,7 +824,7 @@ function drawCompassbackground() {
 }
 
 
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(event) {
+/*window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(event) {
     //背景改SVG drawCompassBackground(compassCtx);  // 重新绘制
     const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
         const urlParams = new URLSearchParams(window.location.search);
@@ -829,12 +855,14 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', fun
 }
 
         const trajectoryCtx = document.getElementById('trajectory-canvas').getContext('2d');
+        const trajectorySVG = document.getElementById('trajectory-svg');
 
 
-    trajectoryPoints=drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+
+    trajectoryPoints=drawTrajectorySVG(trajectorySVG, selectedPass, satrec, observerGd);
     satpointCtx.clearRect(0, 0, 300, 300)
-    trajectoryCtx.clearRect(0, 0, 300, 300)
-    drawTrajectory(trajectoryCtx, selectedPass, satrec, observerGd);
+    //trajectoryCtx.clearRect(0, 0, 300, 300)
+    drawTrajectorySVG(trajectorySVG, selectedPass, satrec, observerGd);
             const now = new Date();
             const entryTime = new Date(selectedPass.entryTime);
 const exitTime = new Date(selectedPass.exitTime);
@@ -846,10 +874,11 @@ if (now >= entryTime && now <= exitTime) {
     const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
     timeInfo += `，距离结束：${hours}h ${minutes}m ${seconds}s`;
-        updateSatellitePosition(satpointCtx, trajectoryPoints);
+        //updateSatellitePosition(satpointCtx, trajectoryPoints);
+                updateSatellitePositionsvg(trajectoryPoints);
 } 
 
-});
+});*/
 
 function getRadiusForElevation(elevation, radius) {
     if (elevation <= 30) return radius - (radius * 0.25) * (elevation / 30);
@@ -980,6 +1009,117 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
     }
 
 
+
+    return trajectoryPoints;
+}
+
+
+
+function drawTrajectorySVG(svgContainer, selectedPass, satrec, observerGd) {
+    const startTime = new Date(selectedPass.entryTime);
+    const endTime = new Date(selectedPass.exitTime);
+
+    const steps = 1000;
+    const timeStep = (endTime - startTime) / steps;
+
+    const trajectoryPoints = [];
+    // 检测是否为深色模式
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // 设置颜色
+    const trajectoryColor = isDarkMode ? 'cyan' : '#007aff'; // 轨迹线的颜色
+    const arrowColor = isDarkMode ? '#94ff00' : 'red';     // 箭头的颜色
+    const pointColor = isDarkMode ? 'yellow' : 'green'; // 轨迹点的颜色
+
+    const centerX = 150;
+    const centerY = 150;
+    const radius = 140;
+
+    // Loop through selectedPass (pass times or observations) and calculate satellite position
+    for (let i = 0; i <= steps; i++) {
+        const passTime = new Date(startTime.getTime() + i * timeStep);
+
+        // Get the satellite position at this pass time
+        const positionAndVelocity = satellite.propagate(satrec, passTime);
+        const gmst = satellite.gstime(passTime);
+        const positionEci = positionAndVelocity.position;
+
+        // Get the look angles (elevation and azimuth) at this time
+        const lookAngles = satellite.ecfToLookAngles(
+            observerGd,
+            satellite.eciToEcf(positionEci, gmst)
+        );
+
+        const elevation = satellite.radiansToDegrees(lookAngles.elevation);
+        const azimuth = satellite.radiansToDegrees(lookAngles.azimuth);
+
+        // Only consider valid look angles (elevation between 0 and 90 degrees)
+        if (elevation > 0 && elevation <= 90) {
+            // Map elevation to a radius on the compass
+            const satelliteRadius = radius * (90 - elevation) / 90;
+
+            // Calculate the x, y coordinates of the satellite on the compass
+            const satelliteX = centerX + satelliteRadius * Math.cos((90 - azimuth) * (Math.PI / 180));
+            const satelliteY = centerY - satelliteRadius * Math.sin((90 - azimuth) * (Math.PI / 180));
+
+            // Store the trajectory points
+            trajectoryPoints.push({ x: satelliteX, y: satelliteY, time: passTime, eleva: elevation });
+        }
+    }
+
+    // 清空 SVG 容器内容
+    while (svgContainer.firstChild) {
+        svgContainer.removeChild(svgContainer.firstChild);
+    }
+
+    // 绘制轨迹线
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    let pathData = `M ${trajectoryPoints[0].x},${trajectoryPoints[0].y}`;
+    for (let i = 1; i < trajectoryPoints.length; i++) {
+        pathData += ` L ${trajectoryPoints[i].x},${trajectoryPoints[i].y}`;
+    }
+    path.setAttribute('d', pathData);
+    path.setAttribute('stroke', trajectoryColor);
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('fill', 'none');
+    svgContainer.appendChild(path);
+
+    // Function to draw arrows
+    function drawArrow(x1, y1, x2, y2, color) {
+        const headLength = 10; // Length of the arrowhead
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const angle = Math.atan2(dy, dx);
+
+        // Draw arrow line
+        const arrowLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        arrowLine.setAttribute('x1', x1);
+        arrowLine.setAttribute('y1', y1);
+        arrowLine.setAttribute('x2', x2);
+        arrowLine.setAttribute('y2', y2);
+        arrowLine.setAttribute('stroke', color);
+        arrowLine.setAttribute('stroke-width', '2');
+        svgContainer.appendChild(arrowLine);
+
+        // Draw arrowhead
+        const arrowHead = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        const points = `
+            ${x2},${y2} 
+            ${x2 - headLength * Math.cos(angle - Math.PI / 6)},${y2 - headLength * Math.sin(angle - Math.PI / 6)}
+            ${x2 - headLength * Math.cos(angle + Math.PI / 6)},${y2 - headLength * Math.sin(angle + Math.PI / 6)}
+        `;
+        arrowHead.setAttribute('points', points);
+        arrowHead.setAttribute('fill', color);
+        svgContainer.appendChild(arrowHead);
+    }
+
+    // Draw arrows at 1/3 and 2/3 of the trajectory
+    const oneThirdIndex = Math.floor(trajectoryPoints.length / 2);
+    if (trajectoryPoints.length > 2) {
+        const arrow1Start = trajectoryPoints[oneThirdIndex - 1];
+        const arrow1End = trajectoryPoints[oneThirdIndex];
+        drawArrow(arrow1Start.x, arrow1Start.y, arrow1End.x, arrow1End.y, arrowColor);
+    }
 
     return trajectoryPoints;
 }
@@ -1129,6 +1269,70 @@ ctx.stroke();               // 绘制轮廓
 }
 
 
+
+// 更新卫星位置并绘制实时轨迹（SVG 版本）
+function updateSatellitePositionsvg(trajectoryPoints) {
+    const now = new Date();
+
+    // 找到当前时间最近的轨迹点
+    let closestPoint = trajectoryPoints[0];
+    let minTimeDiff = Math.abs(now - closestPoint.time);
+
+    for (let i = 1; i < trajectoryPoints.length; i++) {
+        const timeDiff = Math.abs(now - trajectoryPoints[i].time);
+        if (timeDiff < minTimeDiff) {
+            closestPoint = trajectoryPoints[i];
+            minTimeDiff = timeDiff;
+        }
+    }
+
+    // 显示仰角条上的卫星仰角
+    const elevationBar = document.getElementById('elevation-bar');
+    const satelliteElevation = document.getElementById('satellite-elevation');
+    satelliteElevation.style.display = 'block';
+
+    const barHeight = elevationBar.offsetHeight - 9;
+
+    if (closestPoint.eleva > 0 && closestPoint.eleva <= 90) {
+        const satelliteElevationDistance = (90 - closestPoint.eleva) / 90 * barHeight;
+        satelliteElevation.style.top = `${satelliteElevationDistance - satelliteElevation.offsetHeight / 2}px`;
+    } else {
+        satelliteElevation.style.display = 'none';
+    }
+
+    // 获取 SVG 容器和清空现有内容
+    const trajectorySvg = document.getElementById('satorbitpointsvg');
+    trajectorySvg.innerHTML = '';
+
+    if (closestPoint.eleva > 0 && closestPoint.eleva <= 90) {
+        const centerX = 150; // 圆心 X 坐标
+        const centerY = 150; // 圆心 Y 坐标
+
+        // 创建卫星点
+        const satellitePoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        satellitePoint.setAttribute('cx', closestPoint.x);
+        satellitePoint.setAttribute('cy', closestPoint.y);
+        satellitePoint.setAttribute('r', 5);
+        satellitePoint.setAttribute('fill', '#007aff'); // 卫星点颜色
+        satellitePoint.setAttribute('stroke', 'black'); // 黑色轮廓
+        satellitePoint.setAttribute('stroke-width', 2);
+
+        // 创建中心到卫星的连线
+        const satelliteLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        satelliteLine.setAttribute('x1', centerX);
+        satelliteLine.setAttribute('y1', centerY);
+        satelliteLine.setAttribute('x2', closestPoint.x);
+        satelliteLine.setAttribute('y2', closestPoint.y);
+        satelliteLine.setAttribute('stroke', '#007aff'); // 连线颜色
+        satelliteLine.setAttribute('stroke-width', 1);
+
+        // 将元素添加到 SVG
+        trajectorySvg.appendChild(satelliteLine);
+        trajectorySvg.appendChild(satellitePoint);
+    }
+}
+
+
     function startCompass() {
       if (isIOS) {
         DeviceOrientationEvent.requestPermission()
@@ -1177,13 +1381,13 @@ function handler(e) {
     compassbackground.style.transform = `rotate(${-compass}deg)`;
 
     // Rotate trajectory canvas
-    const trajectoryCanvas = document.getElementById('trajectory-canvas');
+    const trajectoryCanvas = document.getElementById('trajectory-svg');
     trajectoryCanvas.style.transformOrigin = 'center';
     trajectoryCanvas.style.transform = `rotate(${-compass}deg)`;
 
 
     // 
-    const satorbitpointCanvas = document.getElementById('satorbitpoint');
+    const satorbitpointCanvas = document.getElementById('satorbitpointsvg');
     satorbitpointCanvas.style.transformOrigin = 'center';
     satorbitpointCanvas.style.transform = `rotate(${-compass}deg)`;
 

@@ -1398,8 +1398,9 @@ function formatGroupedPassesToHTML(groupedPasses) {
         const exitAzimuth = typeof pass.exit?.azimuth === "number" ? `${pass.exit.azimuth.toFixed(2)}°` : "未知";
 
         // Generate a placeholder for the canvas
-        const chartId = `chart-${index}`;
-        const chartHTML = `<canvas id="${chartId}" width="17" height="17"></canvas>`;
+// Generate a placeholder for the SVG
+const chartId = `chart-${index}`;
+const chartHTML = `<svg id="${chartId}" width="17" height="17"></svg>`;
 
             // 如果是当前时间区间，则设置第一个格子的背景颜色为绿色
     const firstCellStyle = isCurrent ? 'style="background-color: green;"' : '';
@@ -1454,21 +1455,18 @@ function formatGroupedPassesToHTML(groupedPasses) {
     </table>
     `;
 
-    // Append the HTML to the page
-    document.getElementById('passInfo').innerHTML = html;
+// Append the HTML to the page
+document.getElementById('passInfo').innerHTML = html;
 
-    // Now that the table is added, draw the trajectories
-    setTimeout(() => {
-        groupedPasses.forEach((pass, index) => {
-            const canvas = document.getElementById(`chart-${index}`);
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    drawTrajectory(ctx, pass);
-                }
-            }
-        });
-    }, 0);
+// Now that the table is added, draw the trajectories
+setTimeout(() => {
+    groupedPasses.forEach((pass, index) => {
+        const svgContainer = document.getElementById(`chart-${index}`);
+        if (svgContainer) {
+            drawTrajectorySVG(svgContainer, pass);
+        }
+    });
+}, 0);
 
     return html;
 }
@@ -1580,8 +1578,9 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
         const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
         const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit'}) : "未知时间";
 
+        // Generate a placeholder for the SVG
         const chartId = `chart-${index}`;
-        const chartHTML = `<canvas id="${chartId}" width="17" height="17"></canvas>`;
+        const chartHTML = `<svg id="${chartId}" width="17" height="17" ></svg>`;
 
         const firstCellStyle = isCurrent ? 'style="background-color: green;"' : '';
 
@@ -1657,15 +1656,16 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
     // Append the HTML to the page
     document.getElementById('passInfo').innerHTML = html;
 
+
+
     // Now that the table is added, draw the trajectories
     setTimeout(() => {
         allPasses.forEach((item, index) => {
-            const canvas = document.getElementById(`chart-${index}`);
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    drawTrajectory(ctx, item.pass);
-                }
+            const svgContainer = document.getElementById(`chart-${index}`);
+            if (svgContainer) {
+               
+
+                    drawTrajectorySVG(svgContainer, item.pass);
             }
         });
     }, 0);
@@ -1752,11 +1752,10 @@ function downloadICS(eventTitle, eventDate, startTime, endTime) {
     link.click();
 }
 
-//日历相关结束
-function drawTrajectory(ctx, selectedPass, scaleFactor = 0.17) { 
+function drawTrajectorySVG(svgContainer, selectedPass, scaleFactor = 0.17) {
     const centerX = 50 * scaleFactor;
     const centerY = 50 * scaleFactor;
-    const radius = 40 * scaleFactor;  // 缩放半径
+    const radius = 40 * scaleFactor; // 缩放半径
 
     // 根据仰角调整半径
     const getRadiusForElevation = (elevation) => {
@@ -1779,23 +1778,31 @@ function drawTrajectory(ctx, selectedPass, scaleFactor = 0.17) {
     const { x: exitX, y: exitY } = toCanvasCoords(selectedPass.exit?.azimuth, exitRadius);
     const { x: highestX, y: highestY } = toCanvasCoords(selectedPass.highest?.azimuth, highestRadius);
 
-        // Draw black circle around the trajectory
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);  // Outer circle
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    // 清空 SVG 容器内容
+    while (svgContainer.firstChild) {
+        svgContainer.removeChild(svgContainer.firstChild);
+    }
 
+    // 绘制外部圆圈
+    const outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    outerCircle.setAttribute('cx', centerX);
+    outerCircle.setAttribute('cy', centerY);
+    outerCircle.setAttribute('r', radius);
+    outerCircle.setAttribute('stroke', 'white');
+    outerCircle.setAttribute('stroke-width', '1');
+    outerCircle.setAttribute('fill', 'none');
+    svgContainer.appendChild(outerCircle);
 
-
-    // 绘制贝塞尔曲线连接轨迹点
-    ctx.beginPath();
-    ctx.moveTo(entryX, entryY);
-    ctx.quadraticCurveTo(highestX, highestY, exitX, exitY);
-    ctx.strokeStyle = 'white';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    // 绘制轨迹曲线
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const pathData = `M ${entryX},${entryY} Q ${highestX},${highestY} ${exitX},${exitY}`;
+    path.setAttribute('d', pathData);
+    path.setAttribute('stroke', 'white');
+    path.setAttribute('stroke-width', '1');
+    path.setAttribute('fill', 'none');
+    svgContainer.appendChild(path);
 }
+
 
 
 document.addEventListener('click', function(event) {
