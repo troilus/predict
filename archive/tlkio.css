@@ -1,0 +1,206 @@
+/* begin of tlkio.theme.compact.css */
+
+html {
+    line-height: 1.20;
+    font-size: 12px;
+}
+
+html::-webkit-scrollbar {
+    display: inherit;
+}
+
+html.isIframe::-webkit-scrollbar {
+    display: inherit;
+}
+
+.header {
+    padding-right: 0px;
+}
+
+.header-avatar {
+    width: 0px;
+    height: 0px;
+}
+
+.header-status {
+    right: auto;
+    left: 4.5em;
+}
+
+.header-bar {
+    height: 24px;
+    width: 100%;
+}
+
+.isIframe .header-bar {
+    border-radius: 0px;
+    background-color: #ffffff;
+}
+
+.header-channel {
+    font-size: 16px;
+    line-height: 24px;
+    height: 24px;
+    color:black;
+}
+
+.nav {
+    display: block;
+}
+
+.nav-counter {
+    right: 24px;
+    top: 0px;
+}
+
+.nav-button {
+    width: 24px;
+    height: 24px;
+}
+
+.nav-button-slider {
+    width: 48px;
+    height: 24px;
+}
+
+.showPanel .nav-button-slider {
+    transform: translate3d(-24px, 0px, 0px);
+}
+
+.aside {
+    display: none;
+}
+
+.showPanel .aside {
+    display: block;
+    font-size: 14px;
+    margin-left: auto;
+    left: auto;
+    top: 24px;
+    right: 0px;
+    bottom: 0px;
+    min-width: 200px;
+    width: 200px;
+    padding: 0px;
+    background: #FFF none repeat scroll 0% 0%;
+    box-shadow: -1px 0px 4px rgba(0, 0, 0, 0.15);
+}
+
+.participants {
+    border: medium none;
+    border-radius: 0px;
+}
+
+.counter {
+    border-width: 1px;
+    border-radius: 6px;
+}
+
+.settings {
+    width: 192px;
+    margin-left: auto;
+    left: 4px;
+    margin-right: auto;
+    right: auto;
+}
+
+.theme--pop .post {
+    margin-bottom: 0px;
+}
+
+.chat {
+    padding: 24px 0px 0px 0px;
+    width: 100%;
+}
+
+@media all and (min-width: 920px) {
+    
+    .chat {
+        padding: 24px 0px 0px 90px;
+    }
+    
+}
+
+/*
+@media all and (min-width: 300px) {
+    
+    .chat .post:nth-last-of-type(-n+3) {
+        padding-top: 0px;
+    }
+    
+    .chat .post:nth-last-of-type(-n+3) .post-name {
+        visibility: hidden;
+        opacity: 0;
+        transform: translate3d(-10px, 0px, 0px);
+    }
+    
+}
+*/
+
+.showPanel .chat {
+    pointer-events: none;
+    transform: none;
+    opacity: 1.0;
+}
+
+.post-time {
+    right:-8px;
+}
+
+.time {
+    display: none;
+}
+
+.join {
+    padding: 1px;
+}
+
+.input-text {
+    padding: 2px;
+    line-height: 1.20;
+    font-size: 14px;
+}
+
+.footer-wrapper {
+    width: auto;
+    margin: auto;
+    padding: 1px 0px 0px 0px;
+}
+
+.isVirgin .footer-wrapper {
+    padding: 1px 0px 0px;
+}
+
+.isTroll .footer-wrapper {
+    width: 100%;
+    padding: 1px 0px 0px 0px;
+}
+
+.isTroll .message-input {
+    padding: 7px 2px;
+    line-height: 1.20;
+    font-size: 14px;
+}
+
+.button {
+    padding: 4px 4px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+.message-button--submit {
+    top: 4px;
+    right: 4px;
+}
+
+.scrollButton {
+    width: 36px;
+    height: 36px;
+}
+
+.scrollButton-icon {
+    top: 0px;
+    left: 0px;
+}
+
+/* end of tlkio.theme.compact.css */

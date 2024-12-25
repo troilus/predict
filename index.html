@@ -6,8 +6,6 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-
     <title>🛰ORBIT</title>
     <style>
         :root {
@@ -1581,7 +1579,7 @@ const savedSatelliteDataToLocalStorage=savefavoriteSatelliteDataToLocalStorage(a
 const satelliteName = item.satelliteName;
 
 // 只取前 5 个字符，如果长度超过 5 就加上省略号
-const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (satelliteName.length > 5 ? '...' : '');
+        const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (satelliteName.length > 5 ? '...' : '');
         const pass = item.pass;
 
         const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
@@ -1633,7 +1631,7 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
                         ${entryTime}
                     </a>
                 </td>
-                <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
+                <td style="font-size: 50%; color: #ffffbc; font-weight: bold;">${satelliteName}</td> <!-- 设置字体大小为50% -->
                 <td>${highestTime}</td>
                 <td ${firstCellStyle}>
   <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
@@ -1654,7 +1652,7 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
                         ${entryTime}
                     </a>
                 </td>
-                <td>${shortenedSatelliteName}</td>  <!-- 显示卫星名称 -->
+                <td style="font-size: 50%; color: #ffffbc; font-weight: bold;">${satelliteName}</td> <!-- 设置字体大小为50% -->
 
                 <td>${highestTime}</td>
                 <td ${firstCellStyle}>
@@ -1667,7 +1665,7 @@ const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (
             </tr>
         `;
             prevEntryDate = entrydate; // Update the previous entrydate
-            prevSat = shortenedSatelliteName
+            prevSat = satelliteName
         }
 
 
