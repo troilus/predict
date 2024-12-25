@@ -49,7 +49,7 @@ a:hover {
   text-decoration: underline;
 }
 #sidebar-content ul {
-  padding-inline-start: 20px;
+  padding-inline-start: 1px;
 }
 #sidebar-content ul li {
   list-style: disc outside none;
@@ -126,7 +126,7 @@ ul li {
   overflow-y: auto;
 }
 #sidebar-content {
-  width: 180px;
+  width: 1px;
   padding-bottom: 10%;
 }
 h1,h2,h3,h4,h5,h6 {
@@ -240,7 +240,7 @@ ul ul, ol ol {
   #sidebar {
     top: 0.5em;
     bottom: auto;
-    right: 0.5em;
+    right: 0.1em;
     border: none;
   }
 }

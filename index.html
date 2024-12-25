@@ -395,7 +395,7 @@ justify-content: center;
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
 
 
-<button id="toggleButton">加入聊天</button>
+<button id="toggleButton">加入在线聊天</button>
     <iframe id="chatIframe"></iframe>
 
 
@@ -429,6 +429,8 @@ justify-content: center;
                 calculatePass:"显示选中",
                                  noTLE:"⚠无TLE信息",
                                  unabletocalc:"⚠请选择卫星并确认已定位",
+                                 chatonline:"加入在线聊天",
+                                 closeonline:"关闭在线聊天",
 
         noPassesInfo: "⚠当前条件下未来3天内没有过境信息",
         noFavorites: "⚠还没有收藏的卫星",
@@ -463,6 +465,8 @@ justify-content: center;
                            noFavorites: "⚠There is no favorite SAT",
                            calculating:"🔎Calculating...",
                                        nolocation:"⚠Unable to access location, please check the permission setting",
+                                chatonline:"Online Chat",
+                                 closeonline:"Close Chat",
         tableHeaders: {
             date: "Date",
             start: "Start",
@@ -589,10 +593,14 @@ function updateTableHeaders(lang) {
             });
 
 
+
+
+           document.getElementById('toggleButton').textContent = translations[currentLang].chatonline
             document.getElementById('notesInfo').textContent = translations[lang].location;
             document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
             document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
             document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
+
 
             document.getElementById('calculatePass').textContent = translations[lang].calculatePass;
             const notesElement = document.getElementById('notesInfo');
@@ -1844,17 +1852,25 @@ document.addEventListener('click', function(event) {
         const chatIframe = document.getElementById('chatIframe');
         let isChatOpen = false;
 
+
+
+
+
+        toggleButton.textContent = translations[currentLang].chatonline
+
+
+
         toggleButton.addEventListener('click', () => {
             if (!isChatOpen) {
                 // 加载并显示 iframe
                 chatIframe.src = 'chat.html?orbit';
                 chatIframe.style.display = 'block';
-                toggleButton.textContent = '关闭聊天';
+        toggleButton.textContent = translations[currentLang].closeonline
             } else {
                 // 隐藏并清除 iframe
                 chatIframe.style.display = 'none';
                 chatIframe.src = '';
-                toggleButton.textContent = '加入聊天';
+        toggleButton.textContent = translations[currentLang].chatonline
             }
             isChatOpen = !isChatOpen;
         });
