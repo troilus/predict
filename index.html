@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+
     <title>🛰ORBIT</title>
     <style>
         :root {
@@ -50,6 +51,15 @@
     margin-top: 20px; /* Increases the space above the element */
     font-size: 14px;  /* Optional: Adjust font size */
 }
+
+        #chatIframe {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            display: none; /* 默认隐藏 iframe */
+        }
+
+
         .search-container {
             display: flex;
             align-items: center;
@@ -383,6 +393,12 @@ justify-content: center;
 </div>
 <div id="notesInfo" style="font-weight: bold; padding-bottom: 10px; font-size: 11px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
+
+
+<button id="toggleButton">加入聊天</button>
+    <iframe id="chatIframe"></iframe>
+
+
 <div id="made">
   Made with ❤ by troilus
 </div>
@@ -394,6 +410,7 @@ justify-content: center;
 
     <script src="satellite.js"></script>
         <script src="suncalc.min.js"></script>
+          <script src="client.js"></script>
 
 
     <script>
@@ -1819,11 +1836,37 @@ document.addEventListener('click', function(event) {
     }
 });
 
-///判断白天黑夜
+//判断白天黑夜
 
+
+//聊天开始
+ const toggleButton = document.getElementById('toggleButton');
+        const chatIframe = document.getElementById('chatIframe');
+        let isChatOpen = false;
+
+        toggleButton.addEventListener('click', () => {
+            if (!isChatOpen) {
+                // 加载并显示 iframe
+                chatIframe.src = 'chat.html?orbit';
+                chatIframe.style.display = 'block';
+                toggleButton.textContent = '关闭聊天';
+            } else {
+                // 隐藏并清除 iframe
+                chatIframe.style.display = 'none';
+                chatIframe.src = '';
+                toggleButton.textContent = '加入聊天';
+            }
+            isChatOpen = !isChatOpen;
+        });
+//聊天结束
 
     </script>
 
     <script async src="https://umami.xanyi.eu.org/script.js" data-website-id="496abb71-e440-42cf-9b88-4593e8942949"></script>
+
+
+
+
+
 </body>
 </html>
