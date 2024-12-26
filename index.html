@@ -48,6 +48,7 @@
                     #made {
     margin-top: 20px; /* Increases the space above the element */
     font-size: 14px;  /* Optional: Adjust font size */
+          text-align: center; /* 让文本居中对齐 */
 }
 
         #chatIframe {
@@ -410,6 +411,8 @@ justify-content: center;
         <script src="suncalc.min.js"></script>
           <script src="client.js"></script>
 
+<script src="https://demos.lightstreamer.com/commons/require.js"></script>
+<script src="https://demos.lightstreamer.com/commons/lightstreamer.min.js"></script>
 
     <script>
 
@@ -655,6 +658,9 @@ function updateTableHeaders(lang) {
 
 
         window.addEventListener('load', function() {
+
+
+
             document.getElementById('notesInfo').textContent = translations[currentLang].locationDefault;
             localStorage.removeItem('selectedSatelliteName');
             localStorage.removeItem('calculated');
@@ -662,6 +668,10 @@ function updateTableHeaders(lang) {
             localStorage.removeItem('selectedSatelliteTLE2');
             localStorage.removeItem('selectedorbit');
             localStorage.removeItem('freqinfo');
+
+            fetchTelemetryValueAsync();
+
+
             // Get tleversion asynchronously
             gettleversion().then(tleversion => {
 
@@ -679,25 +689,28 @@ function updateTableHeaders(lang) {
                     localStorage.setItem('altitude', altitude);
 
 
-    // Call calculateMaidenhead and use callback to execute further logic
-    const locator = calculateMaidenhead(latitude, longitude);
+
+
+
+
 
 
     const locationText = translations[currentLang].location
         .replace('${latitude}', latitudefix)
         .replace('${longitude}', longitudefix)
-        .replace('${locatormg}', locator)
         .replace('${gettleversion}', tleversion);
+        calculateMaidenhead(latitude, longitude,locationText);
 
 
-    document.getElementById('notesInfo').textContent = locationText;
+
+
+    
                 }, function(error) {
                     document.getElementById('notesInfo').textContent = '无法获取位置，请检查权限设置。';
                 });
             } else {
                 document.getElementById('notesInfo').textContent = '浏览器不支持地理定位。';
             }
-
 
 
 
@@ -733,7 +746,7 @@ function updateTableHeaders(lang) {
         });
 
 // Function to calculate Maidenhead locator
-function calculateMaidenhead(latitude, longitude) {
+function calculateMaidenhead(latitude, longitude,locationText) {
     if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
         throw new Error("Invalid latitude or longitude values. Latitude must be between -90 and 90, and longitude between -180 and 180.");
     }
@@ -758,6 +771,13 @@ function calculateMaidenhead(latitude, longitude) {
 
     // Construct the Maidenhead locator
     const locator = `${A[fieldLon]}${A[fieldLat]}${squareLon}${squareLat}${A[subsquareLon]}${A[subsquareLat]}`;
+
+
+
+    const locationText2 = locationText
+        .replace('${locatormg}', locator);
+    document.getElementById('notesInfo').textContent = locationText2;
+
 
     return locator;
 }
@@ -1873,6 +1893,44 @@ document.addEventListener('click', function(event) {
             isChatOpen = !isChatOpen;
         });
 //聊天结束
+
+
+
+//tank
+function fetchTelemetryValueAsync() {
+    return new Promise((resolve, reject) => {
+        require(["LightstreamerClient", "Subscription"], function (LightstreamerClient, Subscription) {
+            try {
+                var client = new LightstreamerClient("https://push.lightstreamer.com", "ISSLIVE");
+                client.connect();
+
+                var sub = new Subscription("MERGE", ["NODE3000005"], ["Value", "TimeStamp"]);
+                client.subscribe(sub);
+
+                function formatTelemetryValue(value) {
+                    if (!isNaN(parseFloat(value)) && isFinite(value) && value.toString().includes('.')) {
+                        return Number(value).toFixed(5);
+                    }
+                    const madeDiv = document.getElementById("made");
+                    madeDiv.innerHTML = `Made with ❤ by troilus <br> ISS 👩🏻‍🚀🚽 ${value}%`;
+
+
+                    return value;
+                }
+
+                sub.addListener({
+                    onItemUpdate: function (update) {
+                        var updatevalue = formatTelemetryValue(update.getValue("Value"));
+                        resolve(updatevalue); // 使用 Promise 返回值
+                    }
+                });
+            } catch (error) {
+                reject(error); // 捕获错误并返回
+            }
+        });
+    });
+}
+//tank
 
     </script>
 
