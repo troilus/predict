@@ -497,7 +497,7 @@ const formattedExitTime = exitTime.toLocaleString('zh-CN', {
 
 
 document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} `;
-document.getElementById('satellite-info').textContent = `📍当前方位：° 当前仰角：° | 🔝预测仰角：${selectedPass.highestElevation}° `;
+document.getElementById('satellite-info').textContent = `📍当前方位：° 仰角：° | 🔝预测仰角：${selectedPass.highestElevation}° `;
 document.getElementById('pass-info').textContent = `🔼开始：${formattedEntryTime}  | 🔽结束：${formattedExitTime} `;
 document.getElementById('time-info').textContent = "🕜当前时间：";
 document.getElementById('info-btn').textContent = "卫星频率信息";
@@ -529,7 +529,7 @@ document.getElementById('info-btn').textContent = "卫星频率信息";
 
 
             document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} `;
-            document.getElementById('satellite-info').textContent = `📍当前方位：${azimuthdg}° 当前仰角：${elevationdg}° | 🔝预测仰角：${selectedPass.highestElevation}° `;
+            document.getElementById('satellite-info').textContent = `📍当前方位：${azimuthdg}° 仰角：${elevationdg}° | 🔝预测仰角：${selectedPass.highestElevation}° `;
             document.getElementById('pass-info').textContent = `🔼开始：${formattedEntryTime}  | 🔽结束：${formattedExitTime}`;
 
 const formattedTime = now.toLocaleString('zh-CN', {
