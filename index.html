@@ -1957,7 +1957,7 @@ function fetchTelemetryValueAsync() {
                 // 将数据解析成表格格式
                 const rows = data.split("\n").filter(row => row.trim() !== "");
                 let tableHTML = "<table border='1' style='border-collapse: collapse; width: 100%; font-size: 14px; text-align: center;'>";
-                tableHTML += "<tr><th style='text-align: center;'>Name</th><th style='text-align: center;'>Freq(MHz)</th><th style='text-align: center;'>Time</th></tr>";
+                tableHTML += "<tr><th style='text-align: center;'>Name</th><th style='text-align: center;'>Freq(MHz)</th><th style='text-align: center;'>Time(UTC)</th></tr>";
 
                 rows.forEach(row => {
                     const columns = row.split(/\s{2,}/); // 按多空格分割列
