@@ -393,7 +393,8 @@ justify-content: center;
 <div id="notesInfo" style="font-weight: bold; padding-bottom: 10px; font-size: 11px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
 
-
+<button id="sstveventsbutton">正在进行的SSTV活动</button>
+<div id="sstvevents"></div>
 <button id="toggleButton">加入在线聊天</button>
     <iframe id="chatIframe"></iframe>
 
@@ -432,6 +433,7 @@ justify-content: center;
                                  unabletocalc:"⚠请选择卫星并确认已定位",
                                  chatonline:"加入在线聊天",
                                  closeonline:"关闭在线聊天",
+                                 sstveventsinfo:"正在进行的SSTV活动",
 
         noPassesInfo: "⚠当前条件下未来3天内没有过境信息",
         noFavorites: "⚠还没有收藏的卫星",
@@ -468,6 +470,7 @@ justify-content: center;
                                        nolocation:"⚠Unable to access location, please check the permission setting",
                                 chatonline:"Online Chat",
                                  closeonline:"Close Chat",
+                                 sstveventsinfo:"ongoing SSTV events",
         tableHeaders: {
             date: "Date",
             start: "Start",
@@ -485,6 +488,8 @@ justify-content: center;
         // 设置默认语言
         let currentLang = 'zh';
         localStorage.setItem('lang', currentLang);
+            const sstvbutton = document.getElementById("sstveventsbutton");
+    const eventsDiv = document.getElementById("sstvevents");
 
         // 更新 placeholder 内容
 function updatePlaceholder() {
@@ -601,6 +606,8 @@ function updateTableHeaders(lang) {
             document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
             document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
             document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
+            document.getElementById('sstveventsbutton').textContent = translations[lang].sstveventsinfo;
+
 
 
             document.getElementById('calculatePass').textContent = translations[lang].calculatePass;
@@ -639,7 +646,7 @@ function updateTableHeaders(lang) {
             updatePlaceholder(); // 更新 placeholder 文本
             updateTableHeaders(currentLang);
             localStorage.setItem('lang', currentLang);
-                    updateFavoriteButtonText()
+            updateFavoriteButtonText()
 
         });
 
@@ -670,6 +677,8 @@ function updateTableHeaders(lang) {
             localStorage.removeItem('freqinfo');
 
             fetchTelemetryValueAsync();
+
+
 
 
             // Get tleversion asynchronously
@@ -1931,6 +1940,43 @@ function fetchTelemetryValueAsync() {
     });
 }
 //tank
+
+
+//sstv活动
+// 添加点击事件监听器
+    sstvbutton.addEventListener("click", function () {
+    // 使用 Fetch API 获取 sstvevents.txt 内容
+        fetch("/sstvevents.txt")
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then((data) => {
+                // 将数据解析成表格格式
+                const rows = data.split("\n").filter(row => row.trim() !== "");
+                let tableHTML = "<table border='1' style='border-collapse: collapse; width: 100%; font-size: 14px; text-align: center;'>";
+                tableHTML += "<tr><th style='text-align: center;'>Name</th><th style='text-align: center;'>Freq(MHz)</th><th style='text-align: center;'>Time</th></tr>";
+
+                rows.forEach(row => {
+                    const columns = row.split(/\s{2,}/); // 按多空格分割列
+                    if (columns.length === 3) {
+                        tableHTML += `<tr><td style='text-align: center;'>${columns[0]}</td><td style='text-align: center;'>${columns[1]}</td><td style='text-align: center;'>${columns[2]}</td></tr>`;
+                    }
+                });
+
+                tableHTML += "</table>";
+                eventsDiv.innerHTML = tableHTML;
+            })
+            .catch((error) => {
+                // 显示错误信息
+                eventsDiv.textContent = `Error: ${error.message}`;
+                eventsDiv.style.fontSize = "14px"; // 设置较小的字体
+            });
+    });
+
+//sstv活动结束
 
     </script>
 
