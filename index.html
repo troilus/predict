@@ -6,6 +6,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link href="/Artalk.css" rel="stylesheet">
     <title>🛰ORBIT</title>
     <style>
         :root {
@@ -306,11 +307,18 @@ justify-content: center;
                 border-bottom-color: #38383A;
             }
         }
+
+
+
+
+
     </style>
 </head>
 <body>
     <div id="location" style="align-self: left;"></div>
     <h1>🌎ORBIT</h1>
+<script src="/Artalk.js"></script>
+
 
 
         <!-- 语言切换按钮 -->
@@ -393,17 +401,22 @@ justify-content: center;
 <div id="notesInfo" style="font-weight: bold; padding-bottom: 10px; font-size: 11px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
 
-<button id="sstveventsbutton">SSTV活动</button>
+<button id="sstveventsbutton" >SSTV活动</button>
 <div id="sstvevents"></div>
-<button id="toggleButton">加入在线聊天</button>
-    <iframe id="chatIframe"></iframe>
 
+<!--<button id="toggleButton">加入在线聊天</button>
+    <iframe id="chatIframe"></iframe>-->
+<div id="Comments"></div>
 
 <div id="made">
   Made with ❤ by troilus
 </div>
 
 <div id="TLEinfo"></div>
+
+
+
+
 
 
 
@@ -601,7 +614,7 @@ function updateTableHeaders(lang) {
 
 
 
-           document.getElementById('toggleButton').textContent = translations[currentLang].chatonline
+           /*document.getElementById('toggleButton').textContent = translations[currentLang].chatonline*/
             document.getElementById('notesInfo').textContent = translations[lang].location;
             document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
             document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
@@ -1874,7 +1887,7 @@ document.addEventListener('click', function(event) {
 //判断白天黑夜
 
 
-//聊天开始
+/*//聊天开始
  const toggleButton = document.getElementById('toggleButton');
         const chatIframe = document.getElementById('chatIframe');
         let isChatOpen = false;
@@ -1901,7 +1914,7 @@ document.addEventListener('click', function(event) {
             }
             isChatOpen = !isChatOpen;
         });
-//聊天结束
+//聊天结束*/
 
 
 
@@ -1978,7 +1991,29 @@ function fetchTelemetryValueAsync() {
 
 //sstv活动结束
 
+    //评论功能开始
+    Artalk.init({
+  el:        '#Comments',                       // 绑定元素的 Selector
+  pageKey:   '/post/1',                         // 固定链接
+  pageTitle: '',
+  emoticons: false,     
+  server:    'https://comments.xanyi.eu.org/',  
+  site:      'ORBIT',                   
+})
+//评论功能结束
+
+
+    
     </script>
+
+
+
+
+
+
+
+
+
 
     <script async src="https://umami.xanyi.eu.org/script.js" data-website-id="496abb71-e440-42cf-9b88-4593e8942949"></script>
 
