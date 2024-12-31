@@ -108,12 +108,11 @@
 }
 
 .atk-comment>.atk-main {
-    display: block;
-    margin-left: 20px
+    display: block
 }
 
 .atk-comment>.atk-main>.atk-header {
-    font-size: 13px;
+    font-size: 11px;
     overflow: hidden;
     position: relative;
     display: flex;
@@ -214,7 +213,8 @@
 .atk-comment>.atk-main>.atk-body {
     display: block;
     overflow: hidden;
-    position: relative
+    position: relative;
+    font-size: 11px
 }
 
 .atk-comment>.atk-main>.atk-body img {
@@ -410,8 +410,7 @@
 
 .artalk>.atk-list>.atk-list-header {
     display: flex;
-    flex-direction: row;
-    padding: 10px 17px
+    flex-direction: row
 }
 
 .artalk>.atk-list>.atk-list-header .atk-text {
