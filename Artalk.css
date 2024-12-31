@@ -92,7 +92,7 @@
 
 .atk-comment {
     display: block;
-    padding: 10px
+    padding: 0px
 }
 
 .atk-comment>.atk-avatar {
@@ -102,8 +102,8 @@
 }
 
 .atk-comment>.atk-avatar img {
-    width: 10px;
-    height: 10px;
+    width: 0px;
+    height: 0px;
     border-radius: 3px
 }
 
@@ -392,12 +392,12 @@
 }
 
 .atk-comment-children>.atk-comment-wrap>.atk-comment {
-    padding: 0
+    padding: 0px
 }
 
 .atk-comment-children>.atk-comment-wrap>.atk-comment>.atk-avatar img {
-    width: 36px;
-    height: 36px
+    width: 0px;
+    height: 0px
 }
 
 .atk-comment-children>.atk-comment-wrap>.atk-comment>.atk-main {
