@@ -401,8 +401,8 @@ justify-content: center;
 <div id="notesInfo" style="font-weight: bold; padding-bottom: 10px; font-size: 11px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
 
-<button id="sstveventsbutton" >SSTV活动</button>
-<div id="sstvevents"></div>
+<!--<button id="sstveventsbutton" >SSTV活动</button>
+<div id="sstvevents"></div>-->
 
 <!--<button id="toggleButton">加入在线聊天</button>
     <iframe id="chatIframe"></iframe>-->
@@ -619,7 +619,7 @@ function updateTableHeaders(lang) {
             document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
             document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
             document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
-            document.getElementById('sstveventsbutton').textContent = translations[lang].sstveventsinfo;
+            /*document.getElementById('sstveventsbutton').textContent = translations[lang].sstveventsinfo;*/
 
 
 
@@ -1955,7 +1955,7 @@ function fetchTelemetryValueAsync() {
 //tank
 
 
-//sstv活动
+/*//sstv活动
 // 添加点击事件监听器
     sstvbutton.addEventListener("click", function () {
     // 使用 Fetch API 获取 sstvevents.txt 内容
@@ -1990,7 +1990,7 @@ function fetchTelemetryValueAsync() {
     });
 
 //sstv活动结束
-
+*/
     //评论功能开始
     Artalk.init({
   el:        '#Comments',                       // 绑定元素的 Selector
