@@ -134,7 +134,7 @@
 
 .atk-comment>.atk-main>.atk-header .atk-item.atk-nick,
 .atk-comment>.atk-main>.atk-header .atk-item.atk-nick a {
-    font-size: 14px;
+    font-size: 11px;
     color: var(--at-color-main);
     text-decoration: none
 }
