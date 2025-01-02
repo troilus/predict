@@ -1849,13 +1849,29 @@ function updateDoppler(downlink_low, uplink_low,description) {
     const dopplerShiftDifferencedown = ((dopplerShiftDownlink-downlink_low ) / 1000).toFixed(3);
     const dopplerShiftDifferenceup = ((dopplerShiftUplink-uplink_low )/ 1000).toFixed(3);
 
-    // 如果需要更新界面，可以将结果插入到特定的 DOM 元素
-    document.getElementById('doppler-info').innerHTML =
-        `<span style="font-size: 12px;"> 
-            <strong>📡 ${description}</strong><br>
-            🔻${downlink_low / 1000000} MHz ${isApproaching ? '+' : '-'}${dopplerShiftDifferencedown} kHz <br>
-            🔺${uplink_low / 100000} MHz ${isApproaching ? '+' : '-'}${dopplerShiftDifferenceup} kHz
-        </span>`;
+
+        // 判断结果是否为 NaN
+    const isDownlinkNaN = isNaN(dopplerShiftDifferencedown);
+    const isUplinkNaN = isNaN(dopplerShiftDifferenceup);
+
+
+
+    // 构建显示内容
+    let dopplerInfo = `<span style="font-size: 12px;"> 
+        <strong>📡 ${description}</strong><br>`;
+
+    if (!isDownlinkNaN) {
+        dopplerInfo += `🔻${downlink_low / 1000000} MHz ${isApproaching ? '+' : '-'}${dopplerShiftDifferencedown} kHz <br>`;
+    }
+
+    if (!isUplinkNaN) {
+        dopplerInfo += `🔺${uplink_low / 1000000} MHz ${isApproaching ? '+' : '-'}${dopplerShiftDifferenceup} kHz`;
+    }
+
+    dopplerInfo += `</span>`;
+
+    // 更新页面内容
+    document.getElementById('doppler-info').innerHTML = dopplerInfo;
 
 
 
