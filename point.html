@@ -402,7 +402,7 @@ let recordingDuration = 0; // 录音持续时间（秒）
 
 
 
-
+let previousDopplerFactor = null; // 用来保存上一次的dopplerFactor
 
 
       //录音相关
@@ -1826,15 +1826,20 @@ function updateDoppler(downlink_low, uplink_low,description) {
     const dopplerShiftDownlink = dopplerFactor * downlink_low;
     const dopplerShiftUplink = dopplerFactor * uplink_low;
 
-        // 根据dopplerFactor的变化判断接近或远离
+    // 判断dopplerFactor是否在增大或者变小
     let direction = '+';
-    if (dopplerFactor > 0) {
-        // dopplerFactor变大，表示卫星在远离
-        direction = '-';
-    } else {
-        // dopplerFactor变小，表示卫星在接近
-        direction = '+';
+    if (previousDopplerFactor !== null) {
+        if (dopplerFactor > previousDopplerFactor) {
+            // dopplerFactor增大，表示卫星在远离
+            direction = '-';
+        } else if (dopplerFactor < previousDopplerFactor) {
+            // dopplerFactor变小，表示卫星在接近
+            direction = '+';
+        }
     }
+
+    // 更新previousDopplerFactor为当前的dopplerFactor
+    previousDopplerFactor = dopplerFactor;
 
     // 计算频率差异并转换为 kHz
     const dopplerShiftDifferencedown = ((dopplerShiftDownlink-downlink_low ) / 1000).toFixed(3);
