@@ -7,6 +7,12 @@
 - Add to calendar reminder
 - Chatroom
 - ISS urine tank used capacity display
+- Freq doppler display
+
+## Host
+1. Clone files into a html host folder
+2. Start a https/http server
+3. Visit index.html in browser
 
 ![image](https://github.com/user-attachments/assets/b3f25fe0-a0d7-4f1b-8399-e2fc748120e1)
 ![image](https://github.com/user-attachments/assets/f56bee9a-49da-4a48-96db-7c394d5e3c09)
