@@ -1814,27 +1814,8 @@ function updateDoppler(downlink_low, uplink_low,description) {
 
     // 获取观察者的 ECF 位置
     const observerEcf = satellite.geodeticToEcf(observerGd);
-  // 计算卫星与观察者的相对速度
-    const relativeVelocity = {
-        x: velocityEcf.x - observerEcf.x,
-        y: velocityEcf.y - observerEcf.y,
-        z: velocityEcf.z - observerEcf.z
-    };
 
-    // 计算卫星位置与观察者位置的向量
-    const observerToSatellite = {
-        x: positionEcf.x - observerEcf.x,
-        y: positionEcf.y - observerEcf.y,
-        z: positionEcf.z - observerEcf.z
-    };
 
-    // 计算相对速度向量与卫星位置向量的点积
-    const dotProduct = relativeVelocity.x * observerToSatellite.x +
-                       relativeVelocity.y * observerToSatellite.y +
-                       relativeVelocity.z * observerToSatellite.z;
-
-    // 判断卫星是接近还是远离
-    const isApproaching = dotProduct > 0;  // 点积为正表示接近，负表示远离
 
 
 
@@ -1844,6 +1825,16 @@ function updateDoppler(downlink_low, uplink_low,description) {
     // 计算多普勒频偏（Downlink和Uplink）
     const dopplerShiftDownlink = dopplerFactor * downlink_low;
     const dopplerShiftUplink = dopplerFactor * uplink_low;
+
+        // 根据dopplerFactor的变化判断接近或远离
+    let direction = '+';
+    if (dopplerFactor > 0) {
+        // dopplerFactor变大，表示卫星在远离
+        direction = '-';
+    } else {
+        // dopplerFactor变小，表示卫星在接近
+        direction = '+';
+    }
 
     // 计算频率差异并转换为 kHz
     const dopplerShiftDifferencedown = ((dopplerShiftDownlink-downlink_low ) / 1000).toFixed(3);
@@ -1861,11 +1852,11 @@ function updateDoppler(downlink_low, uplink_low,description) {
         <strong>📡 ${description}</strong><br>`;
 
     if (!isDownlinkNaN) {
-        dopplerInfo += `🔻${downlink_low / 1000000} MHz ${isApproaching ? '+' : '-'}${dopplerShiftDifferencedown} kHz <br>`;
+        dopplerInfo += `🔻${downlink_low / 1000000} MHz ${direction}${dopplerShiftDifferencedown} kHz <br>`;
     }
 
     if (!isUplinkNaN) {
-        dopplerInfo += `🔺${uplink_low / 1000000} MHz ${isApproaching ? '+' : '-'}${dopplerShiftDifferenceup} kHz`;
+        dopplerInfo += `🔺${uplink_low / 1000000} MHz ${direction}${dopplerShiftDifferenceup} kHz`;
     }
 
     dopplerInfo += `</span>`;
