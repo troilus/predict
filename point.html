@@ -1765,6 +1765,11 @@ function startTrackingDoppler(downlink_low, uplink_low, description) {
     const closeButton = document.getElementById('close-btn');
     closeButton.click();
 
+    // Clear any previous intervals
+    if (window.dopplerInterval) {
+        clearInterval(window.dopplerInterval);
+    }
+
 
 
     // Set interval to update Doppler every second (1000ms)
