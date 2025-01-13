@@ -465,8 +465,7 @@ window.onload = function () {
         const observerGd = {
             latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
             longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
-            height: 0
-
+            height: parseFloat(localStorage.getItem('altitude')) / 1000
         };
 
 
@@ -1795,7 +1794,7 @@ function updateDoppler(downlink_low, uplink_low,description) {
     const observerGd = {
         latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
         longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
-        height: 0 
+        height: parseFloat(localStorage.getItem('altitude')) /1000 
     };
 
     // 获取卫星数据

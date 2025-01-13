@@ -328,7 +328,7 @@ justify-content: center;
 
 
 
-    <!--<button id="getLocation" class="button">获取位置</button>-->
+
 <div class="search-container">
 
 <div class="custom-dropdown">
@@ -394,6 +394,7 @@ justify-content: center;
 
 
 <div class="button-container">
+    <!--<button id="getLocation" class="button">获取位置</button>-->
         <button id="calculatePassfavorite" class="button">显示收藏</button>
     <button id="calculatePass" class="button">显示选中</button>
 
@@ -704,7 +705,7 @@ function updateTableHeaders(lang) {
                     const longitude = position.coords.longitude;
                     const latitudefix = position.coords.latitude.toFixed(2);
                     const longitudefix = position.coords.longitude.toFixed(2);
-                    const altitude = position.coords.altitude;
+                    const altitude = position.coords.altitude || '0';
                     const accuracy = position.coords.accuracy.toFixed(1);
                     localStorage.setItem('latitude', latitude);
                     localStorage.setItem('longitude', longitude);
@@ -1018,7 +1019,7 @@ function populateDropdown(satellites) {
             const latitude = parseFloat(localStorage.getItem('latitude'));
             const longitude = parseFloat(localStorage.getItem('longitude'));
 
-                const altitude = parseFloat(localStorage.getItem('altitude'));
+                const altitude = parseFloat(localStorage.getItem('altitude')) / 1000 ;
 
                 const satellites = JSON.parse(localStorage.getItem('satellites'));
                 const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
@@ -1068,7 +1069,7 @@ function populateDropdown(satellites) {
             if (match) {
             const latitude = parseFloat(localStorage.getItem('latitude'));
             const longitude = parseFloat(localStorage.getItem('longitude'));
-            const altitude = parseFloat(localStorage.getItem('altitude'));
+            const altitude = parseFloat(localStorage.getItem('altitude')) /1000;
 
     // 遍历每个收藏的卫星
             const allGroupedPasses = [];
@@ -1111,7 +1112,7 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
     const observerGd = {
         latitude: satellite.degreesToRadians(latitude),
         longitude: satellite.degreesToRadians(longitude),
-        height: 0
+        height: altitude
     };
     const days = parseFloat(document.getElementById('days').value);
     const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
@@ -1165,7 +1166,7 @@ function calculatePassesfavorite(satrec, latitude, longitude, altitude, currentT
     const observerGd = {
         latitude: satellite.degreesToRadians(latitude),
         longitude: satellite.degreesToRadians(longitude),
-        height: 0
+        height: altitude
     };
 
     const days = parseFloat(document.getElementById('days').value);
