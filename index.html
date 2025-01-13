@@ -60,6 +60,39 @@
             display: none; /* 默认隐藏 iframe */
         }
 
+    .pwa-prompt {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: #007bff;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      opacity: 1;
+      transition: opacity 1s ease-in-out;
+      z-index: 1000;
+      font-size: 10px;
+
+    }
+    .pwa-prompt.hidden {
+      opacity: 0;
+    }
+        .progress-bar-container {
+      margin-top: 10px;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+      height: 5px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background-color: #ffca28;
+      width: 100%;
+      transition: width 0.1s linear;
+    }
+
 
         .search-container {
             display: flex;
@@ -327,7 +360,7 @@ justify-content: center;
         <a href="https://hits.sh/sat.xanyi.eu.org/"><img alt="Hits" src="https://hits.sh/sat.xanyi.eu.org.svg?style=plastic"/></a> | <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a> |  <a href="https://github.com/troilus/predict" target="_blank" class="link">CODE</a>
     </div>
 
-
+<div id="pwaPrompt" class="pwa-prompt hidden"> 推荐在 Safari 中点击分享按钮，选择“添加到主屏幕”安装为应用</div>
 
 
 <div class="search-container">
@@ -2015,6 +2048,21 @@ if ('serviceWorker' in navigator) {
       });
   }
 //pwa
+      // 检测是否已经是 PWA 模式
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (isIOS && !isPWA) {
+      const pwaPrompt = document.getElementById('pwaPrompt');
+
+      // 显示提示
+      pwaPrompt.classList.remove('hidden');
+
+      // 3 秒后隐藏提示
+      setTimeout(() => {
+        pwaPrompt.classList.add('hidden');
+      }, 3000);
+    }
     
     </script>
 
