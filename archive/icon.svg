@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg id="chart-6" width="500" height="500" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+    <!-- 添加一个圆角矩形作为背景 -->
+    <rect x="0" y="0" width="50" height="50" rx="10" ry="10" fill="#494953" />
+    
+    <!-- 原有的图形 -->
+    <circle cx="25" cy="25" r="20" stroke="#ffffbc" stroke-width="2" fill="none"></circle>
+    <path d="M 19.913282240561323,44.34231895186849 Q 10.731438316290077,26.76766679135452 15.400629248772377,7.454285959799879" stroke="#ffffbc" stroke-width="2" fill="none"></path>
+</svg>

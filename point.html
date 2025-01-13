@@ -1878,6 +1878,18 @@ function updateDoppler(downlink_low, uplink_low,description) {
 }
 //多普勒功能结束
 
+//pwa
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('Service Worker 注册成功:', registration);
+      })
+      .catch(error => {
+        console.log('Service Worker 注册失败:', error);
+      });
+  }
+//pwa
+
 // Function to display frequency data in the popup
 function displayFrequencyData(data, selectedsat) {
     const satelliteInfo = document.getElementById('satellite-feqinfo');

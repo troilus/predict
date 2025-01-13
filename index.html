@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link href="/Artalk.css" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
     <title>🛰ORBIT</title>
     <style>
         :root {
@@ -440,7 +441,7 @@ justify-content: center;
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
                 elevationThresholdLabel: "最高仰角≥",
-                notesInfo: "ℹ️点击仰角: 对星 | ⏰点击开始时间: 加入日历提醒",
+                notesInfo: "ℹ️点击仰角: 对星 ⏰点击开始时间: 加入日历提醒",
                 placeholder: "🔎搜索卫星...",
                 calculatePass:"显示选中",
                                  noTLE:"⚠无TLE信息",
@@ -2003,7 +2004,17 @@ function fetchTelemetryValueAsync() {
 })
 //评论功能结束
 
-
+//pwa
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('Service Worker 注册成功:', registration);
+      })
+      .catch(error => {
+        console.log('Service Worker 注册失败:', error);
+      });
+  }
+//pwa
     
     </script>
 
