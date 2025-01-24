@@ -25,6 +25,11 @@
                   -webkit-font-smoothing: antialiased;
   }
 
+#doppler-info {
+    font-size: 12px;
+    color: #000000;
+}
+
 .button-container {
     display: flex;
     gap: 10px;  /* 按钮之间的间距 */
@@ -220,6 +225,12 @@
     #info-bar {
         background-color: #0a1649; /* 深色模式下的顶部信息栏背景色 */
     }
+
+        #doppler-info {
+        color: #ffffff;
+    }
+
+
 
     #progress-bar-container {
         background-color: #444; /* 深色模式下的进度条背景色 */
@@ -1857,7 +1868,7 @@ function updateDoppler(downlink_low, uplink_low,description) {
 
 
     // 构建显示内容
-    let dopplerInfo = `<span style="font-size: 12px;"> 
+        let dopplerInfo = `<span>          
         <strong>📡 ${description}</strong><br>`;
 
     if (!isDownlinkNaN) {
