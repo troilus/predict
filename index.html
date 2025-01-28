@@ -2060,7 +2060,7 @@ if ('serviceWorker' in navigator) {
 
       // 3 秒后隐藏提示
       setTimeout(() => {
-        pwaPrompt.classList.add('hidden');
+        pwaPrompt.remove();  // 完全从 DOM 中移除
       }, 10000);
     }
     
