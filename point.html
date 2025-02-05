@@ -393,7 +393,7 @@
   <script>
     //刻度
      // 声明一个全局变量，用于在实时多普勒计算中判断频偏方向
-      let previousDopplerFactor = null;
+      let previousdistancedoppler = null;
     //const compassBackground = document.getElementById('compass-background');
     //背景改SVG const compassCtx = compassBackground.getContext('2d');
     const compassCircle = document.querySelector(".compass-circle");
@@ -1789,8 +1789,8 @@ function startTrackingDoppler(downlink_low, uplink_low, description) {
         updateDoppler(downlink_low, uplink_low, description);
     }, 1000);
 
-            // 【新增】计算整个过境期间的多普勒频率，并在进度条上添加刻度
-        computeDopplerTicks(downlink_low, uplink_low, description);
+          /*  // 【新增】计算整个过境期间的多普勒频率，并在进度条上添加刻度
+        computeDopplerTicks(downlink_low, uplink_low, description);*/
 
 
 }
@@ -1849,23 +1849,113 @@ function updateDoppler(downlink_low, uplink_low,description) {
     const dopplerShiftUplink = dopplerFactor * uplink_low;
 
     // 判断dopplerFactor是否在增大或者变小
-    let direction = '+';
-    if (previousDopplerFactor !== null) {
-        if (dopplerFactor > previousDopplerFactor) {
+
+    const dx = positionEcf.x - observerEcf.x;
+    const dy = positionEcf.y - observerEcf.y;
+    const dz = positionEcf.z - observerEcf.z;
+
+
+    const distancedoppler = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    let directionup = '';
+    let directiondown = '';
+
+      const urlParams = new URLSearchParams(window.location.search);
+    const index = urlParams.get('index');
+
+    const selectedPass = satelliteData[index - 1];  // 索引从 1 开始，数组从 0 开始
+    const entryTime = new Date(selectedPass.entryTime);
+    const exitTime = new Date(selectedPass.exitTime);
+    // 获取最高点时间
+    const highestTime = new Date(selectedPass.highestTime);
+
+
+    if (previousdistancedoppler !== null) {
+        if (distancedoppler > previousdistancedoppler) {
             // dopplerFactor增大，表示卫星在远离
-            direction = '-';
-        } else if (dopplerFactor < previousDopplerFactor) {
+            directionup = '+';
+            directiondown = '-';
+        } else if (distancedoppler < previousdistancedoppler) {
             // dopplerFactor变小，表示卫星在接近
-            direction = '+';
+            directionup = '-';
+            directiondown = '+';
         }
     }
 
     // 更新previousDopplerFactor为当前的dopplerFactor
-    previousDopplerFactor = dopplerFactor;
+    previousdistancedoppler = distancedoppler;
+
 
     // 计算频率差异并转换为 kHz
-    const dopplerShiftDifferencedown = ((dopplerShiftDownlink-downlink_low ) / 1000).toFixed(3);
-    const dopplerShiftDifferenceup = ((dopplerShiftUplink-uplink_low )/ 1000).toFixed(3);
+    const dopplerShiftDifferencedown = ((dopplerShiftDownlink-downlink_low ) / 1000).toFixed(2);
+    const dopplerShiftDifferenceup = ((dopplerShiftUplink-uplink_low )/ 1000).toFixed(2);
+    const nowdopplerShiftDifferencedown = (dopplerShiftDownlink-downlink_low ) ;
+
+
+    // 计算 SSTV 参考接收频率和最大偏差
+    function calculateSSTVReference(timeOffset) {
+ const futureTime = new Date(now.getTime() + timeOffset * 1000);
+
+
+
+        const futurePosition = satellite.propagate(satrec, futureTime);
+
+    const futuregmst = satellite.gstime(futureTime);
+    const futurepositionEci = futurePosition.position;
+    const futurevelocityEci = futurePosition.velocity;
+        // 将卫星的 ECI 位置和速度转换为 ECF
+    const futurepositionEcf = satellite.eciToEcf(futurepositionEci, futuregmst);
+    const futurevelocityEcf = satellite.eciToEcf(futurevelocityEci, futuregmst);
+
+        // 获取观察者的 ECF 位置
+            const observerGd = {
+        latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
+        longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
+        height: parseFloat(localStorage.getItem('altitude')) /1000 
+    };
+
+
+    const observerEcf = satellite.geodeticToEcf(observerGd);
+
+
+
+    const futureDopplerFactor = satellite.dopplerFactor(observerEcf, futurepositionEcf, futurevelocityEcf);
+
+
+
+        const futuredopplerShiftDownlink = futureDopplerFactor * parseFloat(downlink_low);
+        const dopplerShiftDownlink = dopplerFactor * parseFloat(downlink_low);
+        const futuredopplerShiftDifferencedown = (futuredopplerShiftDownlink-parseFloat(downlink_low) ) ;
+        // 计算当前频率 currentDownlink
+let currentDownlink;
+if (now >= entryTime && now <= highestTime) {
+    currentDownlink = parseFloat(downlink_low) + nowdopplerShiftDifferencedown;
+} else if (now >= highestTime && now <= exitTime) {
+    currentDownlink = parseFloat(downlink_low) - nowdopplerShiftDifferencedown;
+}
+// 计算未来频率 futureDownlink
+let futureDownlink;
+if (futureTime >= entryTime && futureTime <= highestTime) {
+    futureDownlink = parseFloat(downlink_low) + futuredopplerShiftDifferencedown;
+} else if (futureTime >= highestTime && futureTime <= exitTime) {
+    futureDownlink = parseFloat(downlink_low) - futuredopplerShiftDifferencedown;
+}
+
+        const referenceFreq = ((currentDownlink + futureDownlink) / 2 / 1000000).toFixed(3);
+        const maxDeviation = ((futureDownlink - currentDownlink) / 1000).toFixed(3);
+        /*if (timeOffset == 36 ){
+        console.log("now",new Date()); 
+        console.log("futureTime",futureTime);
+        console.log("timeOffset",timeOffset);
+        console.log("currentDownlink",currentDownlink/1000);
+        console.log("futureDownlink",futureDownlink/1000);
+        console.log("referenceFreq",referenceFreq);
+        console.log("maxDeviation",maxDeviation);
+        console.log("=======================");
+        }*/
+        return { referenceFreq, maxDeviation };
+    }
+
+
 
 
         // 判断结果是否为 NaN
@@ -1877,13 +1967,28 @@ function updateDoppler(downlink_low, uplink_low,description) {
     // 构建显示内容
         let dopplerInfo = `<span>          
         <strong>📡 ${description}</strong><br>`;
+        dopplerInfo += `Distance ${distancedoppler.toFixed(`1`)} km<br>`;
 
     if (!isDownlinkNaN) {
-        dopplerInfo += `🔻${downlink_low / 1000000} MHz ${direction}${dopplerShiftDifferencedown} kHz <br>`;
+        dopplerInfo += `🔻${downlink_low / 1000000} MHz ${directiondown}${dopplerShiftDifferencedown} kHz <br>`;
     }
 
     if (!isUplinkNaN) {
-        dopplerInfo += `🔺${uplink_low / 1000000} MHz ${direction}${dopplerShiftDifferenceup} kHz`;
+        dopplerInfo += `🔺${uplink_low / 1000000} MHz ${directionup}${dopplerShiftDifferenceup} kHz<br>`;
+    }
+
+
+
+    
+
+        if (!isNaN(dopplerShiftDifferencedown) && now >= entryTime && now <= exitTime) {
+                const robot36 = calculateSSTVReference(36);
+    const robot72 = calculateSSTVReference(72);
+    const pd120 = calculateSSTVReference(120);
+// 添加 SSTV 相关信息
+    dopplerInfo += `🖼Robot36: ${robot36.referenceFreq} MHz，FDR:${robot36.maxDeviation} kHz<br>`;
+    dopplerInfo += `🖼Robot72: ${robot72.referenceFreq} MHz，FDR:${robot72.maxDeviation} kHz<br>`;
+    dopplerInfo += `🖼PD120: ${pd120.referenceFreq} MHz，FDR:${pd120.maxDeviation} kHz<br>`;
     }
 
     dopplerInfo += `</span>`;
@@ -1908,7 +2013,7 @@ if ('serviceWorker' in navigator) {
   }
 //pwa
 // -------------------------------
-//【新增功能】计算整个过境期间的多普勒频率并在进度条上显示刻度
+/*//【新增功能】计算整个过境期间的多普勒频率并在进度条上显示刻度
 function computeDopplerTicks(downlink_low, uplink_low, description) {
   // 从 localStorage 中获取所选过境和卫星数据
   const urlParams = new URLSearchParams(window.location.search);
@@ -2033,7 +2138,7 @@ function computeDopplerTicks(downlink_low, uplink_low, description) {
 
 
       // -------------------------------
-
+*/
 
 // Function to display frequency data in the popup
 function displayFrequencyData(data, selectedsat) {
