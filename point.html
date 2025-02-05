@@ -89,7 +89,7 @@
       position: relative;
       width: 300px;
       height: 300px;
-      margin: 20px 0;
+      margin: 40px 0;
   }
 
 #trajectory-canvas {
@@ -391,6 +391,9 @@
     <script src="satellite.js"></script>
 
   <script>
+    //刻度
+     // 声明一个全局变量，用于在实时多普勒计算中判断频偏方向
+      let previousDopplerFactor = null;
     //const compassBackground = document.getElementById('compass-background');
     //背景改SVG const compassCtx = compassBackground.getContext('2d');
     const compassCircle = document.querySelector(".compass-circle");
@@ -413,7 +416,6 @@ let recordingDuration = 0; // 录音持续时间（秒）
 
 
 
-let previousDopplerFactor = null; // 用来保存上一次的dopplerFactor
 
 
       //录音相关
@@ -1786,6 +1788,11 @@ function startTrackingDoppler(downlink_low, uplink_low, description) {
     window.dopplerInterval = setInterval(() => {
         updateDoppler(downlink_low, uplink_low, description);
     }, 1000);
+
+            // 【新增】计算整个过境期间的多普勒频率，并在进度条上添加刻度
+        computeDopplerTicks(downlink_low, uplink_low, description);
+
+
 }
 
 
@@ -1900,6 +1907,133 @@ if ('serviceWorker' in navigator) {
       });
   }
 //pwa
+// -------------------------------
+//【新增功能】计算整个过境期间的多普勒频率并在进度条上显示刻度
+function computeDopplerTicks(downlink_low, uplink_low, description) {
+  // 从 localStorage 中获取所选过境和卫星数据
+  const urlParams = new URLSearchParams(window.location.search);
+  const index = urlParams.get('index');
+  const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
+  const selectedPass = satelliteData[index - 1];
+  const entryTime = new Date(selectedPass.entryTime);
+  const exitTime = new Date(selectedPass.exitTime);
+
+  const satellites = JSON.parse(localStorage.getItem('satellites'));
+  const satelliteName = selectedPass.satelliteName;
+  const satellited = satellites.find(s => s.name === satelliteName);
+  const satelliteTLE1 = satellited.tle[0];
+  const satelliteTLE2 = satellited.tle[1];
+  const satrec = satellite.twoline2satrec(satelliteTLE1, satelliteTLE2);
+  const observerGd = {
+    latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
+    longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
+    height: parseFloat(localStorage.getItem('altitude')) / 1000
+  };
+
+  const progressBarContainer = document.getElementById('progress-bar-container');
+  
+  // 清除上一次添加的刻度和左侧基准标签（基准标签设置了 id="baseLabel"）
+  const oldTicks = progressBarContainer.querySelectorAll('.tick');
+  oldTicks.forEach(t => t.remove());
+  const existingBaseLabel = progressBarContainer.querySelector('#baseLabel');
+  if (existingBaseLabel) {
+    existingBaseLabel.remove();
+  }
+
+  // 在进度条最左侧显示基准频率（下行和上行分两行）
+  const downlinkLow_MHz = (parseFloat(downlink_low) / 1000000).toFixed(3);
+  const uplinkLow_MHz = (parseFloat(uplink_low) / 1000000).toFixed(3);
+  const baseLabel = document.createElement('div');
+  baseLabel.id = 'baseLabel';
+  baseLabel.style.position = 'absolute';
+  baseLabel.style.left = '0';
+  baseLabel.style.top = '10px';
+  baseLabel.style.fontSize = '10px';
+  baseLabel.style.color = '#000';
+  baseLabel.innerHTML = `🔻${downlinkLow_MHz}<br>🔺${uplinkLow_MHz}`;
+  progressBarContainer.appendChild(baseLabel);
+
+  const totalDuration = exitTime - entryTime;
+  // 定义定点时间 t0 为过境 50% 对应的时刻
+  const t0 = new Date(entryTime.getTime() + 0.5 * totalDuration);
+
+  // 固定在指定百分比位置显示刻度
+  // 注意：百分比数组中可以包含任意百分比值，本例中包含多个采样点
+  const percentages = [20,35, 45,   55, 65,80];
+
+  percentages.forEach(perc => {
+    const sampleTime = new Date(entryTime.getTime() + (perc / 100) * totalDuration);
+    const positionAndVelocity = satellite.propagate(satrec, sampleTime);
+    const gmst = satellite.gstime(sampleTime);
+    const positionEci = positionAndVelocity.position;
+    const velocityEci = positionAndVelocity.velocity;
+    const positionEcf = satellite.eciToEcf(positionEci, gmst);
+    const velocityEcf = satellite.eciToEcf(velocityEci, gmst);
+    const observerEcf = satellite.geodeticToEcf(observerGd);
+    const dopplerFactor = satellite.dopplerFactor(observerEcf, positionEcf, velocityEcf);
+    const dopplerShiftDownlink = dopplerFactor * parseFloat(downlink_low);
+    const dopplerShiftUplink = dopplerFactor * parseFloat(uplink_low);
+    // 计算频偏差（单位 kHz）
+    const diffDown = (dopplerShiftDownlink - parseFloat(downlink_low)) / 1000;
+    const diffUp = (dopplerShiftUplink - parseFloat(uplink_low)) / 1000;
+    
+    // 根据过境百分比决定符号和显示的频偏数值
+    let signDown, signUp, dispDiffDown, dispDiffUp;
+    if (perc < 50) {
+      signDown = '+';
+      signUp = '+';
+      dispDiffDown = Math.abs(diffDown).toFixed(2);
+      dispDiffUp = Math.abs(diffUp).toFixed(2);
+    } else if (perc > 50) {
+      signDown = '-';
+      signUp = '-';
+      dispDiffDown = Math.abs(diffDown).toFixed(2);
+      dispDiffUp = Math.abs(diffUp).toFixed(2);
+    } else { // perc == 50
+      signDown = '±';
+      signUp = '±';
+      dispDiffDown = '0';
+      dispDiffUp = '0';
+    }
+    
+    // 当计算结果为 NaN 时，不显示相应的内容
+    const displayDownStr = (!isNaN(diffDown) && !isNaN(parseFloat(dispDiffDown))) ? `${signDown}${dispDiffDown}` : '';
+    const displayUpStr = (!isNaN(diffUp) && !isNaN(parseFloat(dispDiffUp))) ? `${signUp}${dispDiffUp}` : '';
+
+    // 计算相对于定点时间 t0 的秒数差：t0 为零点
+    const deltaSec = Math.round((sampleTime.getTime() - t0.getTime()) / 1000);
+    // 根据 deltaSec 显示 T-x 或 T+x，当 deltaSec 为负时显示 T-x，正时显示 T+x，零时显示 T+0
+    const timeLabel = deltaSec < 0 ? `-${Math.abs(deltaSec)}s` : (deltaSec > 0 ? `+${deltaSec}s` : 'T+0');
+
+    // 创建刻度元素
+    const tick = document.createElement('div');
+    tick.className = 'tick';
+    tick.style.position = 'absolute';
+    tick.style.left = perc + '%';
+    tick.style.top = '0';
+    tick.style.width = '2px';
+    tick.style.height = '8px';
+    tick.style.backgroundColor = '#000';
+
+    // 创建左侧标签：显示两行频偏信息和相对于 t0 的时间标签
+    const leftLabel = document.createElement('div');
+    leftLabel.style.position = 'absolute';
+    leftLabel.style.top = '10px';
+    leftLabel.style.left = (perc - 2) + '%'; // 稍微向左偏移
+    leftLabel.style.fontSize = '10px';
+    leftLabel.style.color = '#000';
+    leftLabel.style.textAlign = 'right';
+    leftLabel.innerHTML = `${displayDownStr}<br>${displayUpStr}`;
+
+    tick.appendChild(leftLabel);
+    progressBarContainer.appendChild(tick);
+  });
+}
+
+
+
+      // -------------------------------
+
 
 // Function to display frequency data in the popup
 function displayFrequencyData(data, selectedsat) {
