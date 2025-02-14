@@ -1982,13 +1982,15 @@ if (futureTime >= entryTime && futureTime <= highestTime) {
     
 
         if (!isNaN(dopplerShiftDifferencedown) && now >= entryTime && now <= exitTime) {
-                const robot36 = calculateSSTVReference(36);
+    const robot36 = calculateSSTVReference(36);
     const robot72 = calculateSSTVReference(72);
-    const pd120 = calculateSSTVReference(120);
+    const pd120 = calculateSSTVReference(127);
+    const MartinM1 = calculateSSTVReference(114);
 // 添加 SSTV 相关信息
     dopplerInfo += `🖼Robot36: ${robot36.referenceFreq} MHz，FDR:${robot36.maxDeviation} kHz<br>`;
     dopplerInfo += `🖼Robot72: ${robot72.referenceFreq} MHz，FDR:${robot72.maxDeviation} kHz<br>`;
     dopplerInfo += `🖼PD120: ${pd120.referenceFreq} MHz，FDR:${pd120.maxDeviation} kHz<br>`;
+    dopplerInfo += `🖼MartinM1: ${MartinM1.referenceFreq} MHz，FDR:${MartinM1.maxDeviation} kHz<br>`;
     }
 
     dopplerInfo += `</span>`;
