@@ -360,7 +360,7 @@ justify-content: center;
         <a href="https://hits.sh/sat.xanyi.eu.org/"><img alt="Hits" src="https://hits.sh/sat.xanyi.eu.org.svg?style=plastic"/></a> | <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a> |  <a href="https://github.com/troilus/predict" target="_blank" class="link">CODE</a> |  <a href="https://umami.xanyi.eu.org/share/g3swaIVBuBNOBNuS/sat.xanyi.eu.org" target="_blank" class="link">STATISTICS</a>
     </div>
 
-<div id="pwaPrompt" class="pwa-prompt hidden"> 推荐在 Safari 中点击分享按钮，选择“添加到主屏幕”安装为应用</div>
+
 
 
 <div class="search-container">
@@ -448,6 +448,7 @@ justify-content: center;
 </div>
 
 <div id="TLEinfo"></div>
+<div id="pwaPrompt" class="pwa-prompt hidden"> 推荐在 Safari 中点击分享按钮，选择“添加到主屏幕”安装为应用</div>
 
 
 
@@ -2061,7 +2062,7 @@ if ('serviceWorker' in navigator) {
       // 3 秒后隐藏提示
       setTimeout(() => {
         pwaPrompt.remove();  // 完全从 DOM 中移除
-      }, 10000);
+      }, 5000);
     }
     
     </script>
