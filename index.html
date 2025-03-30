@@ -475,7 +475,7 @@ justify-content: center;
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
                 elevationThresholdLabel: "最高仰角≥",
-                notesInfo: "ℹ️点击仰角: 对星 ⏰点击开始时间: 加入日历提醒",
+                notesInfo: "ℹ️点击仰角: 实时对星<br>⏰点击开始时间: 加入日历提醒",
                 placeholder: "🔎搜索卫星...",
                 calculatePass:"显示选中",
                                  noTLE:"⚠无TLE信息",
@@ -508,7 +508,7 @@ justify-content: center;
                 timeFilterLabel: "19:00~23:59 Only",
                 elevationThresholdLabel: "MAX. El ≥",
                 daysLabel: "Days:",
-                notesInfo: "ℹ️Click the El to view the orbit page   ⏰Click the Date to add the event to calendar",
+                notesInfo: "ℹ️Click the El to view the orbit page<br>⏰Click the Date to add the event to calendar",
                 placeholder: "🔎Search satellites...",
                  calculatePass:"Show selected",
                                  noTLE:"⚠TLE not found",
@@ -535,9 +535,12 @@ justify-content: center;
         };
 
         // 设置默认语言
-        let currentLang = 'zh';
-        localStorage.setItem('lang', currentLang);
+        let currentLang = localStorage.getItem('lang') || 'zh';
             /*const sstvbutton = document.getElementById("sstveventsbutton");*/
+
+
+
+
     const eventsDiv = document.getElementById("sstvevents");
 
         // 更新 placeholder 内容
@@ -1054,7 +1057,7 @@ function populateDropdown(satellites) {
             const latitude = parseFloat(localStorage.getItem('latitude'));
             const longitude = parseFloat(localStorage.getItem('longitude'));
 
-                const altitude = parseFloat(localStorage.getItem('altitude')) / 1000 ;
+                const altitude = parseFloat(localStorage.getItem('altitude')) / 1000 || 0; // 如果 altitude 是 null/undefined，默认设为 0 ;
 
                 const satellites = JSON.parse(localStorage.getItem('satellites'));
                 const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
@@ -1104,7 +1107,7 @@ function populateDropdown(satellites) {
             if (match) {
             const latitude = parseFloat(localStorage.getItem('latitude'));
             const longitude = parseFloat(localStorage.getItem('longitude'));
-            const altitude = parseFloat(localStorage.getItem('altitude')) /1000;
+            const altitude = parseFloat(localStorage.getItem('altitude')) /1000 || 0;
 
     // 遍历每个收藏的卫星
             const allGroupedPasses = [];
@@ -2053,17 +2056,17 @@ if ('serviceWorker' in navigator) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-    if (isIOS && !isPWA) {
-      const pwaPrompt = document.getElementById('pwaPrompt');
 
+      const pwaPrompt = document.getElementById('pwaPrompt');
+    if (isIOS && !isPWA) {
       // 显示提示
       pwaPrompt.classList.remove('hidden');
-
+    }
       // 3 秒后隐藏提示
       setTimeout(() => {
         pwaPrompt.remove();  // 完全从 DOM 中移除
       }, 5000);
-    }
+
     
     </script>
 
