@@ -434,7 +434,7 @@ let recordingDuration = 0; // 录音持续时间（秒）
     }
 
         // 设置默认语言
-        let currentLang = 'zh';
+        let currentLang = localStorage.getItem('lang') || 'zh';
 
 window.onload = function () {
     currentLang = localStorage.getItem('lang')

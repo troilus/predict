@@ -536,6 +536,8 @@ justify-content: center;
 
         // 设置默认语言
         let currentLang = localStorage.getItem('lang') || 'zh';
+        localStorage.setItem('lang', currentLang);
+
             /*const sstvbutton = document.getElementById("sstveventsbutton");*/
 
 
@@ -627,7 +629,7 @@ function updateTableHeaders(lang) {
                     const longitude = position.coords.longitude;
                     const latitudefix = position.coords.latitude.toFixed(2);
                     const longitudefix = position.coords.longitude.toFixed(2);
-                    const altitude = position.coords.altitude;
+                    const altitude = position.coords.altitude || '0';
                     const accuracy = position.coords.accuracy.toFixed(1);
 
                     localStorage.setItem('latitude', latitude);
