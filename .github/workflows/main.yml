@@ -22,6 +22,9 @@ jobs:
           
           # 下载第二个文件并追加到第一个文件
           curl https://ariss-usa.org/keps.txt >> satonline.txt
+          
+          # 追加指定的TLE数据到文件末尾
+          echo -e "\nFram2(SatNOGS)\n1 98609U 25090A   25091.31543312  .00000000  00000-0 -25444-3 0    03\n2 98609  90.0015 318.4250 0001128  47.8434   2.3016 15.45593922    01" >> satonline.txt
       
       # 可选：将文件提交回仓库
       - name: Commit changes
