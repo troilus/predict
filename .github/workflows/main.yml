@@ -17,7 +17,7 @@ jobs:
       - name: Download file
         run: |
 
-          curl -o satonline.txt https://r4uab.ru/satonline.txt
+          curl -k -o satonline.txt https://r4uab.ru/satonline.txt
       
       # 可选：将文件提交回仓库
       - name: Commit changes
