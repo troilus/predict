@@ -61,7 +61,9 @@
 }
 
 
-
+#elapsed-time, #remaining-time {
+    color: inherit; /* 继承父元素颜色 */
+}
 #download-link {
   display: none;
   text-decoration: none;
@@ -303,8 +305,13 @@
         <p id="pass-info"></p>
         <p id="time-info"></p>
     </div>
-<div id="progress-bar-container">
-    <div id="progress-bar"></div>
+<!-- 在progress-bar-container中添加时间显示 -->
+<div id="progress-bar-container" style="position: relative; height: 20px; background: #eee;">
+  <div id="progress-bar" style="height: 100%; background: #76c7c0; width: 0%; position: relative;">
+      <!-- 时间标签直接位于进度条末端 -->
+      <div id="elapsed-time" style="position: absolute; top: -14px; right: 0; font-size: 12px;color: rgb(255, 255, 255);"></div>
+      <div id="remaining-time" style="position: absolute; bottom: -14px; right: 0; font-size: 12px;"></div>
+  </div>
 </div>
 <div id="canvas-container">
     <canvas id="trajectory-canvas" width="300" height="300"></canvas>
@@ -1363,18 +1370,23 @@ function updateSatellitePositionsvg(trajectoryPoints) {
 
     function updateProgressBar(entryTime, exitTime, now) {
     const progressBar = document.getElementById('progress-bar');
-
-    // 计算当前时间在总时间中的百分比
+    const elapsedDisplay = document.getElementById('elapsed-time');
+    const remainingDisplay = document.getElementById('remaining-time');
+    
     const totalDuration = exitTime - entryTime;
-    const elapsedTime = now - entryTime;
-    const progressPercentage = Math.min(
-        Math.max((elapsedTime / totalDuration) * 100, 0),
-        100
-    ); // 确保百分比在 0-100 之间
+    const elapsedTime = Math.max(now - entryTime, 0);
+    const remainingTime = Math.max(totalDuration - elapsedTime -1, 0);
 
-    // 更新进度条宽度
+    // 格式化为秒数
+    const formatSeconds = ms => Math.round(ms/1000) + 's';
+    
+    // 更新显示
+    elapsedDisplay.textContent = `T+` + formatSeconds(elapsedTime);
+    remainingDisplay.textContent = formatSeconds(remainingTime);
+    
+    const progressPercentage = Math.min((elapsedTime / totalDuration) * 100, 100);
     progressBar.style.width = `${progressPercentage}%`;
-}
+    }
 
 
 
