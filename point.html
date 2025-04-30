@@ -650,8 +650,7 @@ document.getElementById('info-btn').textContent = "Sat Freq Info";
 
 
      // 绘制卫星过境轨迹
-     drawTrajectorySVG(trajectorySVG, selectedPass, satrec, observerGd);
-
+    trajectoryPoints=drawTrajectorySVG(trajectorySVG, selectedPass, satrec, observerGd);
 
 
 
@@ -726,7 +725,7 @@ if (now >= entryTime && now <= exitTime) {
 
 // 更新显示内容
 document.getElementById('time-info').textContent = timeInfo;
-
+       updateProgressBar(entryTime, exitTime, now);
 
 
         }, 1000);
