@@ -53,7 +53,7 @@
         }
 
 #made {
-    position: fixed;
+    
     bottom: 20px; /* 距离底部20px */
     left: 0;
     right: 0;
@@ -429,8 +429,6 @@ justify-content: center;
 
     <script src="satellite.js"></script>
         <script src="suncalc.min.js"></script>
-          <script src="client.js"></script>
-
 <script src="/require.js"></script>
 <script src="/lightstreamer.min.js"></script>
 
@@ -504,11 +502,16 @@ justify-content: center;
         }
         };
 
-        // 设置默认语言
-        let currentLang = localStorage.getItem('lang') || 'zh';
-        localStorage.setItem('lang', currentLang);
+// 获取浏览器支持的语言列表
+const userLanguages = navigator.languages || [navigator.language];
 
-            /*const sstvbutton = document.getElementById("sstveventsbutton");*/
+// 检查是否有中文变体
+const hasChinese = userLanguages.some(lang => lang.startsWith('zh'));
+
+// 设置默认语言
+let currentLang = localStorage.getItem('lang') || 
+                 (hasChinese ? 'zh' : 'en');
+localStorage.setItem('lang', currentLang);
 
 
 
@@ -700,7 +703,6 @@ function updateTableHeaders(lang) {
             localStorage.removeItem('selectedorbit');
             localStorage.removeItem('freqinfo');
 
-            fetchTelemetryValueAsync();
 
 
 
