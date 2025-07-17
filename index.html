@@ -17,7 +17,7 @@
     <style>
         :root {
             --primary-color: #007AFF; /* iOS 蓝色 */
-            --secondary-color: #F2F2F7; /* iOS 浅灰背景色 */
+            --secondary-color: #F2F2F7;; /* iOS 浅灰背景色 */
             --text-color: #000000;
             --hover-color: #0051D5;
             --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -52,10 +52,15 @@
             -webkit-font-smoothing: antialiased;
         }
 
-                    #made {
-    margin-top: 20px; /* Increases the space above the element */
-    font-size: 14px;  /* Optional: Adjust font size */
-          text-align: center; /* 让文本居中对齐 */
+#made {
+    position: fixed;
+    bottom: 20px; /* 距离底部20px */
+    left: 0;
+    right: 0;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.5; /* 增加行间距 */
+    color: #919191;
 }
 
         #chatIframe {
@@ -65,24 +70,6 @@
             display: none; /* 默认隐藏 iframe */
         }
 
-    .pwa-prompt {
-      position: fixed;
-      top: 90%;
-      right: 10px;
-      background-color: #007bff;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 5px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      opacity: 1;
-      transition: opacity 1s ease-in-out;
-      z-index: 1000;
-      font-size: 10px;
-
-    }
-    .pwa-prompt.hidden {
-      opacity: 0;
-    }
         .progress-bar-container {
       margin-top: 10px;
       background-color: rgba(255, 255, 255, 0.3);
@@ -354,17 +341,16 @@ justify-content: center;
     </style>
 </head>
 <body>
-    <div id="location" style="align-self: left;"></div>
+
     <h1>🌎ORBIT</h1>
-<!--<script src="/Artalk.js"></script>-->
+
 
 
 
         <!-- 语言切换按钮 -->
     <div class="lang-toggle">
-        <a href="https://hits.sh/sat.xanyi.eu.org/"><img alt="Hits" src="https://hits.sh/sat.xanyi.eu.org.svg?style=plastic"/></a> | <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a> |  <a href="https://github.com/troilus/predict" target="_blank" class="link">CODE</a> |  <a href="https://umami.xanyi.eu.org/share/MXRhTx7lI606kmti/sat.xanyi.eu.org" target="_blank" class="link">STATISTICS</a>
+         | <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a> |  <a href="https://github.com/troilus/predict" target="_blank" class="link">CODE</a> |  <a href="https://umami.xanyi.eu.org/share/MXRhTx7lI606kmti/sat.xanyi.eu.org" target="_blank" class="link">STATISTICS</a>
     </div>
-
 
 
 
@@ -380,9 +366,6 @@ justify-content: center;
   ⚪
 </button>
 </div>
-
-
-    <!--<input type="text" id="searchInput" placeholder="搜索卫星..." />-->
 
 
     <div class="config-container">
@@ -420,40 +403,22 @@ justify-content: center;
     </div>
 
 
-
-
-
-
-
-
-
 </div>
 
-
-
-
 <div class="button-container">
-    <!--<button id="getLocation" class="button">获取位置</button>-->
         <button id="calculatePassfavorite" class="button">显示收藏</button>
     <button id="calculatePass" class="button">显示选中</button>
 
 </div>
 <div id="notesInfo" style="font-weight: bold; padding-bottom: 10px; font-size: 11px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
-
-<!--<button id="sstveventsbutton" >SSTV活动</button>
-<div id="sstvevents"></div>-->
-
-<!--<button id="toggleButton">加入在线聊天</button>
-    <iframe id="chatIframe"></iframe>-->
-<!--<div id="Comments"></div>-->
-
 <div id="made">
-  Made with ❤ by troilus
+  <div>Made with ❤ by troilus</div>
+  <div><a href="https://hits.sh/sat.xanyi.eu.org/"><img alt="Hits" src="https://hits.sh/sat.xanyi.eu.org.svg?view=today-total&style=flat-square&label=%F0%9F%8C%8E&color=F2F2F7&labelColor=F2F2F7"/></a></a></div>
 </div>
 
-<div id="TLEinfo"></div>
-<div id="pwaPrompt" class="pwa-prompt hidden"> 推荐在 Safari 中点击分享按钮，选择“添加到主屏幕”安装为应用</div>
+  
+
 
 
 
@@ -1932,147 +1897,6 @@ document.addEventListener('click', function(event) {
 
 //判断白天黑夜
 
-
-/*//聊天开始
- const toggleButton = document.getElementById('toggleButton');
-        const chatIframe = document.getElementById('chatIframe');
-        let isChatOpen = false;
-
-
-
-
-
-        toggleButton.textContent = translations[currentLang].chatonline
-
-
-
-        toggleButton.addEventListener('click', () => {
-            if (!isChatOpen) {
-                // 加载并显示 iframe
-                chatIframe.src = 'chat.html?orbit';
-                chatIframe.style.display = 'block';
-        toggleButton.textContent = translations[currentLang].closeonline
-            } else {
-                // 隐藏并清除 iframe
-                chatIframe.style.display = 'none';
-                chatIframe.src = '';
-        toggleButton.textContent = translations[currentLang].chatonline
-            }
-            isChatOpen = !isChatOpen;
-        });
-//聊天结束*/
-
-
-
-//tank
-function fetchTelemetryValueAsync() {
-    return new Promise((resolve, reject) => {
-        require(["LightstreamerClient", "Subscription"], function (LightstreamerClient, Subscription) {
-            try {
-                var client = new LightstreamerClient("https://push.lightstreamer.com", "ISSLIVE");
-                client.connect();
-
-                var sub = new Subscription("MERGE", ["NODE3000005"], ["Value", "TimeStamp"]);
-                client.subscribe(sub);
-
-                function formatTelemetryValue(value) {
-                    if (!isNaN(parseFloat(value)) && isFinite(value) && value.toString().includes('.')) {
-                        return Number(value).toFixed(5);
-                    }
-                    const madeDiv = document.getElementById("made");
-                    madeDiv.innerHTML = `Made with ❤ by troilus <br> ISS 👩🏻‍🚀🚽 ${value}%`;
-
-
-                    return value;
-                }
-
-                sub.addListener({
-                    onItemUpdate: function (update) {
-                        var updatevalue = formatTelemetryValue(update.getValue("Value"));
-                        resolve(updatevalue); // 使用 Promise 返回值
-                    }
-                });
-            } catch (error) {
-                reject(error); // 捕获错误并返回
-            }
-        });
-    });
-}
-//tank
-
-
-/*//sstv活动
-// 添加点击事件监听器
-    sstvbutton.addEventListener("click", function () {
-    // 使用 Fetch API 获取 sstvevents.txt 内容
-        fetch("/sstvevents.txt")
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.text();
-            })
-            .then((data) => {
-                // 将数据解析成表格格式
-                const rows = data.split("\n").filter(row => row.trim() !== "");
-                let tableHTML = "<table border='1' style='border-collapse: collapse; width: 100%; font-size: 14px; text-align: center;'>";
-                tableHTML += "<tr><th style='text-align: center;'>Name</th><th style='text-align: center;'>Freq(MHz)</th><th style='text-align: center;'>Time(UTC)</th></tr>";
-
-                rows.forEach(row => {
-                    const columns = row.split(/\s{2,}/); // 按多空格分割列
-                    if (columns.length === 3) {
-                        tableHTML += `<tr><td style='text-align: center;'>${columns[0]}</td><td style='text-align: center;'>${columns[1]}</td><td style='text-align: center;'>${columns[2]}</td></tr>`;
-                    }
-                });
-
-                tableHTML += "</table>";
-                eventsDiv.innerHTML = tableHTML;
-            })
-            .catch((error) => {
-                // 显示错误信息
-                eventsDiv.textContent = `Error: ${error.message}`;
-                eventsDiv.style.fontSize = "14px"; // 设置较小的字体
-            });
-    });
-
-//sstv活动结束
-*/
-  /*  //评论功能开始
-    Artalk.init({
-  el:        '#Comments',                       // 绑定元素的 Selector
-  pageKey:   '/post/1',                         // 固定链接
-  pageTitle: '',
-  emoticons: false,     
-  server:    'https://comments.xanyi.eu.org/',  
-  site:      'ORBIT',                   
-})
-//评论功能结束*/
-
-//pwa
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(registration => {
-        console.log('Service Worker 注册成功:', registration);
-      })
-      .catch(error => {
-        console.log('Service Worker 注册失败:', error);
-      });
-  }
-//pwa
-      // 检测是否已经是 PWA 模式
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-
-      const pwaPrompt = document.getElementById('pwaPrompt');
-    if (isIOS && !isPWA) {
-      // 显示提示
-      pwaPrompt.classList.remove('hidden');
-    }
-      // 3 秒后隐藏提示
-      setTimeout(() => {
-        pwaPrompt.remove();  // 完全从 DOM 中移除
-      }, 5000);
 
     
     </script>
