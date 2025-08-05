@@ -350,7 +350,8 @@ tbody th, tbody td {
 
         <!-- 语言切换按钮 -->
     <div class="lang-toggle">
-         <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a> |  <a href="https://github.com/troilus/predict" target="_blank" class="link">CODE</a> |  <a href="https://umami.xanyi.eu.org/share/MXRhTx7lI606kmti/sat.xanyi.eu.org" target="_blank" class="link">STATISTICS</a> |  <a href="https://github.com/troilus/predict/blob/main/HowToUse.md" target="_blank" class="link">HOW TO USE</a>
+         <a href="#" id="langZH" class="active">ZH</a> | <a href="#" id="langEN">EN</a> |  <a href="https://github.com/troilus/predict" target="_blank" class="link">CODE</a> |  <a href="https://umami.xanyi.eu.org/share/MXRhTx7lI606kmti/sat.xanyi.eu.org" target="_blank" class="link">STATISTICS</a> |  <a href="#" id="howToUseLink" target="_blank" class="link">HOW TO USE</a>
+
     </div>
 
 
@@ -458,6 +459,7 @@ tbody th, tbody td {
         noFavorites: "⚠还没有收藏的卫星",
                     nolocation:"⚠无法获取位置，请检查权限设置",
         calculating:"🔎预测中...",
+        howToUseUrl: "https://github.com/troilus/predict/blob/main/HowToUseZh.md", 
         tableHeaders: {
             date: "日期",
             start: "开始",
@@ -490,6 +492,7 @@ tbody th, tbody td {
                                 chatonline:"Online Chat",
                                  closeonline:"Close Chat",
                                  sstveventsinfo:"ongoing SSTV events",
+                                 howToUseUrl: "https://github.com/troilus/predict/blob/main/HowToUse.md", 
         tableHeaders: {
             date: "Date",
             start: "Start",
@@ -596,7 +599,11 @@ function updateTableHeaders(lang) {
 
 
 
-
+    // 更新HOW TO USE链接  
+    const howToUseLink = document.getElementById('howToUseLink');  
+    if (howToUseLink) {  
+        howToUseLink.href = translations[lang].howToUseUrl;  
+    }  
 
            /*document.getElementById('toggleButton').textContent = translations[currentLang].chatonline*/
 // 检查是否已有位置信息，如果有则不覆盖  
