@@ -37,7 +37,7 @@
 
         /* 其余时间 (白天) */
         .day {
-            background-color: #2e71d1;
+            background-color: #004a93;
             color: #ffffbc;
         }
         body {
@@ -315,11 +315,11 @@ justify-content: center;
             overflow: hidden;
         }
 
-        th, td {
-            padding-top: 10px;
-                        padding-bottom: 10px;
-            border: 1px solid #E5E5EA;
-        }
+tbody th, tbody td {  
+    padding-top: 10px;  
+    padding-bottom: 10px;  
+    border: 1px solid #E5E5EA;  
+}
 
         @media (prefers-color-scheme: dark) {
    
@@ -411,6 +411,7 @@ justify-content: center;
     <button id="calculatePass" class="button">显示选中</button>
 
 </div>
+<div id="addressinfo" style="font-weight: bold;  font-size: 11px;"></div>
 <div id="notesInfo" style="font-weight: bold; padding-bottom: 10px; font-size: 11px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
 <div id="made">
@@ -439,7 +440,7 @@ justify-content: center;
                 // 定义语言内容
         const translations = {
             zh: {
-                location: "📍${latitude}, ${longitude} 🗺${locatormg} 📅星历: ${gettleversion}",
+                location: "📍${latitude}, ${longitude} 🗺${locatormg} 📅TLE: ${gettleversion}",
                 locationDefault: "❌位置信息: 未获取",
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
@@ -582,10 +583,10 @@ function updateTableHeaders(lang) {
         headers[5].textContent = translations[lang].tableHeaders.time;
 
 }
-    } else {
-        // 如果没有表格，更新显示的文本
-        passInfoDiv.innerHTML = `<p>${translations[lang].noPassesInfo}</p>`;
-    }
+    } else if (calculated) {  
+        // 只有在已经计算过但没有结果时才显示错误信息  
+        passInfoDiv.innerHTML = `<p>${translations[lang].noPassesInfo}</p>`;  
+    }  
 }
 
                 // 初始化页面内容
@@ -593,44 +594,16 @@ function updateTableHeaders(lang) {
 
 
 
-            gettleversion().then(tleversion => {
-                const tleversionfix =tleversion;
-
-
-                                if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-                    const latitudefix = position.coords.latitude.toFixed(2);
-                    const longitudefix = position.coords.longitude.toFixed(2);
-                    const altitude = position.coords.altitude || '0';
-                    const accuracy = position.coords.accuracy.toFixed(1);
-
-                    localStorage.setItem('latitude', latitude);
-                    localStorage.setItem('longitude', longitude);
-                    localStorage.setItem('altitude', altitude);
-                    const locationText = translations[currentLang].location
-                            .replace('${latitude}', latitudefix)
-                            .replace('${longitude}', longitudefix)
-                            .replace('${gettleversion}', tleversion);
-                    document.getElementById('notesInfo').textContent = locationText;
-                }, function(error) {
-                    document.getElementById('notesInfo').textContent = translations[currentLang].nolocation
-
-                });
-            } else {
-                document.getElementById('notesInfo').textContent = '浏览器不支持地理定位。';
-            }
-
-            }).catch(error => {
-                console.error("Error fetching TLE version: ", error);
-            });
 
 
 
 
            /*document.getElementById('toggleButton').textContent = translations[currentLang].chatonline*/
-            document.getElementById('notesInfo').textContent = translations[lang].location;
+// 检查是否已有位置信息，如果有则不覆盖  
+/*const currentNotesInfo = document.getElementById('addressinfo').textContent;  
+if ( currentNotesInfo.includes('${locatormg}')) {  
+    document.getElementById('addressinfo').textContent = translations[lang].locationDefault;  
+}*/
             document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
             document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
             document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
@@ -639,10 +612,10 @@ function updateTableHeaders(lang) {
 
 
             document.getElementById('calculatePass').textContent = translations[lang].calculatePass;
-            const notesElement = document.getElementById('notesInfo');
+            /*const notesElement = document.getElementById('notesInfo');
             if (notesElement.innerHTML.trim() !== '') {
                 notesElement.innerHTML = translations[currentLang].notesInfo;
-            }
+            }*/
             document.getElementById('langZH').classList.toggle('active', lang === 'zh');
             document.getElementById('langEN').classList.toggle('active', lang === 'en');
         }
@@ -696,7 +669,7 @@ function updateTableHeaders(lang) {
 
 
 
-            document.getElementById('notesInfo').textContent = translations[currentLang].locationDefault;
+            document.getElementById('addressinfo').textContent = translations[currentLang].locationDefault;
             localStorage.removeItem('selectedSatelliteName');
             localStorage.removeItem('calculated');
             localStorage.removeItem('selectedSatelliteTLE1');
@@ -742,10 +715,10 @@ function updateTableHeaders(lang) {
 
     
                 }, function(error) {
-                    document.getElementById('notesInfo').textContent = '无法获取位置，请检查权限设置。';
+                    document.getElementById('addressinfo').textContent = '无法获取位置，请检查权限设置。';
                 });
             } else {
-                document.getElementById('notesInfo').textContent = '浏览器不支持地理定位。';
+                document.getElementById('addressinfo').textContent = '浏览器不支持地理定位。';
             }
 
 
@@ -781,6 +754,59 @@ function updateTableHeaders(lang) {
               
         });
 
+
+// 监听位置权限状态变化  
+function setupPermissionListener() {  
+    if ('permissions' in navigator) {  
+        navigator.permissions.query({name: 'geolocation'}).then(function(result) {  
+            console.log('当前权限状态:', result.state);  
+              
+            result.addEventListener('change', function() {  
+                console.log('权限状态变化为:', result.state);  
+                if (result.state === 'granted') {  
+                    // 权限被允许时重新获取位置  
+                    requestLocationUpdate();  
+                }  
+            });  
+        }).catch(function(error) {  
+            console.log('权限查询失败:', error);  
+        });  
+    } 
+
+    // 设置权限监听  
+setupPermissionListener();
+
+
+}  
+  
+// 重新获取位置信息的函数  
+function requestLocationUpdate() {  
+    gettleversion().then(tleversion => {  
+        if (navigator.geolocation) {  
+            navigator.geolocation.getCurrentPosition(function(position) {  
+                const latitude = position.coords.latitude;  
+                const longitude = position.coords.longitude;  
+                const latitudefix = position.coords.latitude.toFixed(2);  
+                const longitudefix = position.coords.longitude.toFixed(2);  
+                const altitude = position.coords.altitude || '0';  
+                  
+                localStorage.setItem('latitude', latitude);  
+                localStorage.setItem('longitude', longitude);  
+                localStorage.setItem('altitude', altitude);  
+                  
+                const locationText = translations[currentLang].location  
+                    .replace('${latitude}', latitudefix)  
+                    .replace('${longitude}', longitudefix)  
+                    .replace('${gettleversion}', tleversion);  
+                calculateMaidenhead(latitude, longitude, locationText);  
+            }, function(error) {  
+                document.getElementById('notesInfo').textContent = translations[currentLang].nolocation;  
+            });  
+        }  
+    });  
+}
+
+
 // Function to calculate Maidenhead locator
 function calculateMaidenhead(latitude, longitude,locationText) {
     if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
@@ -812,7 +838,7 @@ function calculateMaidenhead(latitude, longitude,locationText) {
 
     const locationText2 = locationText
         .replace('${locatormg}', locator);
-    document.getElementById('notesInfo').textContent = locationText2;
+    document.getElementById('addressinfo').textContent = locationText2;
 
 
     return locator;
@@ -1019,7 +1045,7 @@ function populateDropdown(satellites) {
 
 
 
-            const locationText = document.getElementById('notesInfo').textContent;
+            const locationText = document.getElementById('addressinfo').textContent;
 
             const confirmloc = localStorage.getItem('latitude');
             const isNumeric = (str) => /[0-9.-]/.test(str);
@@ -1059,7 +1085,7 @@ function populateDropdown(satellites) {
 
 
             //const satelliteName = localStorage.getItem('selectedSatelliteName')
-            const locationText = document.getElementById('notesInfo').textContent;
+            const locationText = document.getElementById('addressinfo').textContent;
             const confirmloc = localStorage.getItem('latitude');
             const isNumeric = (str) => /[0-9.-]/.test(str);
             const match = isNumeric(confirmloc)

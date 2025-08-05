@@ -448,9 +448,21 @@ let recordingDuration = 0; // 录音持续时间（秒）
 
         // 设置默认语言
         let currentLang = localStorage.getItem('lang') || 'zh';
-
-window.onload = function () {
     currentLang = localStorage.getItem('lang')
+          const recordingTranslations = {  
+    zh: {  
+        startRecord: "开始录音",  
+        stopRecord: "结束录音",  
+        downloadAudio: "下载音频"  
+    },  
+    en: {  
+        startRecord: "Start record",  
+        stopRecord: "Stop record",   
+        downloadAudio: "Download audio"  
+    }  
+};
+window.onload = function () {
+
     const urlParams = new URLSearchParams(window.location.search);
     const index = urlParams.get('index');
     // 获取 localStorage 中保存的卫星数据
@@ -1672,38 +1684,37 @@ document.addEventListener('DOMContentLoaded', function() {
     let fileSizeInMB = 0;
 
   // Function to handle recording button
-  recordBtn.addEventListener('click', function() {
-    if (isRecording) {
-      // Stop recording
-      mediaRecorder.stop();
-      recordBtn.textContent = '开始录音';
-      downloadBtn.style.display = 'inline-block';  // Show the download button
-    } else {
-      // Start recording
-    recordBtn.textContent = `结束录音`;
-      startRecording();
-
-            // Clear previous recording data before starting a new recording
-      audioChunks = [];
-      fileSizeInMB = 0;  // Reset file size
-
-      downloadBtn.style.display = 'none';  // Hide download button until recording ends
-    }
-    isRecording = !isRecording;
-  });
+// 修改 recordBtn.addEventListener('click', function() 中的内容  
+recordBtn.addEventListener('click', function() {  
+    if (isRecording) {  
+        // Stop recording  
+        mediaRecorder.stop();  
+        recordBtn.textContent = recordingTranslations[currentLang].startRecord;  
+        downloadBtn.style.display = 'inline-block';  
+    } else {  
+        // Start recording  
+        recordBtn.textContent = recordingTranslations[currentLang].stopRecord;  
+        startRecording();  
+          
+        audioChunks = [];  
+        fileSizeInMB = 0;  
+        downloadBtn.style.display = 'none';  
+    }  
+    isRecording = !isRecording;  
+});
 
   // Function to update recording status (size and duration)
-function updateRecordingStatus(audioChunks) {
-  recordingInterval = setInterval(() => {
-    const currentSize = audioChunks.reduce((total, chunk) => total + chunk.size, 0) / (1024 * 1024); // MB
-    recordingDuration += 1; // 每秒递增
-
-    // 如果需要，可以在页面上显示
-    const statusDisplay = document.getElementById('record-btn'); // 假设有一个 DOM 元素用于显示
-    if (statusDisplay) {
-      statusDisplay.textContent = `结束录音(${currentSize.toFixed(2)} MB,  ${recordingDuration}s )`;
-    }
-  }, 1000); // 每秒更新一次
+function updateRecordingStatus(audioChunks) {  
+    recordingInterval = setInterval(() => {  
+        const currentSize = audioChunks.reduce((total, chunk) => total + chunk.size, 0) / (1024 * 1024);  
+        recordingDuration += 1;  
+  
+        const statusDisplay = document.getElementById('record-btn');  
+        if (statusDisplay) {  
+            const stopText = recordingTranslations[currentLang].stopRecord;  
+            statusDisplay.textContent = `${stopText}(${currentSize.toFixed(2)} MB, ${recordingDuration}s)`;  
+        }  
+    }, 1000);  
 }
 
 // 停止更新录音状态
@@ -1725,35 +1736,23 @@ function stopRecordingStatus() {
 
         updateRecordingStatus(audioChunks);
 
-        mediaRecorder.onstop = function() {
-
-                    // 停止所有轨道以释放麦克风资源
-        stream.getTracks().forEach(track => track.stop());
-          stopRecordingStatus(); // 停止更新录音状态
-
-
-          audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-          audioUrl = URL.createObjectURL(audioBlob);
-          audioFile = new File([audioBlob], `${getSatelliteName()}-${getCurrentTimestamp()}.wav`, { type: 'audio/wav' });
-
-
-
-
-                    // Calculate the size of the recorded file in MB
-          fileSizeInMB = audioBlob.size / (1024 * 1024);  // Size in MB
-
-          // Update the download button text with the file size
-          downloadBtn.textContent = `下载音频 - ${fileSizeInMB.toFixed(2)}MB`;
-
-          // Clear previous event listeners before adding a new one
-          downloadBtn.removeEventListener('click', downloadAudio);
-
-          // Bind a new event listener for downloading the audio file
-          downloadBtn.addEventListener('click', downloadAudio);
-
-
-
-        };
+mediaRecorder.onstop = function() {  
+    stream.getTracks().forEach(track => track.stop());  
+    stopRecordingStatus();  
+  
+    audioBlob = new Blob(audioChunks, { type: 'audio/wav' });  
+    audioUrl = URL.createObjectURL(audioBlob);  
+    audioFile = new File([audioBlob], `${getSatelliteName()}-${getCurrentTimestamp()}.wav`, { type: 'audio/wav' });  
+  
+    fileSizeInMB = audioBlob.size / (1024 * 1024);  
+  
+    // 使用动态语言文本  
+    const downloadText = recordingTranslations[currentLang].downloadAudio;  
+    downloadBtn.textContent = `${downloadText} - ${fileSizeInMB.toFixed(2)}MB`;  
+  
+    downloadBtn.removeEventListener('click', downloadAudio);  
+    downloadBtn.addEventListener('click', downloadAudio);  
+};
       })
       .catch(function(error) {
         console.error("Error accessing audio devices:", error);
@@ -2021,15 +2020,15 @@ if (futureTime >= entryTime && futureTime <= highestTime) {
 //多普勒功能结束
 
 //pwa
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(registration => {
-        console.log('Service Worker 注册成功:', registration);
-      })
-      .catch(error => {
-        console.log('Service Worker 注册失败:', error);
-      });
-  }
+//if ('serviceWorker' in navigator) {
+//    navigator.serviceWorker.register('/service-worker.js')
+//      .then(registration => {
+//        console.log('Service Worker 注册成功:', registration);
+ //     })
+ //     .catch(error => {
+ //       console.log('Service Worker 注册失败:', error);
+ //     });
+ // }
 //pwa
 // -------------------------------
 /*//【新增功能】计算整个过境期间的多普勒频率并在进度条上显示刻度
@@ -2167,6 +2166,7 @@ function displayFrequencyData(data, selectedsat) {
   let content = `<h3>${selectedsat}</h3>`;
 
       currentLang = localStorage.getItem('lang')
+
 if (currentLang == 'zh') {
   data.forEach(item => { 
     content += `
