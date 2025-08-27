@@ -5,11 +5,13 @@
 
 (2) **CODE**: 查看项目源代码。
 
-(3) **STATISTICS**: 查看访问数据统计。
+(3) **STAT**: 查看访问数据统计。
 
-(4) **Show favorites**: 计算已收藏卫星的过境信息。
+(4)**SSTV DECODE**：一个网页版的SSTV解码器，可以对录音进行解码
 
-(5) **Show selected**: 计算当前选中卫星的过境信息。
+(5) **Show favorites**: 计算已收藏卫星的过境信息。
+
+(6) **Show selected**: 计算当前选中卫星的过境信息。
 
 <img width="352" height="78" alt="image" src="https://github.com/user-attachments/assets/f2603420-34bb-429a-ab05-9dd2f94bcc30" />
 
@@ -81,3 +83,8 @@
 
 
 (5) **开始录音**可进行音频录制，文件将下载至设备。（个人更推荐使用设备自带录音功能。）
+
+#### 4. SSTV解码
+(1) 选择音频文件
+
+(2) 点击解码按钮

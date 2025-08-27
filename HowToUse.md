@@ -5,11 +5,13 @@
 
 (2) **CODE**: View source code.
 
-(3) **STATISTICS**: View access statistics.
+(3) **STAT**: View access statistics.
 
-(4) **Show favorites**: Calculate pass information for favorited satellites.
+(4) **SSTV DECODE**： A web based SSTV Decoder
 
-(5) **Show selected**: Calculate pass information for currently selected satellites.
+(5) **Show favorites**: Calculate pass information for favorited satellites.
+
+(6) **Show selected**: Calculate pass information for currently selected satellites.
 
 <img width="352" height="78" alt="image" src="https://github.com/user-attachments/assets/f2603420-34bb-429a-ab05-9dd2f94bcc30" />
 
@@ -81,3 +83,8 @@ Because sensors are used, the page will request sensor permissions. iOS users ne
 
 
 (5) **Start record** allows audio recording, and the recordings can be downloaded to your device. (I personally prefer using the device’s built-in recorder.)
+
+#### 4. SSTV Decode
+(1) Select and upload an SSTV audio file 
+
+(2) Press Decode

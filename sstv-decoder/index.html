@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>
+      Online SSTV Decoder
+    </title>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="Mathieu Renaud" />
+    <meta
+      name="description"
+      content="Decode SSTV (Slow Scan Television) audio signals into images online. Supports Robot36, Scottie1, Martin1, and other ham radio modes directly in your browser."
+    />
+    <meta
+      name="keywords"
+      content="SSTV Decoder, Slow Scan Television, Robot36, Scottie1, Martin1, ham radio, audio to image, amateur radio SSTV, browser-based SSTV decoder"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="canonical" href="https://sstv-decoder.mathieurenaud.fr/" />
+
+
+   
+    <meta name="msapplication-TileColor" content="#2b5797" />
+
+
+
+    <!-- Styles and Scripts -->
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="scripts/main.js"></script>
+  </head>
+
+  <body>
+
+
+
+    <main class="main-container">
+      <div class="decoder-container zone-container">
+        <h2>🚧Online SSTV Decoder by
+        <a href="https://resume.mathieurenaud.fr/">Mathieu Renaud</a></h2>
+        <p>
+          Load an SSTV audio file to extract the transmitted image
+        </p>
+
+<label for="audioInput"  id="dropZone">
+  <p class="tips">Click to Upload an audio</p>
+  <p class="filename" id="audioFileNameDisplay">No file selected</p>
+</label>
+<input type="file" id="audioInput"  />
+
+        <div>
+          <label for="qualitySelect">FFT Quality:</label>
+
+          <select id="qualitySelect" class="selector">
+            <optgroup label="Performance (Faster, Lower Accuracy)">
+              <option value="64">⚡ Ultra Fast – Very Low Quality</option>
+              <option value="128">⚡ Very Fast – Low Quality</option>
+              <option value="256">⚡ Fast – Medium-Low Quality</option>
+            </optgroup>
+            <optgroup label="Balanced (Good Speed/Quality Tradeoff)">
+              <option value="512" selected>🚀 Balanced – Medium Quality</option>
+              <option value="1024">🚀 Balanced – Good Quality</option>
+            </optgroup>
+            <optgroup label="Quality (Slower, Higher Accuracy)">
+              <option value="2048">🎯 Slow - High Quality</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <button id="decodeButton" disabled>Decode SSTV</button>
+
+        <progress id="decodeProgress" value="0" max="100"></progress>
+
+        <canvas id="sstvCanvas"></canvas>
+
+        <button id="downloadImageButton" style="display: none">
+          Download Image
+        </button>
+
+        <div id="feedbackCard" class="main-container" >
+          <p>
+            For best quailty, please use RX-SSTV on windows.
+          </p>
+        </div>
+      </div>
+    </main>
+<script defer src="https://umami.xanyi.eu.org/script.js" data-website-id="f5178bc6-3761-4415-bcea-469f5cb097d6" data-tag="sstv"></script>
+  </body>
+</html>
