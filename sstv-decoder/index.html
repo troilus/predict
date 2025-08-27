@@ -1,90 +1,203 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>
-      Online SSTV Decoder
-    </title>
-
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="author" content="Mathieu Renaud" />
-    <meta
-      name="description"
-      content="Decode SSTV (Slow Scan Television) audio signals into images online. Supports Robot36, Scottie1, Martin1, and other ham radio modes directly in your browser."
-    />
-    <meta
-      name="keywords"
-      content="SSTV Decoder, Slow Scan Television, Robot36, Scottie1, Martin1, ham radio, audio to image, amateur radio SSTV, browser-based SSTV decoder"
-    />
-    <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#ffffff" />
-    <link rel="canonical" href="https://sstv-decoder.mathieurenaud.fr/" />
-
-
-   
-    <meta name="msapplication-TileColor" content="#2b5797" />
-
-
-
-    <!-- Styles and Scripts -->
-    <link rel="stylesheet" href="style.css" />
-    <script type="module" src="scripts/main.js"></script>
-  </head>
-
-  <body>
-
-
-
-    <main class="main-container">
-      <div class="decoder-container zone-container">
-        <h2>🚧Online SSTV Decoder by
-        <a href="https://resume.mathieurenaud.fr/">Mathieu Renaud</a></h2>
-        <p>
-          Load an SSTV audio file to extract the transmitted image
-        </p>
-
-<label for="audioInput"  id="dropZone">
-  <p class="tips">Click to Upload an audio</p>
-  <p class="filename" id="audioFileNameDisplay">No file selected</p>
-</label>
-<input type="file" id="audioInput"  />
-
-        <div>
-          <label for="qualitySelect">FFT Quality:</label>
-
-          <select id="qualitySelect" class="selector">
-            <optgroup label="Performance (Faster, Lower Accuracy)">
-              <option value="64">⚡ Ultra Fast – Very Low Quality</option>
-              <option value="128">⚡ Very Fast – Low Quality</option>
-              <option value="256">⚡ Fast – Medium-Low Quality</option>
-            </optgroup>
-            <optgroup label="Balanced (Good Speed/Quality Tradeoff)">
-              <option value="512" selected>🚀 Balanced – Medium Quality</option>
-              <option value="1024">🚀 Balanced – Good Quality</option>
-            </optgroup>
-            <optgroup label="Quality (Slower, Higher Accuracy)">
-              <option value="2048">🎯 Slow - High Quality</option>
-            </optgroup>
-          </select>
-        </div>
-
-        <button id="decodeButton" disabled>Decode SSTV</button>
-
-        <progress id="decodeProgress" value="0" max="100"></progress>
-
-        <canvas id="sstvCanvas"></canvas>
-
-        <button id="downloadImageButton" style="display: none">
-          Download Image
-        </button>
-
-        <div id="feedbackCard" class="main-container" >
-          <p>
-            For best quailty, please use RX-SSTV on windows.
-          </p>
-        </div>
-      </div>
-    </main>
-<script defer src="https://umami.xanyi.eu.org/script.js" data-website-id="f5178bc6-3761-4415-bcea-469f5cb097d6" data-tag="sstv"></script>
-  </body>
+<!DOCTYPE html>  
+<html lang="en">  
+  <head>  
+    <title>  
+      Online SSTV Decoder  
+    </title>  
+  
+    <meta charset="UTF-8" />  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
+    <meta name="author" content="Mathieu Renaud" />  
+    <meta  
+      name="description"  
+      content="Decode SSTV (Slow Scan Television) audio signals into images online. Supports Robot36, Scottie1, Martin1, and other ham radio modes directly in your browser."  
+    />  
+    <meta  
+      name="keywords"  
+      content="SSTV Decoder, Slow Scan Television, Robot36, Scottie1, Martin1, ham radio, audio to image, amateur radio SSTV, browser-based SSTV decoder"  
+    />  
+    <meta name="robots" content="index, follow" />  
+    <meta name="theme-color" content="#ffffff" />  
+    <link rel="canonical" href="https://sstv-decoder.mathieurenaud.fr/" />  
+  
+    <meta name="msapplication-TileColor" content="#2b5797" />  
+  
+    <!-- Styles and Scripts -->  
+    <link rel="stylesheet" href="style.css" />  
+    <script type="module" src="scripts/main.js"></script>  
+      
+    <!-- 语言检测和国际化脚本 -->  
+    <script>  
+      // 获取浏览器支持的语言列表  
+      const userLanguages = navigator.languages || [navigator.language];  
+        
+      // 检查是否有中文变体  
+      const hasChinese = userLanguages.some(lang => lang.startsWith('zh'));  
+        
+      // 定义文本内容  
+      const texts = {  
+        en: {  
+          title: "🚧Online SSTV Decoder by",  
+          description: "Load an SSTV audio file to extract the transmitted image",  
+          uploadTip: "Click to Upload an audio",  
+          noFileSelected: "No file selected",  
+          fftQuality: "FFT Quality:",  
+          sstvMode: "SSTV Mode:",  
+          autoDetect: "🔍 Auto Detect",  
+          decodeButton: "Decode SSTV",  
+          downloadButton: "Download Image",  
+          feedbackText1: "For best quality, please use RX-SSTV on windows.",  
+          feedbackText2: "If decoding fails, please manually select the mode.",  
+          qualityOptions: {  
+            ultraFast: "⚡ Ultra Fast – Very Low Quality",  
+            veryFast: "⚡ Very Fast – Low Quality",  
+            fast: "⚡ Fast – Medium-Low Quality",  
+            balanced: "🚀 Balanced – Medium Quality",  
+            good: "🚀 Balanced – Good Quality",  
+            slow: "🎯 Slow - High Quality"  
+          }  
+        },  
+        zh: {  
+          title: "🚧在线 SSTV 解码器 by",  
+          description: "上传 SSTV 音频文件以提取传输的图像",  
+          uploadTip: "点击上传音频文件",  
+          noFileSelected: "未选择文件",  
+          fftQuality: "FFT 质量:",  
+          sstvMode: "SSTV 模式:",  
+          autoDetect: "🔍 自动检测",  
+          decodeButton: "解码 SSTV",  
+          downloadButton: "下载图像",  
+          feedbackText1: "为获得最佳质量，请在 Windows 上使用 RX-SSTV。",  
+          feedbackText2: "如果解码失败，请手动选择模式。",  
+          qualityOptions: {  
+            ultraFast: "⚡ 超快速 – 极低质量",  
+            veryFast: "⚡ 很快速 – 低质量",  
+            fast: "⚡ 快速 – 中低质量",  
+            balanced: "🚀 平衡 – 中等质量",  
+            good: "🚀 平衡 – 良好质量",  
+            slow: "🎯 慢速 - 高质量"  
+          }  
+        }  
+      };  
+        
+      // 选择语言  
+      const currentLang = hasChinese ? 'zh' : 'en';  
+      const currentTexts = texts[currentLang];  
+      console.log(currentLang)
+        
+      // 页面加载完成后更新文本  
+      document.addEventListener('DOMContentLoaded', function() {  
+        // 更新 HTML lang 属性  
+        document.documentElement.lang = currentLang;  
+          
+        // 更新页面标题  
+        document.querySelector('h2').innerHTML = currentTexts.title + ' <a href="https://resume.mathieurenaud.fr/">Mathieu Renaud</a>';  
+          
+        // 更新描述文本  
+        document.querySelector('main p').textContent = currentTexts.description;  
+          
+        // 更新上传提示  
+        document.querySelector('.tips').textContent = currentTexts.uploadTip;  
+          
+        // 更新文件名显示  
+        document.getElementById('audioFileNameDisplay').textContent = currentTexts.noFileSelected;  
+          
+        // 更新标签  
+        document.querySelector('label[for="qualitySelect"]').textContent = currentTexts.fftQuality;  
+        document.querySelector('label[for="modeSelect"]').textContent = currentTexts.sstvMode;  
+          
+        // 更新按钮  
+        document.getElementById('decodeButton').textContent = currentTexts.decodeButton;  
+        document.getElementById('downloadImageButton').textContent = currentTexts.downloadButton;  
+          
+        // 更新反馈卡片  
+        const feedbackPs = document.querySelectorAll('#feedbackCard p');  
+        if (feedbackPs.length >= 2) {  
+          feedbackPs[0].textContent = currentTexts.feedbackText1;  
+          feedbackPs[1].textContent = currentTexts.feedbackText2;  
+        }  
+          
+        // 更新质量选项  
+        const qualityOptions = document.querySelectorAll('#qualitySelect option');  
+        qualityOptions[0].textContent = currentTexts.qualityOptions.ultraFast;  
+        qualityOptions[1].textContent = currentTexts.qualityOptions.veryFast;  
+        qualityOptions[2].textContent = currentTexts.qualityOptions.fast;  
+        qualityOptions[3].textContent = currentTexts.qualityOptions.balanced;  
+        qualityOptions[4].textContent = currentTexts.qualityOptions.good;  
+        qualityOptions[5].textContent = currentTexts.qualityOptions.slow;  
+          
+        // 更新自动检测选项  
+        document.querySelector('#modeSelect option[value="auto"]').textContent = currentTexts.autoDetect;  
+      });  
+    </script>  
+  </head>  
+  
+  <body>  
+    <main class="main-container">  
+      <div class="decoder-container zone-container">  
+        <h2>🚧Online SSTV Decoder by  
+        <a href="https://resume.mathieurenaud.fr/">Mathieu Renaud</a></h2>  
+        <p>  
+          Load an SSTV audio file to extract the transmitted image  
+        </p>  
+  
+        <label id="dropZone">  
+          <p class="tips">Click to Upload an audio</p>  
+          <p class="filename" id="audioFileNameDisplay">No file selected</p>  
+        </label>  
+        <input type="file" id="audioInput" />  
+  
+        <div>  
+          <label for="qualitySelect">FFT Quality:</label>  
+  
+          <select id="qualitySelect" class="selector">  
+            <optgroup label="Performance (Faster, Lower Accuracy)">  
+              <option value="64">⚡ Ultra Fast – Very Low Quality</option>  
+              <option value="128">⚡ Very Fast – Low Quality</option>  
+              <option value="256">⚡ Fast – Medium-Low Quality</option>  
+            </optgroup>  
+            <optgroup label="Balanced (Good Speed/Quality Tradeoff)">  
+              <option value="512" selected>🚀 Balanced – Medium Quality</option>  
+              <option value="1024">🚀 Balanced – Good Quality</option>  
+            </optgroup>  
+            <optgroup label="Quality (Slower, Higher Accuracy)">  
+              <option value="2048">🎯 Slow - High Quality</option>  
+            </optgroup>  
+          </select>  
+        </div>  
+          
+        <div>    
+          <label for="modeSelect">SSTV Mode:</label>    
+          <select id="modeSelect" class="selector">    
+            <option value="auto" selected>🔍 Auto Detect</option>    
+            <option value="8">Robot36 (VIS: 8)</option>    
+            <option value="12">Robot72 (VIS: 12)</option>    
+            <option value="44">Martin1 (VIS: 44)</option>    
+            <option value="40">Martin2 (VIS: 40)</option>    
+            <option value="60">Scottie1 (VIS: 60)</option>    
+            <option value="56">Scottie2 (VIS: 56)</option>    
+            <option value="76">ScottieSDX (VIS: 76)</option>    
+          </select>    
+        </div>  
+          
+        <button id="decodeButton" disabled>Decode SSTV</button>  
+  
+        <progress id="decodeProgress" value="0" max="100"></progress>  
+  
+        <canvas id="sstvCanvas"></canvas>  
+  
+        <button id="downloadImageButton" style="display: none">  
+          Download Image  
+        </button>  
+  
+        <div id="feedbackCard" class="main-container">  
+          <p>  
+            For best quality, please use RX-SSTV on windows.</p>  
+            <p>If decoding fails, please manually select the mode.  
+          </p>  
+        </div>  
+      </div>  
+    </main>  
+    <script defer src="https://umami.xanyi.eu.org/script.js" data-website-id="f5178bc6-3761-4415-bcea-469f5cb097d6" data-tag="sstv"></script>  
+  </body>  
 </html>

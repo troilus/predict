@@ -17,15 +17,33 @@ import {
 } from "../spec.js";
 
 class SSTVDecoder {
-  constructor(audioBuffer, sampleRate, fftSize = null, onProgress) {
-    this.samples = audioBuffer;
-    this.sampleRate = sampleRate;
-    this.fftSize = fftSize;
-    this.mode = null;
-    this.onProgress = onProgress;
-  }
+constructor(audioBuffer, sampleRate, fftSize = null, onProgress, forcedMode) {  
+  this.samples = audioBuffer;  
+  this.sampleRate = sampleRate;  
+  this.fftSize = fftSize;  
+  this.mode = null;  
+  this.onProgress = onProgress;  
+  this.forcedMode = forcedMode;  // 新增  
+}
 
   async decode() {
+    console.log(this.forcedMode)
+
+      if (this.forcedMode) {  
+    // 跳过header检测，直接使用指定的VIS代码  
+    this.mode = VIS_MAP[this.forcedMode];  
+    if (!this.mode) {  
+      console.warn(`Unknown VIS code: ${this.forcedMode}`);  
+      return null;  
+    }  
+    if (this.onProgress) this.onProgress(10);  
+      
+    // 直接开始图像解码，跳过VIS检测  
+    const imageData = this._decodeImageData(0);  
+    return this._generateImageBuffer(imageData);  
+  }  
+
+    // 原有的自动检测流程  
     const headerEnd = this._findHeader();
     if (this.onProgress) this.onProgress(5);
     if (headerEnd === null) {

@@ -48,19 +48,7 @@ function handleAudioFile(file) {
   reader.readAsArrayBuffer(file);
 }
 
-decodeButton.addEventListener("click", () => {
-  if (!currentSamples || !currentSampleRate) return;
 
-  decodeButton.disabled = true;
-
-  const fftQuality = parseInt(qualitySelect.value);
-
-  decoderWorker.postMessage({
-    samples: currentSamples,
-    sampleRate: currentSampleRate,
-    fftSize: fftQuality,
-  });
-});
 
 decoderWorker.onmessage = (event) => {
   if (event.data.progress !== undefined) {
@@ -74,6 +62,8 @@ decoderWorker.onmessage = (event) => {
 
   canvas.width = width;
   canvas.height = height;
+
+  console.error('Invalid image dimensions:', { width, height });  
 
   const imgData = new ImageData(
     new Uint8ClampedArray(imageData),
@@ -110,4 +100,23 @@ downloadImageButton.addEventListener("click", () => {
     a.click();
     URL.revokeObjectURL(url);
   });
+});
+
+
+const modeSelect = document.getElementById("modeSelect");  
+  
+// 修改 decodeButton 点击事件  
+decodeButton.addEventListener("click", () => {  
+  if (!currentSamples || !currentSampleRate) return;  
+  
+  decodeButton.disabled = true;  
+  const fftQuality = parseInt(qualitySelect.value);  
+  const forcedMode = modeSelect.value === "auto" ? null : parseInt(modeSelect.value);  
+  
+  decoderWorker.postMessage({  
+    samples: currentSamples,  
+    sampleRate: currentSampleRate,  
+    fftSize: fftQuality,  
+    forcedMode: forcedMode  // 新增参数  
+  });  
 });
