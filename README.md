@@ -11,10 +11,8 @@ https://sat.xanyi.eu.org/
 - Daily automatic TLE updates
 - Multilingual
 - Add to calendar reminder
-- Chatroom
-- ISS urine tank used capacity display
 - Freq doppler display
-- PWA install
+- SSTV decode(based on https://github.com/Equinoxis/sstv-decoder)
 
 ## Host
 1. Clone files into a html host folder
@@ -23,11 +21,12 @@ https://sat.xanyi.eu.org/
 
 ![image](https://github.com/user-attachments/assets/b3f25fe0-a0d7-4f1b-8399-e2fc748120e1)
 ![image](https://github.com/user-attachments/assets/f56bee9a-49da-4a48-96db-7c394d5e3c09)
+<img width="390" height="688" alt="image" src="https://github.com/user-attachments/assets/b706b319-d339-415a-b782-d7df7c01c53c" />
+
 
 ## Sources
 - https://r4uab.ru/
 - https://github.com/shashwatak/satellite-js
 - https://github.com/mourner/suncalc
-- https://github.com/ISS-Mimic/Mimic
-- https://github.com/hack-chat/main
-- https://github.com/ArtalkJS/Artalk
+- https://github.com/Equinoxis/sstv-decoder
+
