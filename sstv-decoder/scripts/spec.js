@@ -128,6 +128,38 @@ R72.HALF_PIXEL_TIME = R72.HALF_SCAN_TIME / R72.LINE_WIDTH;
 R72.WINDOW_FACTOR = 4.88;
 R72.HAS_ALT_SCAN = false;
 
+export const PD120 = defineMode({  
+  NAME: "PD 120",  
+  COLOR: COL_FMT.YUV,        // PD模式使用YUV编码  
+  LINE_WIDTH: 640,  
+  LINE_COUNT: 496,  
+  SCAN_TIME: 0.1216,         // 标准Channel Duration  
+  SYNC_PULSE: 0.020,         // 20ms同步脉冲  
+  SYNC_PORCH: 0.00208,       // 2.08ms同步porch  
+  SEP_PULSE: 0.000,  
+  CHAN_COUNT: 4,             // PD模式有4个数据通道  
+  CHAN_SYNC: 0,  
+  CHAN_OFFSETS: [],  
+  HAS_START_SYNC: false,  
+  HAS_HALF_SCAN: false,  
+  HAS_ALT_SCAN: true,        // PD模式使用交错扫描  
+});  
+  
+// 计算通道时间和偏移  
+PD120.CHAN_TIME = PD120.SCAN_TIME;  
+PD120.CHAN_OFFSETS = [PD120.SYNC_PULSE + PD120.SYNC_PORCH];  
+PD120.CHAN_OFFSETS.push(PD120.CHAN_OFFSETS[0] + PD120.CHAN_TIME);  
+PD120.CHAN_OFFSETS.push(PD120.CHAN_OFFSETS[1] + PD120.CHAN_TIME);  
+PD120.CHAN_OFFSETS.push(PD120.CHAN_OFFSETS[2] + PD120.CHAN_TIME);  
+  
+// 根据PD模式公式：scanLineSeconds = 0.02 + 0.00208 + 4 * channelSeconds  
+PD120.LINE_TIME = PD120.SYNC_PULSE + PD120.SYNC_PORCH + 4 * PD120.CHAN_TIME;  
+PD120.PIXEL_TIME = PD120.SCAN_TIME / PD120.LINE_WIDTH;  
+PD120.WINDOW_FACTOR = 1.0;  
+
+
+
+
 export const VIS_MAP = {
   8: R36,
   12: R72,
@@ -136,6 +168,7 @@ export const VIS_MAP = {
   56: S2,
   60: S1,
   76: SDX,
+  95: PD120,  // 添加PD120支持  
 };
 
 export const BREAK_OFFSET = 0.3;

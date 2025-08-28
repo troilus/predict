@@ -52,6 +52,15 @@ function handleAudioFile(file) {
 
 decoderWorker.onmessage = (event) => {
   if (event.data.progress !== undefined) {
+
+        // 清除超时计时器，因为进度已经开始  
+    const timeoutId = decodeButton.dataset.timeoutId;  
+    if (timeoutId) {  
+      clearTimeout(parseInt(timeoutId));  
+      delete decodeButton.dataset.timeoutId;  
+    }  
+
+
     decodeProgress.style.display = "block";
     decodeProgress.value = event.data.progress;
     return;
@@ -59,6 +68,15 @@ decoderWorker.onmessage = (event) => {
 
   const { imageData, width, height } = event.data;
   decodeProgress.style.display = "none";
+
+    // 清除可能残留的超时计时器  
+  const timeoutId = decodeButton.dataset.timeoutId;  
+  if (timeoutId) {  
+    clearTimeout(parseInt(timeoutId));  
+    delete decodeButton.dataset.timeoutId;  
+  }  
+
+
 
   canvas.width = width;
   canvas.height = height;
@@ -109,7 +127,26 @@ const modeSelect = document.getElementById("modeSelect");
 decodeButton.addEventListener("click", () => {  
   if (!currentSamples || !currentSampleRate) return;  
   
-  decodeButton.disabled = true;  
+  decodeButton.disabled = true; 
+
+    // 添加5秒超时检测  
+  let progressTimeout = setTimeout(() => {  
+    // 如果5秒后进度条仍然隐藏，说明解码可能失败  
+    if (decodeProgress.style.display === "none" || decodeProgress.style.display === "") {  
+      decodeButton.disabled = false;  
+        
+      // 根据当前语言显示相应的提示信息  
+      const currentLang = document.documentElement.lang || 'en';  
+      const alertMessage = currentLang === 'zh'   
+        ? "解码失败，请手动选择解码格式。"   
+        : "Decoding failed, please manually select the mode.";  
+        
+      alert(alertMessage);  
+    }  
+  }, 3500);  
+
+
+
   const fftQuality = parseInt(qualitySelect.value);  
   const forcedMode = modeSelect.value === "auto" ? null : parseInt(modeSelect.value);  
   
