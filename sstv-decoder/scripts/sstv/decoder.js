@@ -243,83 +243,90 @@ constructor(audioBuffer, sampleRate, fftSize = null, onProgress, forcedMode) {
     return imageData;
   }
 
-  _generateImageBuffer(imageData) {
+_generateImageBuffer(imageData) {
     const mode = this.mode;
     const width = mode.LINE_WIDTH;
     const height = mode.LINE_COUNT;
-    const channels = mode.CHAN_COUNT;
 
     const buffer = new Uint8ClampedArray(width * height * 4);
 
-      if (mode.NAME.startsWith("PD")) {
-    // --- PD 模式：每个 scanline 包含两行 ---
-    for (let line = 0; line < height; line += 2) {
-      for (let px = 0; px < width; px++) {
-        const Y0 = imageData[line][mode.CHAN_Y][px];
-        const Cr = imageData[line][mode.CHAN_CR][px];
-        const Cb = imageData[line][mode.CHAN_CB][px];
-        const Y1 = imageData[line][mode.CHAN_NEXT_Y][px];
+    if (mode.NAME.startsWith("PD")) {
+        // --- PD120 模式：每个 scanline 包含两行 ---
+        for (let line = 0; line < height; line += 2) {
+            for (let px = 0; px < width; px++) {
+                // 取通道数据
+                const Y0 = imageData[line][mode.CHAN_Y][px];       // odd line Y
+                const V  = imageData[line][mode.CHAN_CR][px];      // R-Y
+                const U  = imageData[line][mode.CHAN_CB][px];      // B-Y
+                const Y1 = imageData[line][mode.CHAN_NEXT_Y][px];  // even line Y
 
-        // 转换两行
-        const [r0, g0, b0] = yuvToRgb(Y0, Cr, Cb);
-        const [r1, g1, b1] = yuvToRgb(Y1, Cr, Cb);
+                // 转换 odd 行
+                const r0 = Math.min(Math.max(Y0 + V, 0), 255);
+                const g0 = Math.min(Math.max(Y0 - 0.509 * V - 0.194 * U, 0), 255);
+                const b0 = Math.min(Math.max(Y0 + U, 0), 255);
 
-        const idx0 = (line * width + px) * 4;
-        buffer[idx0] = r0;
-        buffer[idx0 + 1] = g0;
-        buffer[idx0 + 2] = b0;
-        buffer[idx0 + 3] = 255;
+                const idx0 = (line * width + px) * 4;
+                buffer[idx0]     = r0;
+                buffer[idx0 + 1] = g0;
+                buffer[idx0 + 2] = b0;
+                buffer[idx0 + 3] = 255;
 
-        const idx1 = ((line + 1) * width + px) * 4;
-        if (line + 1 < height) {
-          buffer[idx1] = r1;
-          buffer[idx1 + 1] = g1;
-          buffer[idx1 + 2] = b1;
-          buffer[idx1 + 3] = 255;
+                // 转换 even 行
+                if (line + 1 < height) {
+                    const r1 = Math.min(Math.max(Y1 + V, 0), 255);
+                    const g1 = Math.min(Math.max(Y1 - 0.509 * V - 0.194 * U, 0), 255);
+                    const b1 = Math.min(Math.max(Y1 + U, 0), 255);
+
+                    const idx1 = ((line + 1) * width + px) * 4;
+                    buffer[idx1]     = r1;
+                    buffer[idx1 + 1] = g1;
+                    buffer[idx1 + 2] = b1;
+                    buffer[idx1 + 3] = 255;
+                }
+            }
         }
-      }
-    }
-  } else {
-    for (let y = 0; y < height; y++) {
-      const oddLine = y % 2;
+    } else {
+        // 非 PD 模式，保留原逻辑
+        for (let y = 0; y < height; y++) {
+            const oddLine = y % 2;
+            for (let x = 0; x < width; x++) {
+                let r = 0, g = 0, b = 0;
 
-      for (let x = 0; x < width; x++) {
-        let r = 0,
-          g = 0,
-          b = 0;
+                const channels = mode.CHAN_COUNT;
+                if (channels === 2 && mode.HAS_ALT_SCAN && mode.COLOR === COL_FMT.YUV) {
+                    const yVal = imageData[y][0][x];
+                    const cbVal = imageData[y - (oddLine - 1)]?.[1]?.[x] ?? 128;
+                    const crVal = imageData[y - oddLine]?.[1]?.[x] ?? 128;
+                    [r, g, b] = yuvToRgb(yVal, cbVal, crVal);
+                } else if (channels === 3) {
+                    if (mode.COLOR === COL_FMT.GBR) {
+                        r = imageData[y][2][x];
+                        g = imageData[y][0][x];
+                        b = imageData[y][1][x];
+                    } else if (mode.COLOR === COL_FMT.YUV) {
+                        const yVal = imageData[y][0][x];
+                        const cbVal = imageData[y][1][x];
+                        const crVal = imageData[y][2][x];
+                        [r, g, b] = yuvToRgb(yVal, cbVal, crVal);
+                    } else if (mode.COLOR === COL_FMT.RGB) {
+                        r = imageData[y][0][x];
+                        g = imageData[y][1][x];
+                        b = imageData[y][2][x];
+                    }
+                }
 
-        if (channels === 2 && mode.HAS_ALT_SCAN && mode.COLOR === COL_FMT.YUV) {
-          const yVal = imageData[y][0][x];
-          const cbVal = imageData[y - (oddLine - 1)]?.[1]?.[x] ?? 128;
-          const crVal = imageData[y - oddLine]?.[1]?.[x] ?? 128;
-          [r, g, b] = yuvToRgb(yVal, cbVal, crVal);
-        } else if (channels === 3) {
-          if (mode.COLOR === COL_FMT.GBR) {
-            r = imageData[y][2][x];
-            g = imageData[y][0][x];
-            b = imageData[y][1][x];
-          } else if (mode.COLOR === COL_FMT.YUV) {
-            const yVal = imageData[y][0][x];
-            const cbVal = imageData[y][1][x];
-            const crVal = imageData[y][2][x];
-            [r, g, b] = yuvToRgb(yVal, cbVal, crVal);
-          } else if (mode.COLOR === COL_FMT.RGB) {
-            r = imageData[y][0][x];
-            g = imageData[y][1][x];
-            b = imageData[y][2][x];
-          }
+                const idx = (y * width + x) * 4;
+                buffer[idx]     = r;
+                buffer[idx + 1] = g;
+                buffer[idx + 2] = b;
+                buffer[idx + 3] = 255;
+            }
         }
-
-        const idx = (y * width + x) * 4;
-        buffer[idx] = r;
-        buffer[idx + 1] = g;
-        buffer[idx + 2] = b;
-        buffer[idx + 3] = 255;
-      }
     }
-}
+
     return { buffer, width, height };
-  }
+}
+
 }
 
 export default SSTVDecoder;

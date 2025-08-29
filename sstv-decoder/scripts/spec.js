@@ -142,7 +142,7 @@ export const PD120 = defineMode({
   CHAN_OFFSETS: [],  
   HAS_START_SYNC: false,  
   HAS_HALF_SCAN: false,  
-  HAS_ALT_SCAN: true,  
+  HAS_ALT_SCAN: false,  
 });
 
 // 通道时间和偏移
