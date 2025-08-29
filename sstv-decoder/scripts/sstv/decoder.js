@@ -185,7 +185,7 @@ constructor(audioBuffer, sampleRate, fftSize = null, onProgress, forcedMode) {
       if (aligned !== null) seqStart = aligned;
     }
 
-    for (let line = 0; line < height; line++) {
+    for (let line = 0; line < height;) {
       if (this.onProgress && line % 5 === 0) {
         const percent = 10 + Math.round((line / height) * 90);
         this.onProgress(percent);
@@ -232,6 +232,12 @@ constructor(audioBuffer, sampleRate, fftSize = null, onProgress, forcedMode) {
           imageData[line][chan][px] = freqToLum(freq);
         }
       }
+        if (mode.NAME.startsWith("PD")) {
+    line += 2;   // PD模式：每次推进两行
+  } else {
+    line += 1;   // 其它模式：正常逐行
+  }
+
     }
 
     return imageData;
@@ -245,6 +251,35 @@ constructor(audioBuffer, sampleRate, fftSize = null, onProgress, forcedMode) {
 
     const buffer = new Uint8ClampedArray(width * height * 4);
 
+      if (mode.NAME.startsWith("PD")) {
+    // --- PD 模式：每个 scanline 包含两行 ---
+    for (let line = 0; line < height; line += 2) {
+      for (let px = 0; px < width; px++) {
+        const Y0 = imageData[line][mode.CHAN_Y][px];
+        const Cr = imageData[line][mode.CHAN_CR][px];
+        const Cb = imageData[line][mode.CHAN_CB][px];
+        const Y1 = imageData[line][mode.CHAN_NEXT_Y][px];
+
+        // 转换两行
+        const [r0, g0, b0] = yuvToRgb(Y0, Cr, Cb);
+        const [r1, g1, b1] = yuvToRgb(Y1, Cr, Cb);
+
+        const idx0 = (line * width + px) * 4;
+        buffer[idx0] = r0;
+        buffer[idx0 + 1] = g0;
+        buffer[idx0 + 2] = b0;
+        buffer[idx0 + 3] = 255;
+
+        const idx1 = ((line + 1) * width + px) * 4;
+        if (line + 1 < height) {
+          buffer[idx1] = r1;
+          buffer[idx1 + 1] = g1;
+          buffer[idx1 + 2] = b1;
+          buffer[idx1 + 3] = 255;
+        }
+      }
+    }
+  } else {
     for (let y = 0; y < height; y++) {
       const oddLine = y % 2;
 
@@ -282,7 +317,7 @@ constructor(audioBuffer, sampleRate, fftSize = null, onProgress, forcedMode) {
         buffer[idx + 3] = 255;
       }
     }
-
+}
     return { buffer, width, height };
   }
 }

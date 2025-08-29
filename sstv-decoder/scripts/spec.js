@@ -130,32 +130,41 @@ R72.HAS_ALT_SCAN = false;
 
 export const PD120 = defineMode({  
   NAME: "PD120",  
-  COLOR: COL_FMT.YUV,  // YCrCb等同于YUV  
-  LINE_WIDTH: 640,  
-  LINE_COUNT: 496,   
-  SCAN_TIME: 0.1953,  // 计算得出  
-  SYNC_PULSE: 0.02,   // 需根据PD协议规范确定  
-  SYNC_PORCH: 0.0045,  
-  SEP_PULSE: 0.0015,  
-  CHAN_COUNT: 3,      // Y, Cr, Cb三个通道  
+  COLOR: COL_FMT.YUV,       // YCrCb 等同于 YUV  
+  LINE_WIDTH: 640,          // 640 像素/行  
+  LINE_COUNT: 496,          // 496 行  
+  SCAN_TIME: 0.1216,        // 每通道扫描时间（来自 Python: LINE_COMP_TIME）  
+  SYNC_PULSE: 0.020,        // 20 ms 同步脉冲  
+  SYNC_PORCH: 0.00208,      // 2.08 ms 过渡（PORCH_TIME）  
+  SEP_PULSE: 0.0,           // PD 协议无额外分隔脉冲  
+  CHAN_COUNT: 4,            // Y, Cr, Cb, NextY （一行有4段）  
   CHAN_SYNC: 0,  
   CHAN_OFFSETS: [],  
   HAS_START_SYNC: false,  
   HAS_HALF_SCAN: false,  
-  HAS_ALT_SCAN: false,  
+  HAS_ALT_SCAN: true,  
 });
-  
-// 计算通道时间和偏移  
-PD120.CHAN_TIME = PD120.SCAN_TIME;  
-PD120.CHAN_OFFSETS = [PD120.SYNC_PULSE + PD120.SYNC_PORCH];  
+
+// 通道时间和偏移
+PD120.CHAN_TIME = PD120.SCAN_TIME;
+PD120.CHAN_OFFSETS = [PD120.SYNC_PULSE + PD120.SYNC_PORCH];
 PD120.CHAN_OFFSETS.push(PD120.CHAN_OFFSETS[0] + PD120.CHAN_TIME);  
 PD120.CHAN_OFFSETS.push(PD120.CHAN_OFFSETS[1] + PD120.CHAN_TIME);  
-PD120.CHAN_OFFSETS.push(PD120.CHAN_OFFSETS[2] + PD120.CHAN_TIME);  
-  
-// 根据PD模式公式：scanLineSeconds = 0.02 + 0.00208 + 4 * channelSeconds  
+PD120.CHAN_OFFSETS.push(PD120.CHAN_OFFSETS[2] + PD120.CHAN_TIME);
+PD120.CHAN_Y       = 0;
+PD120.CHAN_CR      = 1;
+PD120.CHAN_CB      = 2;
+PD120.CHAN_NEXT_Y  = 3;  
+
+// 每行总时间
+// scanLineSeconds = SYNC_PULSE + SYNC_PORCH + 4 * SCAN_TIME
 PD120.LINE_TIME = PD120.SYNC_PULSE + PD120.SYNC_PORCH + 4 * PD120.CHAN_TIME;  
+
+// 单像素时间
 PD120.PIXEL_TIME = PD120.SCAN_TIME / PD120.LINE_WIDTH;  
-PD120.WINDOW_FACTOR = 1.0;  
+
+PD120.WINDOW_FACTOR = 1.0;
+
 
 
 
