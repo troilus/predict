@@ -129,21 +129,21 @@ R72.WINDOW_FACTOR = 4.88;
 R72.HAS_ALT_SCAN = false;
 
 export const PD120 = defineMode({  
-  NAME: "PD 120",  
-  COLOR: COL_FMT.YUV,        // PD模式使用YUV编码  
+  NAME: "PD120",  
+  COLOR: COL_FMT.YUV,  // YCrCb等同于YUV  
   LINE_WIDTH: 640,  
-  LINE_COUNT: 496,  
-  SCAN_TIME: 0.1216,         // 标准Channel Duration  
-  SYNC_PULSE: 0.020,         // 20ms同步脉冲  
-  SYNC_PORCH: 0.00208,       // 2.08ms同步porch  
-  SEP_PULSE: 0.000,  
-  CHAN_COUNT: 4,             // PD模式有4个数据通道  
+  LINE_COUNT: 496,   
+  SCAN_TIME: 0.1953,  // 计算得出  
+  SYNC_PULSE: 0.02,   // 需根据PD协议规范确定  
+  SYNC_PORCH: 0.0045,  
+  SEP_PULSE: 0.0015,  
+  CHAN_COUNT: 3,      // Y, Cr, Cb三个通道  
   CHAN_SYNC: 0,  
   CHAN_OFFSETS: [],  
   HAS_START_SYNC: false,  
   HAS_HALF_SCAN: false,  
-  HAS_ALT_SCAN: true,        // PD模式使用交错扫描  
-});  
+  HAS_ALT_SCAN: false,  
+});
   
 // 计算通道时间和偏移  
 PD120.CHAN_TIME = PD120.SCAN_TIME;  
