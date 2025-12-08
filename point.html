@@ -1628,37 +1628,61 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Function to fetch data from the API
-  function fetchSatelliteData(noradCatId, selectedsat) {
-    const apiUrl = `https://c0rs.xanyi.eu.org/c0rs/?https://db.satnogs.org/api/transmitters/?alive=true&format=json&satellite__norad_cat_id=${noradCatId}&status=active`;
-
-    fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${authorizationToken}` // Adding the authorization header
+// Function to fetch data from the local JSON file
+// Function to fetch data from the local JSON file
+function fetchSatelliteData(noradCatId, selectedsat) {
+  // Load the JSON data from the local file
+  fetch('transmitters.json')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to load transmitters.json');
       }
+      return response.json();
     })
-    .then(response => response.json()) // Parse the JSON response
-    .then(data => {
-      if (data.length === 0) {
-        satelliteInfo.innerHTML = '<p>No frequency information available.</p>';
+    .then(allData => {
+      // 确保 allData 是数组
+      if (!Array.isArray(allData)) {
+        console.error('transmitters.json does not contain an array');
+        satelliteInfo.innerHTML = '<p>Error: Invalid data format in transmitters.json</p>';
+        return;
+      }
+      
+      console.log(`Total transmitters loaded: ${allData.length}`);
+      console.log(`Looking for NORAD ID: ${noradCatId}`);
+      
+      // 将 noradCatId 转换为数字进行比较
+      const targetId = Number(noradCatId);
+      
+      // Filter data for the specific NORAD ID
+      const filteredData = allData.filter(item => {
+        // 确保 norad_cat_id 是数字
+        const itemId = Number(item.norad_cat_id);
+        return itemId === targetId;
+      });
+      
+      console.log(`Found ${filteredData.length} transmitters for NORAD ${noradCatId}`);
+      
+      if (filteredData.length === 0) {
+        satelliteInfo.innerHTML = '<p>No frequency information available for this satellite.</p>';
+        // 可选：显示一些调试信息
+        console.log('Available NORAD IDs in data:', allData.map(item => item.norad_cat_id).filter((v, i, a) => a.indexOf(v) === i).slice(0, 10));
       } else {
         // Add data to freqinfo with the corresponding noradCatId
         const freqInfo = JSON.parse(localStorage.getItem('freqinfo') || '{}');
-        freqInfo[noradCatId] = data; // Store the data under the noradCatId
+        freqInfo[noradCatId] = filteredData; // Store the data under the noradCatId
 
         // Store updated data back to localStorage
         localStorage.setItem('freqinfo', JSON.stringify(freqInfo));
 
         // Display the fetched data
-        displayFrequencyData(data, selectedsat);
+        displayFrequencyData(filteredData, selectedsat);
       }
     })
     .catch(error => {
-      console.error('Error fetching satellite data:', error);
-      satelliteInfo.innerHTML = '<p>Error fetching data.</p>';
+      console.error('Error loading satellite data:', error);
+      satelliteInfo.innerHTML = '<p>Error loading data from transmitters.json</p>';
     });
-  }
+}
 
 
 
