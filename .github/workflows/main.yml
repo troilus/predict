@@ -18,6 +18,10 @@ jobs:
       - name: Download satonline.txt
         run: |
           curl -k -o satonline.txt https://r4uab.ru/satonline.txt
+      # 修改ASRTU-1名称  
+      - name: Update ASRTU-1 name  
+        run: |  
+          sed -i 's/ASRTU-1 (RS64S\/BJ2CR)/ASRTU-1 (RS64S\/BJ2CR\/AO-123)/g' satonline.txt  
       
       # 下载transmitters.json
       - name: Download transmitters.json
