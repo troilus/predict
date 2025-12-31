@@ -399,7 +399,7 @@
         <p id="doppler-info"></p>
 
 <div class="button-container">
-  <button class="info-btn" id="info-btn">多普勒跟踪</button>
+  <button class="info-btn" id="info-btn">多普勒</button>
   
   <!-- 新增计时器按钮 -->
 
@@ -566,7 +566,7 @@ document.getElementById('satellite-name').textContent = `🛰${selectedPass.sate
 document.getElementById('satellite-info').textContent = `📍方位：° 仰角：° | 🔝最高：${selectedPass.highestElevation}° `;
 document.getElementById('pass-info').textContent = `🔼开始：${formattedEntryTime}  | 🔽结束：${formattedExitTime} `;
 document.getElementById('time-info').textContent = "🕜当前时间：";
-document.getElementById('info-btn').textContent = "多普勒跟踪";
+document.getElementById('info-btn').textContent = "多普勒";
 
 
     const satelliteElevation = document.getElementById('satellite-elevation');
@@ -2032,7 +2032,7 @@ if (currentLang == 'zh') {
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span>🔻 ${formatFrequency(item.downlink_low)}</span>
         <span>🔺 ${formatFrequency(item.uplink_low)}</span>
-        <button style="margin-left: 10px;" onclick="startTrackingDoppler('${item.downlink_low}', '${item.uplink_low}', '${item.description}')">多普勒跟踪</button>
+        <button style="margin-left: 10px;" onclick="startTrackingDoppler('${item.downlink_low}', '${item.uplink_low}', '${item.description}')">多普勒</button>
       </div>
       <hr>
     `;
