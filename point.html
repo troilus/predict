@@ -1834,8 +1834,8 @@ function startTrackingDoppler(downlink_low, uplink_low, description) {
 function updateDoppler(downlink_low, uplink_low,description) {
 
 
-     // 检查是否是手动输入（description为'manual'或uplink为'null'）
-    const isManual = description === 'manual' || uplink_low === 'null' || uplink_low === null;
+     // 检查是否是手动输入（description为'manual'）
+    const isManual = description === 'manual';
     
     // 如果上行频率是'null'字符串，转换为null
     if (uplink_low === 'null') {
@@ -2000,8 +2000,10 @@ if (futureTime >= entryTime && futureTime <= highestTime) {
 
     // 构建显示内容
     let dopplerInfo = `<span>`;
+
     
     if (isManual) {
+
         dopplerInfo += `<strong>📡 Manual Frequency</strong><br>`;
     } else {
         dopplerInfo += `<strong>📡 ${description}</strong><br>`;
@@ -2013,7 +2015,7 @@ if (futureTime >= entryTime && futureTime <= highestTime) {
     dopplerInfo += `🔻${(downlink_low / 1000000).toFixed(3)} MHz ${directiondown}${dopplerShiftDifferencedown} kHz <br>`;
     
     // 只有当上行频率有效且与下行不同时才显示
-    if (uplink_low && uplink_low !== downlink_low) {
+    if (uplink_low ) {
         dopplerInfo += `🔺${(uplink_low / 1000000).toFixed(3)} MHz ${directionup}${dopplerShiftDifferenceup} kHz<br>`;
     }
 
