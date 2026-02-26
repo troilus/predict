@@ -346,7 +346,17 @@ tbody th, tbody td {
             }
         }
 
-
+/* 手动输入按钮样式 */
+.manual-button {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 11px;
+    margin-left: 5px;
+    padding: 0;
+}
 
 
 
@@ -733,7 +743,8 @@ if ( currentNotesInfo.includes('${locatormg}')) {
 
     
                 }, function(error) {
-                    document.getElementById('addressinfo').textContent = '无法获取位置，请检查权限设置。';
+                    // 修改点1: 当定位失败时，显示提示和手动输入按钮
+                    showManualLocationPrompt(tleversion);
                 });
             } else {
                 document.getElementById('addressinfo').textContent = '浏览器不支持地理定位。';
@@ -818,10 +829,69 @@ function requestLocationUpdate() {
                     .replace('${gettleversion}', tleversion);  
                 calculateMaidenhead(latitude, longitude, locationText);  
             }, function(error) {  
-                document.getElementById('notesInfo').textContent = translations[currentLang].nolocation;  
+                // 定位失败也调用手动输入提示
+                showManualLocationPrompt(tleversion);
             });  
         }  
     });  
+}
+
+// 修改点2: 新增函数，用于显示手动输入提示并处理网格坐标
+function showManualLocationPrompt(tleversion) {
+    const notesDiv = document.getElementById('notesInfo');
+    const manualButton = document.createElement('button');
+    manualButton.textContent = currentLang === 'zh' ? '手动输入' : 'Manual';
+    manualButton.className = 'manual-button';
+    manualButton.onclick = function() {
+        const grid = prompt(currentLang === 'zh' ? '请输入6位梅登黑德网格坐标 (例如: OM89av)' : 'Enter 6-character Maidenhead grid (e.g: OM89av)');
+        if (grid && /^[A-R]{2}[0-9]{2}[A-X]{2}$/i.test(grid)) {
+            const latLon = gridToLatLon(grid.toUpperCase());
+            if (latLon) {
+                const latitude = latLon.lat;
+                const longitude = latLon.lon;
+                const latitudefix = latitude.toFixed(2);
+                const longitudefix = longitude.toFixed(2);
+                localStorage.setItem('latitude', latitude);
+                localStorage.setItem('longitude', longitude);
+                localStorage.setItem('altitude', 0); // 手动输入默认海拔0
+                
+                const locationText = translations[currentLang].location
+                    .replace('${latitude}', latitudefix)
+                    .replace('${longitude}', longitudefix)
+                    .replace('${gettleversion}', tleversion);
+                calculateMaidenhead(latitude, longitude, locationText);
+                notesDiv.innerHTML = translations[currentLang].notesInfo; // 恢复提示信息
+            } else {
+                alert(currentLang === 'zh' ? '无效的网格坐标' : 'Invalid grid');
+            }
+        } else if (grid) {
+            alert(currentLang === 'zh' ? '格式错误，应为6位字符 (例如: OM89av)' : 'Invalid format, use 6 chars (e.g: OM89av)');
+        }
+    };
+    notesDiv.innerHTML = translations[currentLang].nolocation + ' ';
+    notesDiv.appendChild(manualButton);
+}
+
+// 修改点3: 新增函数，将6位网格坐标转换为经纬度（网格中心）
+function gridToLatLon(grid) {
+    if (!/^[A-R]{2}[0-9]{2}[A-X]{2}$/.test(grid)) return null;
+    
+    const lonField = grid.charCodeAt(0) - 65; // A=0
+    const latField = grid.charCodeAt(1) - 65;
+    const lonSquare = parseInt(grid.charAt(2));
+    const latSquare = parseInt(grid.charAt(3));
+    const lonSub = grid.charCodeAt(4) - 65;
+    const latSub = grid.charCodeAt(5) - 65;
+    
+    // 计算中心点
+    let lon = (lonField * 20) + (lonSquare * 2) + (lonSub * 5.0 / 60) + (2.5 / 60); // 经度中心偏移 2.5分
+    let lat = (latField * 10) + latSquare + (latSub * 2.5 / 60) + (1.25 / 60); // 纬度中心偏移 1.25分
+    
+    // 调整到标准范围
+    lon = lon - 180;
+    lat = lat - 90;
+    
+    return { lat, lon };
 }
 
 
