@@ -437,7 +437,7 @@ tbody th, tbody td {
 <div id="notesInfo" style="font-weight: bold; padding-bottom: 10px; font-size: 11px;"></div>
 <div id="passInfo" style=" width: 100%; text-align: center;"  ></div>
 <div id="made">
-  <div>Made with ❤ by <a href="https://i.delta.chat/#BD6894FDDEBABE779F08C28215EE6A8466C9F00A&a=troilusxi%40nine.testrun.org&n=troilusxi&i=2YFOSuysc69&s=8to_Foi68Bo" target="_blank" class="link">troilus</a> | <a href="https://github.com/troilus/predict" target="_blank" class="link">code</a> | <a href="https://umami.xanyi.eu.org/share/MXRhTx7lI606kmti/sat.xanyi.eu.org" target="_blank" class="link">stat</a></div>
+  <div>Made with ❤ by <a href="mailto:bd8ckf@outlook.com" target="_blank" class="link">bd8ckf</a> | <a href="https://github.com/troilus/predict" target="_blank" class="link">code</a> | <a href="https://umami.xanyi.eu.org/share/MXRhTx7lI606kmti/sat.xanyi.eu.org" target="_blank" class="link">stat</a></div>
   <div><a href="https://hits.sh/sat.xanyi.eu.org/"><img alt="Hits" src="https://hits.sh/sat.xanyi.eu.org.svg?view=today-total&style=flat-square&label=%F0%9F%8C%8E&color=F2F2F7&labelColor=F2F2F7"/></a></a></div>
 </div>
 
@@ -1610,40 +1610,48 @@ const chartHTML = `<svg id="${chartId}" width="17" height="17"></svg>`;
         // Generate ICS link dynamically for each row
         const icsLink = generateICSLink(eventTitle, eventDate, startTime, endTime);
        // Check if the entrydate is the same as the previous one
-        if (entrydate === prevEntryDate) {
-            // If the same, merge the cell
-            html += `
-                <tr class="${rowClass}">
-                    <td></td>  <!-- Empty cell for the merged date -->
-                    <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
-                    <td>${highestTime}</td>
+// 获取星期几的缩写
+const getWeekdayAbbr = (date) => {
+    if (!date) return '';
+    const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return weekdays[new Date(date).getDay()];
+};
+
+if (entrydate === prevEntryDate) {
+    // If the same, merge the cell
+    html += `
+        <tr class="${rowClass}">
+            <td></td>  <!-- Empty cell for the merged date -->
+            <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
+            <td>${highestTime}</td>
 <td ${firstCellStyle}>
   <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
     ${highestElevation}
     ${chartHTML}
   </a>
 </td>
-                    <td>${exitTime}</td>
-                </tr>
-            `;
-        } else {
-            // If it's a new entrydate, show the date and store it for future comparison
-            html += `
-                <tr class="${rowClass}">
-                    <td>${entrydate}</td>
-                    <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
-                    <td>${highestTime}</td>
+            <td>${exitTime}</td>
+        </tr>
+    `;
+} else {
+    // If it's a new entrydate, show the date and store it for future comparison
+    const weekdayAbbr = getWeekdayAbbr(pass.entry?.time);
+    html += `
+        <tr class="${rowClass}">
+            <td>${entrydate}<span style="font-size: 0.5em;">${weekdayAbbr}</span></td>
+            <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
+            <td>${highestTime}</td>
 <td ${firstCellStyle}>
   <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
     ${highestElevation}
     ${chartHTML}
   </a>
 </td>
-                    <td>${exitTime}</td>
-                </tr>
-            `;
-            prevEntryDate = entrydate; // Update the previous entrydate
-        }
+            <td>${exitTime}</td>
+        </tr>
+    `;
+    prevEntryDate = entrydate; // Update the previous entrydate
+}
 
     });
 

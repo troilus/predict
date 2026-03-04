@@ -116,10 +116,10 @@
       width: 100%;
       background-color: #2e71d1;
       color: white;
-      padding: 10px;
       text-align: center;
       font-size: 14px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      line-height: 0.6;  /* 新增：减小行高 */
   }
 
   #canvas-container {
@@ -576,7 +576,9 @@ const formattedExitTime = exitTime.toLocaleString('zh-CN', {
 });
 
 
-document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} ${selectedPass.satelliteName} `;
+// 从 TLE 中提取 NORAD ID
+const noradId = satelliteTLE2 ? satelliteTLE2.split(' ')[1] : '';
+document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} [${noradId}]`;
 document.getElementById('satellite-info').textContent = `📍方位：° 仰角：° | 🔝最高：${selectedPass.highestElevation}° `;
 document.getElementById('pass-info').textContent = `🔼开始：${formattedEntryTime}  | 🔽结束：${formattedExitTime} `;
 document.getElementById('time-info').textContent = "🕜当前时间：";
@@ -608,7 +610,9 @@ document.getElementById('info-btn').textContent = "多普勒";
             const height = positionEci.z.toFixed(2);
 
 
-            document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} `;
+// 从 TLE 中提取 NORAD ID
+const noradId = satelliteTLE2 ? satelliteTLE2.split(' ')[1] : '';
+document.getElementById('satellite-name').textContent = `🛰${selectedPass.satelliteName} [${noradId}]`;
             document.getElementById('satellite-info').textContent = `📍方位：${azimuthdg}° 仰角：${elevationdg}° | 🔝最高：${selectedPass.highestElevation}° `;
             document.getElementById('pass-info').textContent = `🔼开始：${formattedEntryTime}  | 🔽结束：${formattedExitTime}`;
 
@@ -2226,7 +2230,7 @@ window.addEventListener('beforeunload', function() {
 </script>
 
 <div id="made">
-Made with ❤ by <a href="https://i.delta.chat/#BD6894FDDEBABE779F08C28215EE6A8466C9F00A&a=troilusxi%40nine.testrun.org&n=troilusxi&i=2YFOSuysc69&s=8to_Foi68Bo" target="_blank" class="link">troilus</a>
+Made with ❤ by <a href="mailto:bd8ckf@outlook.com" target="_blank" class="link">bd8ckf</a>
 </div>
 
 </html>
