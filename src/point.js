@@ -340,9 +340,6 @@ if (now >= entryTime && now <= exitTime) {
         trajectorySvg.innerHTML = '';
 }
 
-
-fetch('/satdata/transmitters.json')
-
 // 更新显示内容
 document.getElementById('time-info').textContent = timeInfo;
        updateProgressBar(entryTime, exitTime, now);
