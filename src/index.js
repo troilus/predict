@@ -1,0 +1,1569 @@
+
+
+                // 定义语言内容
+        const translations = {
+            zh: {
+                location: "📍${latitude}, ${longitude} 🗺${locatormg} 📅TLE: ${gettleversion}",
+                locationDefault: "❌位置信息: 未获取",
+                timeFilterLabel: "仅19:00~23:59",
+                daysLabel: "天数:",
+                elevationThresholdLabel: "最高仰角≥",
+                notesInfo: "ℹ️点击仰角: 实时对星<br>⏰点击开始时间: 加入日历提醒",
+                placeholder: "🔎搜索卫星...",
+                calculatePass:"显示选中",
+                                 noTLE:"⚠无TLE信息",
+                                 unabletocalc:"⚠请选择卫星并确认已定位",
+                                 chatonline:"加入在线聊天",
+                                 closeonline:"关闭在线聊天",
+                                 sstveventsinfo:"SSTV活动",
+
+        noPassesInfo: "⚠当前条件下未来3天内没有过境信息",
+        noFavorites: "⚠还没有收藏的卫星",
+                    nolocation:"⚠无法获取位置，请检查权限设置",
+        calculating:"🔎预测中...",
+        howToUseUrl: "https://github.com/troilus/predict/blob/main/HowToUseZh.md", 
+        tableHeaders: {
+            date: "日期",
+            start: "开始",
+            highest: "最高仰角",
+            end: "结束",
+            time: "时间",
+            azimuth: "方位",
+            elevation: "仰角",
+
+            satellite:"卫星"
+        }
+
+        },
+
+            en: {
+                location: "📍${latitude}, 🗺${longitude} ${locatormg} 📅TLE: ${gettleversion}",
+                locationDefault: "❌Location: Not Retrieved",
+                timeFilterLabel: "19:00~23:59 Only",
+                elevationThresholdLabel: "MAX. El ≥",
+                daysLabel: "Days:",
+                notesInfo: "ℹ️Click the El to view the orbit page<br>⏰Click the Date to add the event to calendar",
+                placeholder: "🔎Search satellites...",
+                 calculatePass:"Show selected",
+                                 noTLE:"⚠TLE not found",
+                                  unabletocalc:"⚠Please select a satellite and confirm that the location has been determined",
+                   noPassesInfo: "⚠No passes found for the next 3 days under the current conditions",
+                           noFavorites: "⚠There is no favorite SAT",
+                           calculating:"🔎Calculating...",
+                                       nolocation:"⚠Unable to access location, please check the permission setting",
+                                chatonline:"Online Chat",
+                                 closeonline:"Close Chat",
+                                 sstveventsinfo:"ongoing SSTV events",
+                                 howToUseUrl: "https://github.com/troilus/predict/blob/main/HowToUse.md", 
+        tableHeaders: {
+            date: "Date",
+            start: "Start",
+            highest: "Max. El",
+            end: "End",
+            time: "Time",
+            azimuth: "Az",
+            elevation: "El",
+
+                        satellite:"SAT"
+        }
+        }
+        };
+
+// 获取浏览器支持的语言列表
+const userLanguages = navigator.languages || [navigator.language];
+
+// 检查是否有中文变体
+const hasChinese = userLanguages.some(lang => lang.startsWith('zh'));
+
+// 设置默认语言
+let currentLang = localStorage.getItem('lang') || 
+                 (hasChinese ? 'zh' : 'en');
+localStorage.setItem('lang', currentLang);
+
+
+
+
+    const eventsDiv = document.getElementById("sstvevents");
+
+        // 更新 placeholder 内容
+function updatePlaceholder() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.placeholder = translations[currentLang].placeholder;
+}
+
+
+function updateTable() {
+    let html = `
+        <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
+            <thead>
+                <tr>
+                    <th rowspan="2">${translations[currentLang].table.date}</th>
+                    <th rowspan="2">${translations[currentLang].table.start}</th>
+                    <th colspan="3">${translations[currentLang].table.highestPoint}</th>
+                    <th rowspan="2">${translations[currentLang].table.end}</th>
+                </tr>
+                <tr>
+                    <th>${translations[currentLang].table.time}</th>
+                    <th>${translations[currentLang].table.azimuth}</th>
+                    <th>${translations[currentLang].table.elevation}</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    `;
+
+    document.getElementById('tableContainer').innerHTML = html;
+}
+
+
+function updateTableHeaders(lang) {
+    const passInfoDiv = document.getElementById('passInfo');
+ const calculated  =  localStorage.getItem('calculated');
+    
+    // 检查是否存在表格
+    const table = passInfoDiv.getElementsByTagName('table')[0];
+    if (table) {
+
+        if (calculated ==1){
+        // 如果表格存在，更新表头文本
+        const headers = table.getElementsByTagName('th');
+        
+        headers[0].textContent = translations[lang].tableHeaders.date;
+        headers[1].textContent = translations[lang].tableHeaders.start;
+        //headers[2].textContent = translations[lang].tableHeaders.satellite;
+        headers[2].textContent = translations[lang].tableHeaders.highest;
+        headers[3].textContent = translations[lang].tableHeaders.end;        
+        headers[5].textContent = translations[lang].tableHeaders.elevation;
+        headers[4].textContent = translations[lang].tableHeaders.time;
+} else  if (calculated ==2){
+            const headers = table.getElementsByTagName('th');
+        headers[0].textContent = translations[lang].tableHeaders.date;
+        headers[1].textContent = translations[lang].tableHeaders.start;
+        headers[2].textContent = translations[lang].tableHeaders.satellite;
+        headers[6].textContent = translations[lang].tableHeaders.elevation;
+        headers[3].textContent = translations[lang].tableHeaders.highest;
+        headers[4].textContent = translations[lang].tableHeaders.end;        
+
+        headers[5].textContent = translations[lang].tableHeaders.time;
+
+}
+    } else if (calculated) {  
+        // 只有在已经计算过但没有结果时才显示错误信息  
+        passInfoDiv.innerHTML = `<p>${translations[lang].noPassesInfo}</p>`;  
+    }  
+}
+
+                // 初始化页面内容
+        function updateContent(lang) {
+
+
+
+
+
+    // 更新HOW TO USE链接  
+    const howToUseLink = document.getElementById('howToUseLink');  
+    if (howToUseLink) {  
+        howToUseLink.href = translations[lang].howToUseUrl;  
+    }  
+
+           /*document.getElementById('toggleButton').textContent = translations[currentLang].chatonline*/
+// 检查是否已有位置信息，如果有则不覆盖  
+/*const currentNotesInfo = document.getElementById('addressinfo').textContent;  
+if ( currentNotesInfo.includes('${locatormg}')) {  
+    document.getElementById('addressinfo').textContent = translations[lang].locationDefault;  
+}*/
+            document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
+            document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
+            document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
+            /*document.getElementById('sstveventsbutton').textContent = translations[lang].sstveventsinfo;*/
+
+
+
+            document.getElementById('calculatePass').textContent = translations[lang].calculatePass;
+            /*const notesElement = document.getElementById('notesInfo');
+            if (notesElement.innerHTML.trim() !== '') {
+                notesElement.innerHTML = translations[currentLang].notesInfo;
+            }*/
+            document.getElementById('langZH').classList.toggle('active', lang === 'zh');
+            document.getElementById('langEN').classList.toggle('active', lang === 'en');
+        }
+
+
+
+
+
+
+
+
+
+
+        // 切换语言事件
+        document.getElementById('langZH').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentLang = 'zh';
+            updateContent(currentLang);
+            updatePlaceholder(); // 更新 placeholder 文本
+            updateTableHeaders(currentLang);
+                                localStorage.setItem('lang', currentLang);
+                                        updateFavoriteButtonText()
+        });
+
+        document.getElementById('langEN').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentLang = 'en';
+            updateContent(currentLang);
+            updatePlaceholder(); // 更新 placeholder 文本
+            updateTableHeaders(currentLang);
+            localStorage.setItem('lang', currentLang);
+            updateFavoriteButtonText()
+
+        });
+
+        // 初始化页面
+        updateContent(currentLang);
+        updatePlaceholder(); // 更新 placeholder 文本
+        updateFavoriteButtonText()
+
+
+
+
+
+
+
+        let satellites = [];
+
+
+        window.addEventListener('load', function() {
+
+
+
+            document.getElementById('addressinfo').textContent = translations[currentLang].locationDefault;
+            localStorage.removeItem('selectedSatelliteName');
+            localStorage.removeItem('calculated');
+            localStorage.removeItem('selectedSatelliteTLE1');
+            localStorage.removeItem('selectedSatelliteTLE2');
+            localStorage.removeItem('selectedorbit');
+            localStorage.removeItem('freqinfo');
+
+
+
+
+
+            // Get tleversion asynchronously
+            gettleversion().then(tleversion => {
+
+
+          if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const latitudefix = position.coords.latitude.toFixed(2);
+                    const longitudefix = position.coords.longitude.toFixed(2);
+                    const altitude = position.coords.altitude || '0';
+                    const accuracy = position.coords.accuracy.toFixed(1);
+                    localStorage.setItem('latitude', latitude);
+                    localStorage.setItem('longitude', longitude);
+                    localStorage.setItem('altitude', altitude);
+
+
+
+
+
+
+
+
+    const locationText = translations[currentLang].location
+        .replace('${latitude}', latitudefix)
+        .replace('${longitude}', longitudefix)
+        .replace('${gettleversion}', tleversion);
+        calculateMaidenhead(latitude, longitude,locationText);
+        
+
+
+
+    
+                }, function(error) {
+                    // 修改点1: 当定位失败时，显示提示和手动输入按钮
+                    showManualLocationPrompt(tleversion);
+                });
+            } else {
+                document.getElementById('addressinfo').textContent = '浏览器不支持地理定位。';
+            }
+
+
+
+            //fetch('https://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
+            fetch('/satdata/satonline.txt')
+                .then(response => {
+
+
+                    if (!response.ok) {
+                        throw new Error('网络响应失败');
+                    }
+
+                    return response.text();
+                })
+                .then(data => {
+                    satellites = parseSatellitesData(data);
+
+                    localStorage.setItem('satellites', JSON.stringify(satellites));
+                    populateDropdown(satellites);
+                })
+                .catch(error => {
+                    console.error('无法加载文件:', error);
+                });
+
+
+
+            }).catch(error => {
+                console.error("Error fetching TLE version: ", error);
+            });
+
+
+              
+        });
+
+
+// 监听位置权限状态变化  
+function setupPermissionListener() {  
+    if ('permissions' in navigator) {  
+        navigator.permissions.query({name: 'geolocation'}).then(function(result) {  
+            console.log('当前权限状态:', result.state);  
+              
+            result.addEventListener('change', function() {  
+                console.log('权限状态变化为:', result.state);  
+                if (result.state === 'granted') {  
+                    // 权限被允许时重新获取位置  
+                    requestLocationUpdate();  
+                }  
+            });  
+        }).catch(function(error) {  
+            console.log('权限查询失败:', error);  
+        });  
+    } 
+
+    // 设置权限监听  
+setupPermissionListener();
+
+
+}  
+  
+// 重新获取位置信息的函数  
+function requestLocationUpdate() {  
+    gettleversion().then(tleversion => {  
+        if (navigator.geolocation) {  
+            navigator.geolocation.getCurrentPosition(function(position) {  
+                const latitude = position.coords.latitude;  
+                const longitude = position.coords.longitude;  
+                const latitudefix = position.coords.latitude.toFixed(2);  
+                const longitudefix = position.coords.longitude.toFixed(2);  
+                const altitude = position.coords.altitude || '0';  
+                  
+                localStorage.setItem('latitude', latitude);  
+                localStorage.setItem('longitude', longitude);  
+                localStorage.setItem('altitude', altitude);  
+                  
+                const locationText = translations[currentLang].location  
+                    .replace('${latitude}', latitudefix)  
+                    .replace('${longitude}', longitudefix)  
+                    .replace('${gettleversion}', tleversion);  
+                calculateMaidenhead(latitude, longitude, locationText);  
+            }, function(error) {  
+                // 定位失败也调用手动输入提示
+                showManualLocationPrompt(tleversion);
+            });  
+        }  
+    });  
+}
+
+// 修改点2: 新增函数，用于显示手动输入提示并处理网格坐标
+function showManualLocationPrompt(tleversion) {
+    const notesDiv = document.getElementById('notesInfo');
+    const manualButton = document.createElement('button');
+    manualButton.textContent = currentLang === 'zh' ? '手动输入' : 'Manual';
+    manualButton.className = 'manual-button';
+    manualButton.onclick = function() {
+        const grid = prompt(currentLang === 'zh' ? '请输入6位梅登黑德网格坐标 (例如: OM89av)' : 'Enter 6-character Maidenhead grid (e.g: OM89av)');
+        if (grid && /^[A-R]{2}[0-9]{2}[A-X]{2}$/i.test(grid)) {
+            const latLon = gridToLatLon(grid.toUpperCase());
+            if (latLon) {
+                const latitude = latLon.lat;
+                const longitude = latLon.lon;
+                const latitudefix = latitude.toFixed(2);
+                const longitudefix = longitude.toFixed(2);
+                localStorage.setItem('latitude', latitude);
+                localStorage.setItem('longitude', longitude);
+                localStorage.setItem('altitude', 0); // 手动输入默认海拔0
+                
+                const locationText = translations[currentLang].location
+                    .replace('${latitude}', latitudefix)
+                    .replace('${longitude}', longitudefix)
+                    .replace('${gettleversion}', tleversion);
+                calculateMaidenhead(latitude, longitude, locationText);
+                notesDiv.innerHTML = translations[currentLang].notesInfo; // 恢复提示信息
+            } else {
+                alert(currentLang === 'zh' ? '无效的网格坐标' : 'Invalid grid');
+            }
+        } else if (grid) {
+            alert(currentLang === 'zh' ? '格式错误，应为6位字符 (例如: OM89av)' : 'Invalid format, use 6 chars (e.g: OM89av)');
+        }
+    };
+    notesDiv.innerHTML = translations[currentLang].nolocation + ' ';
+    notesDiv.appendChild(manualButton);
+}
+
+// 修改点3: 新增函数，将6位网格坐标转换为经纬度（网格中心）
+function gridToLatLon(grid) {
+    if (!/^[A-R]{2}[0-9]{2}[A-X]{2}$/.test(grid)) return null;
+    
+    const lonField = grid.charCodeAt(0) - 65; // A=0
+    const latField = grid.charCodeAt(1) - 65;
+    const lonSquare = parseInt(grid.charAt(2));
+    const latSquare = parseInt(grid.charAt(3));
+    const lonSub = grid.charCodeAt(4) - 65;
+    const latSub = grid.charCodeAt(5) - 65;
+    
+    // 计算中心点
+    let lon = (lonField * 20) + (lonSquare * 2) + (lonSub * 5.0 / 60) + (2.5 / 60); // 经度中心偏移 2.5分
+    let lat = (latField * 10) + latSquare + (latSub * 2.5 / 60) + (1.25 / 60); // 纬度中心偏移 1.25分
+    
+    // 调整到标准范围
+    lon = lon - 180;
+    lat = lat - 90;
+    
+    return { lat, lon };
+}
+
+
+// Function to calculate Maidenhead locator
+function calculateMaidenhead(latitude, longitude,locationText) {
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        throw new Error("Invalid latitude or longitude values. Latitude must be between -90 and 90, and longitude between -180 and 180.");
+    }
+
+    // Adjust longitude to a 0-360 range
+    longitude += 180;
+
+    // Calculate the Maidenhead components
+    const A = "ABCDEFGHIJKLMNOPQRSTUVWX";
+
+    // First pair: Field (20x10 degrees)
+    const fieldLon = Math.floor(longitude / 20);
+    const fieldLat = Math.floor((latitude + 90) / 10);
+
+    // Second pair: Square (2x1 degrees)
+    const squareLon = Math.floor((longitude % 20) / 2);
+    const squareLat = Math.floor((latitude + 90) % 10);
+
+    // Third pair: Subsquare (5x2.5 minutes)
+    const subsquareLon = Math.floor(((longitude % 2) * 60) / 5);
+    const subsquareLat = Math.floor((((latitude + 90) % 1) * 60) / 2.5);
+
+    // Construct the Maidenhead locator
+    const locator = `${A[fieldLon]}${A[fieldLat]}${squareLon}${squareLat}${A[subsquareLon]}${A[subsquareLat]}`;
+
+
+
+    const locationText2 = locationText
+        .replace('${locatormg}', locator);
+    document.getElementById('addressinfo').textContent = locationText2;
+
+
+    return locator;
+}
+//        
+function gettleversion() {
+    return new Promise((resolve, reject) => {
+        fetch('/satdata/satonline.txt')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应失败');
+                }
+                
+                const lastModifiedfix = new Date(response.headers.get('Last-Modified'));
+                const tleversion = formatDate(lastModifiedfix); // Assuming formatDate is a valid function
+                resolve(tleversion); // Resolve the promise with the tleversion
+            })
+            .catch(error => {
+                reject(error); // Reject the promise in case of an error
+            });
+    });
+}
+
+function parseSatellitesData(data) {
+            const lines = data.split('\n');
+            const satellites = [];
+            let currentSatellite = null;
+
+            lines.forEach(line => {
+                if (line.startsWith('1') || line.startsWith('2')) {
+                    if (currentSatellite) {
+                        currentSatellite.tle.push(line);
+                    }
+                } else if (line.trim() !== '') {
+                    if (currentSatellite) {
+                        satellites.push(currentSatellite);
+                    }
+                    currentSatellite = { name: line.trim(), tle: [] };
+                }
+            });
+
+            if (currentSatellite) {
+                satellites.push(currentSatellite);
+            }
+
+            return satellites;
+        }
+//收藏相关功能
+function isFavorite(satelliteName) {
+    // 从 localStorage 获取 favorites
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '{}');
+
+    // 判断卫星是否存在于 favorites 中
+    return favorites.names && favorites.names[satelliteName] !== undefined;
+}
+
+function toggleFavorite(satelliteName) {
+    // 获取 current favorites 数据
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '{}');
+
+
+
+        // 初始化 favorites.names 如果尚未存在
+    if (!favorites.names) {
+        favorites.names = {};
+    }
+
+    const satelliteNames = Object.keys(favorites.names);
+
+    if (satelliteNames.includes(satelliteName)) {
+        // 如果该卫星已经是收藏项，删除它
+        delete favorites.names[satelliteName]
+        starButton.textContent = '⚪'; // 恢复为五角星
+
+    } else {
+        // 如果该卫星不是收藏项，加入收藏
+        favorites.names[satelliteName] = ""; 
+        starButton.textContent = '🟡'; // 改为方块
+
+    }
+
+    // 更新 localStorage 中的 favorites
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+            updateFavoriteButtonText()
+}
+
+
+function updateFavoriteButtonText() {
+    // 读取localStorage中的favorites
+    const favorites = JSON.parse(localStorage.getItem('favorites')) || {};  // 如果不存在则返回空对象
+
+    // 确保favorites.names存在且是一个对象，如果没有，则初始化为空对象
+    const favoriteNames = favorites.names || {};
+
+    // 获取 names 对象中的键并统计数量
+    const favoriteCount = Object.keys(favoriteNames).length;
+
+
+    // 获取按钮并修改文本
+    const calculatePassfavoriteButton = document.getElementById('calculatePassfavorite');
+    if (calculatePassfavoriteButton && currentLang == 'zh') {
+        calculatePassfavoriteButton.textContent = `显示收藏  *${favoriteCount}`;
+    } else if (calculatePassfavoriteButton && currentLang == 'en') {
+        calculatePassfavoriteButton.textContent = `Show favorites *${favoriteCount}`;
+    }
+}
+
+
+
+
+
+
+
+//收藏相关功能结束
+
+function populateDropdown(satellites) {
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('satelliteDropdown');
+
+    // 初始化下拉菜单
+    function renderDropdown(filteredSatellites) {
+        starButton.style.display = 'none';
+        dropdown.innerHTML = ''; // 清空列表
+        filteredSatellites.forEach(satellite => {
+            const div = document.createElement('div');
+            div.textContent = satellite.name;
+            div.classList.add('dropdown-item');
+            div.addEventListener('click', function () {
+                searchInput.value = satellite.name; // 将选择的值填入输入框
+                dropdown.style.display = 'none'; // 隐藏下拉菜单
+                    // 显示五角星按钮
+                    starButton.style.display = 'inline-block';
+
+
+                    // 判断是否为收藏，并更新按钮
+                    if (isFavorite(satellite.name)) {
+                        starButton.textContent = '🟡'; // 如果是收藏，显示方块
+                    } else {
+                        starButton.textContent = '⚪'; // 否则显示五角星
+                    }
+
+                // 获取并存储卫星数据
+                const noradId = satellite.tle[1].split(' ')[1];
+                document.title = '🛰'+satellite.name;
+                localStorage.setItem('selectedSatelliteName', satellite.name);
+                localStorage.setItem('selectedSatelliteTLE1', satellite.tle[0]);
+                localStorage.setItem('selectedSatelliteTLE2', satellite.tle[1]);
+
+                    // 设置点击按钮的事件，点击后切换收藏状态
+                    starButton.onclick = function () {
+                        toggleFavorite(satellite.name);
+                    };
+
+
+            });
+            dropdown.appendChild(div);
+        });
+        dropdown.style.display = filteredSatellites.length ? 'block' : 'none';
+    }
+
+    // 监听搜索输入
+    searchInput.addEventListener('input', function () {
+        const query = searchInput.value.toLowerCase();
+        const filteredSatellites = satellites.filter(satellite =>
+            satellite.name.toLowerCase().includes(query)
+        );
+        renderDropdown(filteredSatellites);
+    });
+
+
+        // 监听点击搜索框展开下拉菜单并选中文字
+    searchInput.addEventListener('click', function () {
+        searchInput.select(); // 选中所有文字
+        renderDropdown(satellites); // 展开下拉菜单显示所有选项
+    });
+
+    // 初始化时加载所有选项
+    renderDropdown(satellites);
+}
+
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchValue = this.value.toLowerCase();
+            const dropdown = document.getElementById('satelliteDropdown');
+            const options = dropdown.querySelectorAll('div');
+            options.forEach(option => {
+                const text = option.textContent.toLowerCase();
+                if (text.includes(searchValue)) {
+                    option.style.display = ''; // Show matching options
+                } else {
+                    option.style.display = 'none'; // Hide non-matching options
+                }
+            });
+        });
+
+        /*document.getElementById('dropdownButton').addEventListener('click', function() {
+            const dropdown = document.getElementById('satelliteDropdown');
+            dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+        });*/
+//计算选中卫星
+        document.getElementById('calculatePass').addEventListener('click', function() {
+            const satelliteName = localStorage.getItem('selectedSatelliteName')
+            document.getElementById('passInfo').innerHTML =translations[currentLang].calculating;
+
+
+
+
+            const locationText = document.getElementById('addressinfo').textContent;
+
+            const confirmloc = localStorage.getItem('latitude');
+            const isNumeric = (str) => /[0-9.-]/.test(str);
+            const match = isNumeric(confirmloc)
+
+            const timeFilterChecked = document.getElementById('timeFilter').checked;
+  
+
+            if (satelliteName && match) {
+            const latitude = parseFloat(localStorage.getItem('latitude'));
+            const longitude = parseFloat(localStorage.getItem('longitude'));
+
+                const altitude = parseFloat(localStorage.getItem('altitude')) / 1000 || 0; // 如果 altitude 是 null/undefined，默认设为 0 ;
+
+                const satellites = JSON.parse(localStorage.getItem('satellites'));
+                const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
+
+                if (!satelliteinfo) {
+                    document.getElementById('passInfo').innerHTML = translations[currentLang].noTLE;
+                    return;
+                }
+
+                const satrec = satellite.twoline2satrec(satelliteinfo.tle[0], satelliteinfo.tle[1]);
+                           
+                const currentTime = new Date();
+                const passes = calculatePasses(satrec, latitude, longitude, altitude, currentTime, timeFilterChecked);
+
+                const groupedPasses = groupPasses(passes);
+                const savedSatelliteDataToLocalStorage=saveSatelliteDataToLocalStorage(groupedPasses, satelliteName)
+                document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTML(groupedPasses);
+            } else {
+                document.getElementById('passInfo').innerHTML =translations[currentLang].unabletocalc;
+            }
+        });
+//计算已收藏卫星
+        document.getElementById('calculatePassfavorite').addEventListener('click', function() {
+
+
+            //const satelliteName = localStorage.getItem('selectedSatelliteName')
+            const locationText = document.getElementById('addressinfo').textContent;
+            const confirmloc = localStorage.getItem('latitude');
+            const isNumeric = (str) => /[0-9.-]/.test(str);
+            const match = isNumeric(confirmloc)
+
+            const timeFilterChecked = document.getElementById('timeFilter').checked;
+
+                    // 获取所有卫星数据
+        const satellites = JSON.parse(localStorage.getItem('satellites'));
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '{}');
+        
+        if (!favorites.names) {
+            document.getElementById('passInfo').innerHTML = translations[currentLang].noFavorites;
+            return;
+        }
+
+
+
+  
+
+            if (match) {
+            const latitude = parseFloat(localStorage.getItem('latitude'));
+            const longitude = parseFloat(localStorage.getItem('longitude'));
+            const altitude = parseFloat(localStorage.getItem('altitude')) /1000 || 0;
+
+    // 遍历每个收藏的卫星
+            const allGroupedPasses = [];
+            for (const satelliteName in favorites.names) {
+                const satelliteinfo = satellites.find(sat => sat.name === satelliteName);
+
+            if (!satelliteinfo) {
+                continue;  // 如果该卫星的详细信息没有找到，跳过此卫星
+            }
+
+        // 存储所有收藏卫星的分组 passes
+
+                const satrec = satellite.twoline2satrec(satelliteinfo.tle[0], satelliteinfo.tle[1]);
+                           
+                const currentTime = new Date();
+                const passesfavorite = calculatePassesfavorite(satrec, latitude, longitude, altitude, currentTime, timeFilterChecked);
+
+                const groupedPasses = groupPassesfavorite(passesfavorite);
+
+
+            // 将当前卫星的分组 passes 保存到 allGroupedPasses 数组
+            allGroupedPasses.push({
+                satelliteName,
+                groupedPasses
+            });
+
+            }
+
+
+
+                document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTMLfavorite(allGroupedPasses);
+             }else {
+                document.getElementById('passInfo').innerHTML =translations[currentLang].unabletocalc;
+            }
+        });
+//计算单个选中卫星3天
+function calculatePasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
+    localStorage.setItem('calculated', '1');
+    const passes = [];
+    const observerGd = {
+        latitude: satellite.degreesToRadians(latitude),
+        longitude: satellite.degreesToRadians(longitude),
+        height: altitude
+    };
+    const days = parseFloat(document.getElementById('days').value);
+    const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
+    const timeStep = 1 * 1000; // 1秒步长（单位: 毫秒）
+
+    for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
+        const passTime = new Date(time);
+
+        const positionAndVelocity = satellite.propagate(satrec, passTime);
+        if (positionAndVelocity && positionAndVelocity.position) {
+            const gmst = satellite.gstime(passTime);
+
+            const lookAngles = satellite.ecfToLookAngles(
+                observerGd,
+                satellite.eciToEcf(positionAndVelocity.position, gmst)
+            );
+
+            if (lookAngles) {
+                const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
+
+                // 仰角大于 0 度的记录添加到 passes
+                if (elevationDegrees > 0) {
+                    const pass = {
+                        time: passTime,
+                        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
+                        elevation: elevationDegrees,
+                    };
+
+                    if (filterNightTime) {
+                        const passHour = passTime.getHours();
+                        if (passHour < 19 || passHour >= 24) {
+                            continue; // 跳过夜间范围外的记录
+                        }
+                    }
+
+                    passes.push(pass);
+                }
+            }
+        }
+    }
+
+    return passes;
+}
+//计算单个选中卫星3天结束
+
+//计算收藏卫星开始
+
+function calculatePassesfavorite(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
+    localStorage.setItem('calculated', '2');
+    const passes = [];
+    const observerGd = {
+        latitude: satellite.degreesToRadians(latitude),
+        longitude: satellite.degreesToRadians(longitude),
+        height: altitude
+    };
+
+    const days = parseFloat(document.getElementById('days').value);
+
+    const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
+    const timeStep = 1 * 1000; // 1秒步长（单位: 毫秒）
+
+    for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
+        const passTime = new Date(time);
+
+        const positionAndVelocity = satellite.propagate(satrec, passTime);
+        if (positionAndVelocity && positionAndVelocity.position) {
+            const gmst = satellite.gstime(passTime);
+
+            const lookAngles = satellite.ecfToLookAngles(
+                observerGd,
+                satellite.eciToEcf(positionAndVelocity.position, gmst)
+            );
+
+            if (lookAngles) {
+                const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
+
+                // 仰角大于 0 度的记录添加到 passes
+                if (elevationDegrees > 0) {
+                    const pass = {
+                        time: passTime,
+                        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
+                        elevation: elevationDegrees,
+                    };
+
+                    if (filterNightTime) {
+                        const passHour = passTime.getHours();
+                        if (passHour < 19 || passHour >= 24) {
+                            continue; // 跳过夜间范围外的记录
+                        }
+                    }
+
+                    passes.push(pass);
+                }
+            }
+        }
+    }
+
+    return passes;
+}
+
+
+
+//计算收藏卫星结束
+
+function groupPasses(passes) {
+    const groupedPasses = [];
+    let currentPass = null;
+    let hasAboveThreshold  = false; // 是否出现过仰角 >= 15 的点
+        const elevationThreshold = parseFloat(document.getElementById('elevationThreshold').value);
+
+
+    passes.forEach((pass, index) => {
+        if (!currentPass) {
+            // 初始化分组，当仰角从 0 度变为正值时开始记录
+            if (pass.elevation > 0) {
+                currentPass = { entry: pass, highest: pass, exit: pass };
+                hasAboveThreshold  = pass.elevation >= elevationThreshold; // 标记是否达到 15 度
+            }
+        } else {
+            const timeDifference = (new Date(pass.time) - new Date(currentPass.exit.time)) / 1000;
+
+            if (pass.elevation > 0 && timeDifference <= 600) { 
+                // 更新出口点
+                currentPass.exit = pass;
+
+                // 更新最高点
+                if (pass.elevation > currentPass.highest.elevation) {
+                    currentPass.highest = pass;
+                }
+
+                // 标记是否达到 15 度
+                if (pass.elevation >= elevationThreshold) {
+                    hasAboveThreshold  = true;
+                }
+            } else if (pass.elevation > 0) {
+                // 保存当前分组
+                if (hasAboveThreshold ) {
+                    groupedPasses.push(currentPass);
+                }
+
+                // 开始新分组
+                currentPass = { entry: pass, highest: pass, exit: pass };
+                hasAboveThreshold = pass.elevation >= elevationThreshold;
+            } else {
+                // 当仰角回到 0 度时结束分组
+                if (hasAboveThreshold) {
+                    groupedPasses.push(currentPass);
+                }
+                currentPass = null;
+                hasAboveThreshold = false;
+            }
+        }
+
+        // 如果是最后一个点，强制结束当前分组
+        if (index === passes.length - 1 && currentPass && hasAboveThreshold) {
+            groupedPasses.push(currentPass);
+        }
+    });
+
+    return groupedPasses;
+}
+
+
+
+function groupPassesfavorite(passes) {
+
+    const groupedPasses = [];
+    let currentPass = null;
+    let hasAboveThreshold  = false; // 是否出现过仰角 >= 15 的点
+        const elevationThreshold = parseFloat(document.getElementById('elevationThreshold').value);
+
+
+    passes.forEach((pass, index) => {
+        if (!currentPass) {
+            // 初始化分组，当仰角从 0 度变为正值时开始记录
+            if (pass.elevation > 0) {
+                currentPass = { entry: pass, highest: pass, exit: pass };
+                hasAboveThreshold  = pass.elevation >= elevationThreshold; // 标记是否达到 15 度
+            }
+        } else {
+            const timeDifference = (new Date(pass.time) - new Date(currentPass.exit.time)) / 1000;
+
+            if (pass.elevation > 0 && timeDifference <= 600) { 
+                // 更新出口点
+                currentPass.exit = pass;
+
+                // 更新最高点
+                if (pass.elevation > currentPass.highest.elevation) {
+                    currentPass.highest = pass;
+                }
+
+                // 标记是否达到 15 度
+                if (pass.elevation >= elevationThreshold) {
+                    hasAboveThreshold  = true;
+                }
+            } else if (pass.elevation > 0) {
+                // 保存当前分组
+                if (hasAboveThreshold ) {
+                    groupedPasses.push(currentPass);
+                }
+
+                // 开始新分组
+                currentPass = { entry: pass, highest: pass, exit: pass };
+                hasAboveThreshold = pass.elevation >= elevationThreshold;
+            } else {
+                // 当仰角回到 0 度时结束分组
+                if (hasAboveThreshold) {
+                    groupedPasses.push(currentPass);
+                }
+                currentPass = null;
+                hasAboveThreshold = false;
+            }
+        }
+
+        // 如果是最后一个点，强制结束当前分组
+        if (index === passes.length - 1 && currentPass && hasAboveThreshold) {
+            groupedPasses.push(currentPass);
+
+        }
+    });
+
+    return groupedPasses;
+}
+
+function saveSatelliteDataToLocalStorage(groupedPasses, satelliteName) {
+    const satelliteData = groupedPasses.map((pass, index) => {
+        return {
+            satelliteName: satelliteName,
+            entryTime: pass.entry?.time ? new Date(pass.entry.time): "未知时间",
+            entryAzimuth: pass.entry?.azimuth ? pass.entry.azimuth.toFixed(2) : "未知",
+            highestTime: pass.highest?.time ? new Date(pass.highest.time): "未知时间",
+            highestAzimuth: pass.highest?.azimuth ? pass.highest.azimuth.toFixed(2) : "未知",
+            highestElevation: pass.highest?.elevation ? pass.highest.elevation.toFixed(2) : "未知",
+            exitTime: pass.exit?.time ? new Date(pass.exit.time):"未知时间",
+            exitAzimuth: pass.exit?.azimuth ? pass.exit.azimuth.toFixed(2) : "未知"
+        };
+    });
+
+    // 使用卫星名称作为键，将数据存储到 localStorage
+    localStorage.setItem('selectedorbit', JSON.stringify(satelliteData));
+}
+
+
+function savefavoriteSatelliteDataToLocalStorage(allPasses) {
+    const satelliteData = allPasses.map((item, index) => {
+        const pass = item.pass;
+
+        return {
+            satelliteName: item.satelliteName,
+            entryTime: pass.entry?.time ? new Date(pass.entry.time) : "未知时间",
+            entryAzimuth: pass.entry?.azimuth ? pass.entry.azimuth.toFixed(2) : "未知",
+            highestTime: pass.highest?.time ? new Date(pass.highest.time) : "未知时间",
+            highestAzimuth: pass.highest?.azimuth ? pass.highest.azimuth.toFixed(2) : "未知",
+            highestElevation: pass.highest?.elevation ? pass.highest.elevation.toFixed(2) : "未知",
+            exitTime: pass.exit?.time ? new Date(pass.exit.time) : "未知时间",
+            exitAzimuth: pass.exit?.azimuth ? pass.exit.azimuth.toFixed(2) : "未知"
+        };
+    });
+
+    // 使用卫星名称作为键，将数据存储到 localStorage
+    localStorage.setItem('selectedorbit', JSON.stringify(satelliteData));
+}
+
+
+
+//输出单个卫星html
+function formatGroupedPassesToHTML(groupedPasses) {
+
+        let prevEntryDate = "";  // Store the previous entry date for comparison
+    let prevRowIndex = -1;   // Store the index of the previous row
+
+    
+
+    const satelliteName = localStorage.getItem('selectedSatelliteName');
+
+    if (groupedPasses.length === 0 ) {
+        // Hide the "notesInfo" div on the page
+        document.getElementById("notesInfo").style.display = "none";
+        
+        return `<p>${translations[currentLang].noPassesInfo}</p>`;
+    } else {
+        // Show the "notesInfo" div again if there are grouped passes
+        document.getElementById("notesInfo").style.display = "block";
+        
+        // Continue with the regular pass formatting
+        // Add your logic for formatting passes here, if any
+    }
+
+    let html = `
+        <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
+            <thead>
+                <tr>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.date}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.start}</th>
+                    <th colspan="2">${translations[currentLang].tableHeaders.highest}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.end}</th>
+                </tr>
+                <tr>
+                    <th>${translations[currentLang].tableHeaders.time}</th>
+                    <th>${translations[currentLang].tableHeaders.elevation}</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+
+
+
+
+
+
+    groupedPasses.forEach((pass, index) => {
+        const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
+        const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const entryAzimuth = typeof pass.entry?.azimuth === "number" ? `${pass.entry.azimuth.toFixed(2)}°` : "未知";
+        
+        const entryHour = new Date(pass.entry.time).getHours();
+
+
+            const now = new Date();
+    const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
+
+
+
+        // 获取当地的日出和日落时间
+        const latitude = parseFloat(localStorage.getItem('latitude'));
+        const longitude = parseFloat(localStorage.getItem('longitude'));
+        const sunTimes = SunCalc.getTimes(pass.entry.time, latitude, longitude);
+        const sunrise = sunTimes.sunrise;
+        const sunset = sunTimes.sunset;
+
+        // 判断 entryTime 是否在白天或夜晚
+        let rowClass = "";
+        if (pass.entry.time >= sunrise && pass.entry.time <= sunset) {
+            rowClass = "day";  // 白天
+        } else {
+            rowClass = "night";  // 夜晚
+        }
+
+
+
+
+
+
+        lang=currentLang
+        document.getElementById('notesInfo').innerHTML = translations[lang].notesInfo; // 更新 notesInfo 内容
+
+        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
+        const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
+
+        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const exitAzimuth = typeof pass.exit?.azimuth === "number" ? `${pass.exit.azimuth.toFixed(2)}°` : "未知";
+
+        // Generate a placeholder for the canvas
+// Generate a placeholder for the SVG
+const chartId = `chart-${index}`;
+const chartHTML = `<svg id="${chartId}" width="17" height="17"></svg>`;
+
+            // 如果是当前时间区间，则设置第一个格子的背景颜色为绿色
+    const firstCellStyle = isCurrent ? 'style="background-color: green;"' : '';
+
+//日历相关
+    const eventTitle = `${satelliteName}  ${highestElevation}`;  // 事件标题为卫星名称+仰角
+        const eventDate = pass.entry?.time ? new Date(pass.entry.time) : new Date();
+        const startTime = eventDate.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;
+        // Generate ICS link dynamically for each row
+        const icsLink = generateICSLink(eventTitle, eventDate, startTime, endTime);
+       // Check if the entrydate is the same as the previous one
+// 获取星期几的缩写
+const getWeekdayAbbr = (date) => {
+    if (!date) return '';
+    const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return weekdays[new Date(date).getDay()];
+};
+
+if (entrydate === prevEntryDate) {
+    // If the same, merge the cell
+    html += `
+        <tr class="${rowClass}">
+            <td></td>  <!-- Empty cell for the merged date -->
+            <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
+            <td>${highestTime}</td>
+<td ${firstCellStyle}>
+  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+    ${highestElevation}
+    ${chartHTML}
+  </a>
+</td>
+            <td>${exitTime}</td>
+        </tr>
+    `;
+} else {
+    // If it's a new entrydate, show the date and store it for future comparison
+    const weekdayAbbr = getWeekdayAbbr(pass.entry?.time);
+    html += `
+        <tr class="${rowClass}">
+            <td>${entrydate}<span style="font-size: 0.5em;">${weekdayAbbr}</span></td>
+            <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
+            <td>${highestTime}</td>
+<td ${firstCellStyle}>
+  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+    ${highestElevation}
+    ${chartHTML}
+  </a>
+</td>
+            <td>${exitTime}</td>
+        </tr>
+    `;
+    prevEntryDate = entrydate; // Update the previous entrydate
+}
+
+    });
+
+    html += `
+        </tbody>
+    </table>
+    `;
+
+// Append the HTML to the page
+document.getElementById('passInfo').innerHTML = html;
+
+// Now that the table is added, draw the trajectories
+setTimeout(() => {
+    groupedPasses.forEach((pass, index) => {
+        const svgContainer = document.getElementById(`chart-${index}`);
+        if (svgContainer) {
+            drawTrajectorySVG(svgContainer, pass);
+        }
+    });
+}, 0);
+
+    return html;
+}
+//输出单个卫星html结束
+//输出已收藏的所有卫星html
+function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
+
+    let prevEntryDate = "";  // Store the previous entry date for comparison
+    let prevSat = "";  // Store the previous entry date for comparison
+    let prevRowIndex = -1;   // Store the index of the previous row
+
+    if (allGroupedPasses.length === 0 ) {
+        // Hide the "notesInfo" div on the page
+
+        document.getElementById("notesInfo").style.display = "none";
+        
+        return `<p>${translations[currentLang].noPassesInfo}</p>`;
+    } else {
+        // Show the "notesInfo" div again if there are grouped passes
+   
+        document.getElementById("notesInfo").style.display = "block";
+        
+        // Continue with the regular pass formatting
+        // Add your logic for formatting passes here, if any
+    }
+
+
+    let allPasses = [];
+        // Sort allGroupedPasses by the entry time of passes for each satellite
+
+
+
+    let html = `
+        <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
+            <thead>
+                <tr>
+
+                    <th rowspan="2">${translations[currentLang].tableHeaders.date}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.start}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.satellite}</th>  <!-- 新增卫星名称列 -->
+                    <th colspan="2">${translations[currentLang].tableHeaders.highest}</th>
+                    <th rowspan="2">${translations[currentLang].tableHeaders.end}</th>
+                </tr>
+                <tr>
+                    <th>${translations[currentLang].tableHeaders.time}</th>
+                    <th>${translations[currentLang].tableHeaders.elevation}</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+   allGroupedPasses.forEach((satelliteGroup) => {
+        const satelliteName = satelliteGroup.satelliteName;  // 当前卫星名称
+        const groupedPasses = satelliteGroup.groupedPasses;
+
+
+
+                groupedPasses.forEach((pass, index) => {
+     
+            const sortKey = pass.entry.time;
+
+            allPasses.push({
+                satelliteName,
+                pass,
+                sortKey
+            });
+        });
+    });
+        lang=currentLang
+document.getElementById('notesInfo').innerHTML = translations[lang].notesInfo; // 更新 notesInfo 内容
+
+// 按照 sortKey 对所有 passes 进行排序
+allPasses.sort((a, b) => {
+    return a.sortKey - b.sortKey;  // 通过时间戳进行比较，按时间排序
+});
+
+
+
+
+const savedSatelliteDataToLocalStorage=savefavoriteSatelliteDataToLocalStorage(allPasses)
+
+    allPasses.forEach((item, index) => {
+const satelliteName = item.satelliteName;
+
+// 只取前 5 个字符，如果长度超过 5 就加上省略号
+        const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (satelliteName.length > 5 ? '...' : '');
+        const pass = item.pass;
+
+        const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
+        const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : "未知时间";
+        
+        const now = new Date();
+        const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
+
+        const latitude = parseFloat(localStorage.getItem('latitude'));
+        const longitude = parseFloat(localStorage.getItem('longitude'));
+        const sunTimes = SunCalc.getTimes(pass.entry.time, latitude, longitude);
+        const sunrise = sunTimes.sunrise;
+        const sunset = sunTimes.sunset;
+
+        let rowClass = "";
+        if (pass.entry.time >= sunrise && pass.entry.time <= sunset) {
+            rowClass = "day";  // 白天
+        } else {
+            rowClass = "night";  // 夜晚
+        }
+
+        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
+        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit'}) : "未知时间";
+
+        // Generate a placeholder for the SVG
+        const chartId = `chart-${index}`;
+        const chartHTML = `<svg id="${chartId}" width="17" height="17" ></svg>`;
+
+        const firstCellStyle = isCurrent ? 'style="background-color: green;"' : '';
+
+        const eventTitle = `${satelliteName}  ${highestElevation}`;  // 事件标题为卫星名称+仰角
+        const eventDate = pass.entry?.time ? new Date(pass.entry.time) : new Date();
+        const startTime = eventDate.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const endTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : startTime;                
+
+
+
+
+
+    
+        if (entrydate === prevEntryDate ) {
+            // If the same, merge the cell
+        html += `
+            <tr class="${rowClass}">
+                <td></td>  <!-- Empty cell for the merged date -->
+                <td>
+                    <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
+                        ${entryTime}
+                    </a>
+                </td>
+                <td style="font-size: 50%; color: #ffffbc; font-weight: bold;">${satelliteName}</td> <!-- 设置字体大小为50% -->
+                <td>${highestTime}</td>
+                <td ${firstCellStyle}>
+  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+    ${highestElevation}
+    ${chartHTML}
+  </a>
+</td>
+                <td>${exitTime}</td>
+            </tr>
+        `;
+        } else {
+            // If it's a new entrydate, show the date and store it for future comparison
+        html += `
+            <tr class="${rowClass}">
+                            <td>${entrydate}</td>
+                <td>
+                    <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
+                        ${entryTime}
+                    </a>
+                </td>
+                <td style="font-size: 50%; color: #ffffbc; font-weight: bold;">${satelliteName}</td> <!-- 设置字体大小为50% -->
+
+                <td>${highestTime}</td>
+                <td ${firstCellStyle}>
+  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+    ${highestElevation}
+    ${chartHTML}
+  </a>
+</td>
+                <td>${exitTime}</td>
+            </tr>
+        `;
+            prevEntryDate = entrydate; // Update the previous entrydate
+            prevSat = satelliteName
+        }
+
+
+
+
+
+    });
+
+    html += `
+        </tbody>
+    </table>
+    `;
+
+
+    // Append the HTML to the page
+    document.getElementById('passInfo').innerHTML = html;
+
+
+
+    // Now that the table is added, draw the trajectories
+    setTimeout(() => {
+        allPasses.forEach((item, index) => {
+            const svgContainer = document.getElementById(`chart-${index}`);
+            if (svgContainer) {
+               
+
+                    drawTrajectorySVG(svgContainer, item.pass);
+            }
+        });
+    }, 0);
+
+    return html;
+}
+
+
+
+// 格式化日期为 'YYYY-MM-DD HH:mm' 格式
+function formatDate(date) {
+    //const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');  // 月份是从0开始的，所以要加1
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${month}-${day} ${hours}:${minutes}`;
+}
+
+
+
+//日历相关
+function generateICSLink(eventTitle, eventDate, startTime, endTime) {
+    const startDateTime = formatDateToICS(eventDate, startTime);
+    const endDateTime = formatDateToICS(eventDate, endTime);
+
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Your Company//NONSGML v1.0//EN
+BEGIN:VEVENT
+SUMMARY:${eventTitle}
+DTSTART:${startDateTime}
+DTEND:${endDateTime}
+UID:${generateUID()}
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER:-PT10M
+DESCRIPTION:Reminder
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${eventTitle}.ics`;  // Download the ICS file
+    return link.href;
+}
+
+function formatDateToICS(date, time) {
+    // Create a new Date object based on the provided date
+    const dt = new Date(date);
+
+    // Split the provided time into hours and minutes
+    const [hour, minute] = time.split(':');
+    
+    // Set the hours and minutes from the provided time
+    dt.setHours(hour, minute);
+
+    // Get the UTC time from the Date object (since it represents local time initially)
+    const utcYear = dt.getUTCFullYear();
+    const utcMonth = ('0' + (dt.getUTCMonth() + 1)).slice(-2);  // Month is 0-based
+    const utcDay = ('0' + dt.getUTCDate()).slice(-2);
+    const utcHour = ('0' + dt.getUTCHours()).slice(-2);
+    const utcMinute = ('0' + dt.getUTCMinutes()).slice(-2);
+    const utcSecond = ('0' + dt.getUTCSeconds()).slice(-2);
+
+    // Return the formatted time in iCalendar format (UTC time with Z at the end)
+    const formattedTime = `${utcYear}${utcMonth}${utcDay}T${utcHour}${utcMinute}${utcSecond}Z`;
+    return formattedTime;
+}
+
+function generateUID() {
+    return 'uid-' + Date.now();
+}
+
+// The function to trigger ICS download when a row is clicked
+function downloadICS(eventTitle, eventDate, startTime, endTime) {
+    const icsLink = generateICSLink(eventTitle, eventDate, startTime, endTime);
+    const link = document.createElement('a');
+    link.href = icsLink;
+    link.click();
+}
+
+function drawTrajectorySVG(svgContainer, selectedPass, scaleFactor = 0.17) {
+    const centerX = 50 * scaleFactor;
+    const centerY = 50 * scaleFactor;
+    const radius = 40 * scaleFactor; // 缩放半径
+
+    // 根据仰角调整半径
+    const getRadiusForElevation = (elevation) => {
+        return radius * (90 - elevation) / 90; // 仰角映射为半径比例
+    };
+
+    const entryRadius = getRadiusForElevation(0);
+    const exitRadius = getRadiusForElevation(0);
+    const highestRadius = getRadiusForElevation(selectedPass.highest?.elevation || 0);
+
+    // 将方位角转换为绘图坐标
+    const toCanvasCoords = (azimuth, distance) => {
+        const angle = (90 - azimuth) * (Math.PI / 180); // 旋转方位角，0°指向北方
+        const x = centerX + distance * Math.cos(angle);
+        const y = centerY - distance * Math.sin(angle);
+        return { x, y };
+    };
+
+    const { x: entryX, y: entryY } = toCanvasCoords(selectedPass.entry?.azimuth, entryRadius);
+    const { x: exitX, y: exitY } = toCanvasCoords(selectedPass.exit?.azimuth, exitRadius);
+    const { x: highestX, y: highestY } = toCanvasCoords(selectedPass.highest?.azimuth, highestRadius);
+
+    // 清空 SVG 容器内容
+    while (svgContainer.firstChild) {
+        svgContainer.removeChild(svgContainer.firstChild);
+    }
+
+    // 绘制外部圆圈
+    const outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    outerCircle.setAttribute('cx', centerX);
+    outerCircle.setAttribute('cy', centerY);
+    outerCircle.setAttribute('r', radius);
+    outerCircle.setAttribute('stroke', 'white');
+    outerCircle.setAttribute('stroke-width', '1');
+    outerCircle.setAttribute('fill', 'none');
+    svgContainer.appendChild(outerCircle);
+
+    // 绘制轨迹曲线
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const pathData = `M ${entryX},${entryY} Q ${highestX},${highestY} ${exitX},${exitY}`;
+    path.setAttribute('d', pathData);
+    path.setAttribute('stroke', 'white');
+    path.setAttribute('stroke-width', '1');
+    path.setAttribute('fill', 'none');
+    svgContainer.appendChild(path);
+}
+
+
+
+document.addEventListener('click', function(event) {
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('satelliteDropdown');
+
+    // 检查点击目标是否是输入框或下拉列表的一部分
+    if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none'; // 隐藏下拉菜单
+    }
+});
+
+//判断白天黑夜
+
+
+window.goatcounter = {
+    path: function(p) { return location.host + p }
+}

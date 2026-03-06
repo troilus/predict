@@ -1,0 +1,325 @@
+  body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background-color: #f2f2f7;
+      position: relative;
+                  -webkit-font-smoothing: antialiased;
+  }
+
+#doppler-info {
+    font-size: 12px;
+    color: #000000;
+}
+
+.timer-btn {
+  padding: 12px 20px;
+  font-size: 12px;
+  background-color: #2e71d1;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
+    margin-top: 5px;  /* 上间距 */
+        margin-bottom: 10px;  /* 上间距 */
+}
+
+
+
+
+
+
+
+
+.timer-btn:hover {
+  background-color: #2e71d1;
+}
+
+.timer-btn.running {
+  background-color: #ff9800;
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;  /* 按钮之间的间距 */
+}
+
+
+
+
+          /* 默认情况下，链接颜色为黑色 */
+  .link {
+    color: #333 ;
+    text-decoration: none;
+  }
+
+
+#progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: #e0e0e0; /* 背景色 */
+    position: relative;
+    /* margin: 10px 0; 为元素之间留出间距 */
+}
+
+#progress-bar {
+    height: 100%;
+    width: 0%; /* 初始宽度为 0 */
+    background-color: #76c7c0; /* 进度条颜色 */
+    transition: width 0.5s ease; /* 平滑动画效果 */
+}
+
+
+#elapsed-time, #remaining-time {
+    color: inherit; /* 继承父元素颜色 */
+}
+#download-link {
+  display: none;
+  text-decoration: none;
+  color: black;
+}
+
+
+                    #made {
+    margin-top: 20px; /* Increases the space above the element */
+    font-size: 14px;  /* Optional: Adjust font size */
+}
+
+
+  #info-bar {
+      width: 100%;
+      background-color: #2e71d1;
+      color: white;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      line-height: 0.6;  /* 新增：减小行高 */
+  }
+
+  #canvas-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 40px 0;
+  }
+
+#trajectory-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 3;
+            transform-origin: center;
+            transform: rotate(0deg);
+
+        }
+  #trajectory-svg, .compass {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 300px;
+      height: 300px;
+  }
+
+  .compass {
+      z-index: -1; /* 背景层 */
+  }
+
+
+
+
+  #satorbitpointsvg {
+      z-index: 3; /* 轨迹层 */
+  }
+        .compass-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg);
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+.arrow {
+    position: absolute;
+    width: 0;              /* 宽度设为 0 */
+    height: 0;             /* 高度设为 0 */
+    top: -5px;            /* 根据需要调整垂直位置 */
+    left: 50%;             /* 水平居中 */
+    transform: translateX(-50%);
+    border-left: 7px solid transparent; /* 左侧透明 */
+    border-right: 7px solid transparent; /* 右侧透明 */
+    border-top: 15px solid red;       /* 下边框为红色，形成三角形 */
+    z-index: 3;            /* 保持在最前面 */
+}
+
+
+
+
+          #satorbitpoint {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(0deg);
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+        }
+
+
+
+
+
+
+ .info-btn, .record-btn, .download-btn {
+        padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    background-color: #2e71d1;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    -webkit-tap-highlight-color: transparent;
+    margin-top: 5px;  /* 上间距 */
+        margin-bottom: 10px;  /* 上间距 */
+
+  }
+
+
+/* Basic styling for the popup */
+#popup {
+  position: fixed;
+  top: 50%;  /* 定位在页面的垂直中间 */
+  left: 50%; /* 定位在页面的水平中间 */
+  transform: translate(-50%, -50%); /* 通过平移将其从中心调整到完全居中 */
+  display: none; /* 初始隐藏 */
+  z-index: 4;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+
+}
+
+#popup .popup-content {
+  position: relative;
+  padding: 20px;
+  max-width: 600px;
+  max-height: 80%;
+  overflow-y: auto;
+  background-color: #f2f2f7;
+  border-radius: 10px;
+}
+
+#close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 20px;
+
+  font-weight: bold;
+}
+
+#satellite-feqinfo {
+  max-height: 400px; /* 设定最大高度 */
+  overflow-y: auto;  /* 超出时出现垂直滚动条 */
+}
+
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #2c2c2c; /* 深色模式下的背景色 */
+    }
+
+    #info-bar {
+        background-color: #0a1649; /* 深色模式下的顶部信息栏背景色 */
+    }
+
+        #doppler-info {
+        color: #ffffff;
+    }
+
+
+
+    #progress-bar-container {
+        background-color: #444; /* 深色模式下的进度条背景色 */
+    }
+
+    #progress-bar {
+        background-color: #56c6c6; /* 深色模式下的进度条颜色 */
+    }
+
+    #download-link {
+        color: #ddd; /* 深色模式下下载链接的颜色 */
+    }
+
+    #popup .popup-content {
+        background-color: #333; /* 深色模式下弹窗背景色 */
+        color: #fff; /* 深色模式下的文字颜色 */
+    }
+
+    #satellite-feqinfo {
+        color: #ccc; /* 深色模式下信息区域的文字颜色 */
+    }
+                    .link {
+      color: #ddd; /* 或者选择其他合适的颜色，如蓝色 */
+    }
+
+                    #made {
+      color: #ddd; /* 或者选择其他合适的颜色，如蓝色 */
+}
+
+.arrow {
+
+        border-top-color: #94ff00;       /* 下边框为红色，形成三角形 */
+
+}
+
+    .compass-circle-outer {
+        stroke: white;
+    }
+    
+    .compass-circle-30,
+    .compass-circle-60 {
+        stroke: gray;
+    }
+    
+    .direction-text {
+        fill: white;
+    }
+    
+    .compass-center {
+        fill: white;
+    }
+    
+    .tick-marks line {
+        stroke: lightgray;
+    }
+
+    /* 手动输入框在深色模式下的样式 */
+    #manual-frequency {
+        background-color: #444;
+        color: white;
+        border: 1px solid #666;
+    }
+    
+    #manual-frequency::placeholder {
+        color: #999;
+    }
+    
+    #manual-frequency:focus {
+        border-color: #2e71d1;
+        outline: none;
+    }
+
+
+}
