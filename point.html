@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+    <link rel="manifest" href="/src/manifest.json">
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -443,7 +443,7 @@
 
 
 
-    <script src="satellite.js"></script>
+    <script src="/src/satellite.js"></script>
 
   <script>
     //刻度
@@ -1623,7 +1623,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Function to fetch data from the local JSON file
 function fetchSatelliteData(noradCatId, selectedsat) {
   // Load the JSON data from the local file
-  fetch('transmitters.json')
+  fetch('/satdata/transmitters.json')
     .then(response => {
       if (!response.ok) {
         throw new Error('Failed to load transmitters.json');

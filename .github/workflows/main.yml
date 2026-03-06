@@ -17,22 +17,22 @@ jobs:
       # 下载satonline.txt
       - name: Download satonline.txt
         run: |
-          curl -k -o satonline.txt https://r4uab.ru/satonline.txt
+          curl -k -o satdata/satonline.txt https://r4uab.ru/satonline.txt
       # 修改ASRTU-1名称  
       - name: Update ASRTU-1 name  
-        run: |  
-          sed -i 's/ASRTU-1 (RS64S\/BJ2CR)/ASRTU-1 (RS64S\/BJ2CR\/AO-123)/g' satonline.txt  
+        run: |
+          sed -i 's/ASRTU-1 (RS64S\/BJ2CR)/ASRTU-1 (RS64S\/BJ2CR\/AO-123)/g' satdata/satonline.txt  
       
       # 下载transmitters.json
       - name: Download transmitters.json
         run: |
-          curl -o transmitters.json "https://db.satnogs.org/api/transmitters/?format=json&status=active"
+          curl -o satdata/transmitters.json "https://db.satnogs.org/api/transmitters/?format=json&status=active"
       
       # 可选：将文件提交回仓库
       - name: Commit changes
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git add satonline.txt transmitters.json
+          git add satdata/satonline.txt satdata/transmitters.json
           git commit -m "Updated files on $(date)"
           git push

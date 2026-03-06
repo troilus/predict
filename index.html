@@ -19,11 +19,10 @@
 <meta http-equiv="Expires" content="0">
 
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <!--<link href="/Artalk.css" rel="stylesheet">-->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+    <link rel="manifest" href="/src/manifest.json">
     <title>🛰ORBIT</title>
     <style>
         :root {
@@ -371,7 +370,7 @@ tbody th, tbody td {
 
         <!-- 语言切换按钮 -->
     <div class="lang-toggle">
-         <a href="#" id="langZH" class="active">ZH</a>|<a href="#" id="langEN">EN</a>|<a href="#" id="howToUseLink" target="_blank" class="link">HOW TO USE</a>|<a href="sstv-decoder/">SSTV DECODE</a>
+         <a href="#" id="langZH" class="active">ZH</a>|<a href="#" id="langEN">EN</a>|<a href="#" id="howToUseLink" target="_blank" class="link">HOW TO USE</a>|<a href="/tools/sstv-decoder/">SSTV DECODE</a>
 
     </div>
 
@@ -451,10 +450,10 @@ tbody th, tbody td {
 
 
 
-    <script src="satellite.js"></script>
-        <script src="suncalc.min.js"></script>
-<script src="/require.js"></script>
-<script src="/lightstreamer.min.js"></script>
+    <script src="/src/satellite.js"></script>
+        <script src="/src/suncalc.min.js"></script>
+<script src="/src/require.js"></script>
+<script src="/src/lightstreamer.min.js"></script>
 
     <script>
 
@@ -753,7 +752,7 @@ if ( currentNotesInfo.includes('${locatormg}')) {
 
 
             //fetch('https://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
-            fetch('/satonline.txt')
+            fetch('/satdata/satonline.txt')
                 .then(response => {
 
 
@@ -934,7 +933,7 @@ function calculateMaidenhead(latitude, longitude,locationText) {
 //        
 function gettleversion() {
     return new Promise((resolve, reject) => {
-        fetch('/satonline.txt')
+        fetch('/satdata/satonline.txt')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('网络响应失败');
