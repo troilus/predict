@@ -370,18 +370,24 @@ if ( currentNotesInfo.includes('${locatormg}')) {
 // UTC 勾选框事件监听器
 document.getElementById('utcFilter').addEventListener('change', function() {
     const currentDisplayType = localStorage.getItem('currentDisplayType');
+    const passInfo = document.getElementById('passInfo');
+
+    // 只有在当前显示表格时才重新渲染
+    if (!passInfo || passInfo.innerHTML.trim() === '') {
+        return;
+    }
 
     if (currentDisplayType === 'single') {
         // 重新渲染单个卫星表格
         const groupedPasses = JSON.parse(localStorage.getItem('currentGroupedPasses'));
         if (groupedPasses) {
-            document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTML(groupedPasses);
+            passInfo.innerHTML = formatGroupedPassesToHTML(groupedPasses);
         }
     } else if (currentDisplayType === 'favorite') {
         // 重新渲染收藏列表表格
         const allGroupedPasses = JSON.parse(localStorage.getItem('currentAllGroupedPasses'));
         if (allGroupedPasses) {
-            document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTMLfavorite(allGroupedPasses);
+            passInfo.innerHTML = formatGroupedPassesToHTMLfavorite(allGroupedPasses);
         }
     }
 });
