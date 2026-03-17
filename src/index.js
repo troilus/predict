@@ -8,6 +8,7 @@
                 timeFilterLabel: "仅19:00~23:59",
                 daysLabel: "天数:",
                 elevationThresholdLabel: "最高仰角≥",
+                utcFilterLabel: "UTC时间",
                 notesInfo: "ℹ️点击仰角: 实时对星<br>⏰点击开始时间: 加入日历提醒",
                 placeholder: "🔎搜索卫星...",
                 calculatePass:"显示选中",
@@ -21,7 +22,7 @@
         noFavorites: "⚠还没有收藏的卫星",
                     nolocation:"⚠无法获取位置，请检查权限设置",
         calculating:"🔎预测中...",
-        howToUseUrl: "https://github.com/troilus/predict/blob/main/HowToUseZh.md", 
+        howToUseUrl: "https://github.com/troilus/predict/blob/main/HowToUseZh.md",
         tableHeaders: {
             date: "日期",
             start: "开始",
@@ -37,37 +38,37 @@
         },
 
             en: {
-                location: "📍${latitude}, 🗺${longitude} ${locatormg} 📅TLE: ${gettleversion}",
-                locationDefault: "❌Location: Not Retrieved",
-                timeFilterLabel: "19:00~23:59 Only",
-                elevationThresholdLabel: "MAX. El ≥",
-                daysLabel: "Days:",
-                notesInfo: "ℹ️Click the El to view the orbit page<br>⏰Click the Date to add the event to calendar",
-                placeholder: "🔎Search satellites...",
-                 calculatePass:"Show selected",
-                                 noTLE:"⚠TLE not found",
-                                  unabletocalc:"⚠Please select a satellite and confirm that the location has been determined",
-                   noPassesInfo: "⚠No passes found for the next 3 days under the current conditions",
-                           noFavorites: "⚠There is no favorite SAT",
-                           calculating:"🔎Calculating...",
-                                       nolocation:"⚠Unable to access location, please check the permission setting",
-                                chatonline:"Online Chat",
-                                 closeonline:"Close Chat",
-                                 sstveventsinfo:"ongoing SSTV events",
-                                 howToUseUrl: "https://github.com/troilus/predict/blob/main/HowToUse.md", 
-        tableHeaders: {
-            date: "Date",
-            start: "Start",
-            highest: "Max. El",
-            end: "End",
-            time: "Time",
-            azimuth: "Az",
-            elevation: "El",
-
-                        satellite:"SAT"
-        }
-        }
-        };
+                            location: "📍${latitude}, 🗺${longitude} ${locatormg} 📅TLE: ${gettleversion}",
+                            locationDefault: "❌Location: Not Retrieved",
+                            timeFilterLabel: "19:00~23:59",
+                            elevationThresholdLabel: "MAX. El ≥",
+                            daysLabel: "Days:",
+                            utcFilterLabel: "UTC Time",
+                            notesInfo: "ℹ️Click the El to view the orbit page<br>⏰Click the Date to add the event to calendar",
+                            placeholder: "🔎Search satellites...",
+                             calculatePass:"Show selected",
+                                             noTLE:"⚠TLE not found",
+                                              unabletocalc:"⚠Please select a satellite and confirm that the location has been determined",
+                               noPassesInfo: "⚠No passes found for the next 3 days under the current conditions",
+                                       noFavorites: "⚠There is no favorite SAT",
+                                       calculating:"🔎Calculating...",
+                                                   nolocation:"⚠Unable to access location, please check the permission setting",
+                                            chatonline:"Online Chat",
+                                             closeonline:"Close Chat",
+                                             sstveventsinfo:"ongoing SSTV events",
+                                             howToUseUrl: "https://github.com/troilus/predict/blob/main/HowToUse.md",
+                    tableHeaders: {
+                        date: "Date",
+                        start: "Start",
+                        highest: "Max. El",
+                        end: "End",
+                        time: "Time",
+                        azimuth: "Az",
+                        elevation: "El",
+            
+                                    satellite:"SAT"
+                    }
+                        }        };
 
 // 获取浏览器支持的语言列表
 const userLanguages = navigator.languages || [navigator.language];
@@ -176,6 +177,7 @@ if ( currentNotesInfo.includes('${locatormg}')) {
             document.getElementById('timeFilterLabel').textContent = translations[lang].timeFilterLabel;
             document.getElementById('daysLabel').textContent = translations[lang].daysLabel;
             document.getElementById('elevationThresholdLabel').textContent = translations[lang].elevationThresholdLabel;
+            document.getElementById('utcFilterLabel').textContent = translations[lang].utcFilterLabel;
             /*document.getElementById('sstveventsbutton').textContent = translations[lang].sstveventsinfo;*/
 
 
@@ -363,8 +365,26 @@ if ( currentNotesInfo.includes('${locatormg}')) {
             });
 
 
-              
         });
+
+// UTC 勾选框事件监听器
+document.getElementById('utcFilter').addEventListener('change', function() {
+    const currentDisplayType = localStorage.getItem('currentDisplayType');
+
+    if (currentDisplayType === 'single') {
+        // 重新渲染单个卫星表格
+        const groupedPasses = JSON.parse(localStorage.getItem('currentGroupedPasses'));
+        if (groupedPasses) {
+            document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTML(groupedPasses);
+        }
+    } else if (currentDisplayType === 'favorite') {
+        // 重新渲染收藏列表表格
+        const allGroupedPasses = JSON.parse(localStorage.getItem('currentAllGroupedPasses'));
+        if (allGroupedPasses) {
+            document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTMLfavorite(allGroupedPasses);
+        }
+    }
+});
 
 
 // 监听位置权限状态变化  
@@ -779,6 +799,10 @@ function populateDropdown(satellites) {
                 const groupedPasses = groupPasses(passes);
                 const savedSatelliteDataToLocalStorage=saveSatelliteDataToLocalStorage(groupedPasses, satelliteName)
                 document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTML(groupedPasses);
+
+                // 保存当前显示的数据类型和内容
+                localStorage.setItem('currentDisplayType', 'single');
+                localStorage.setItem('currentGroupedPasses', JSON.stringify(groupedPasses));
             } else {
                 document.getElementById('passInfo').innerHTML =translations[currentLang].unabletocalc;
             }
@@ -843,6 +867,10 @@ function populateDropdown(satellites) {
 
 
                 document.getElementById('passInfo').innerHTML = formatGroupedPassesToHTMLfavorite(allGroupedPasses);
+
+                // 保存当前显示的数据类型和内容
+                localStorage.setItem('currentDisplayType', 'favorite');
+                localStorage.setItem('currentAllGroupedPasses', JSON.stringify(allGroupedPasses));
              }else {
                 document.getElementById('passInfo').innerHTML =translations[currentLang].unabletocalc;
             }
@@ -1133,15 +1161,52 @@ function formatGroupedPassesToHTML(groupedPasses) {
     if (groupedPasses.length === 0 ) {
         // Hide the "notesInfo" div on the page
         document.getElementById("notesInfo").style.display = "none";
-        
+
         return `<p>${translations[currentLang].noPassesInfo}</p>`;
     } else {
         // Show the "notesInfo" div again if there are grouped passes
         document.getElementById("notesInfo").style.display = "block";
-        
+
         // Continue with the regular pass formatting
         // Add your logic for formatting passes here, if any
     }
+
+    // 获取 UTC 勾选状态
+    const useUTC = document.getElementById('utcFilter').checked;
+
+    // 时间格式化函数
+    const formatTime = (time, includeSeconds = false) => {
+        if (!time) return "未知时间";
+        const date = new Date(time);
+        if (useUTC) {
+            // 显示 UTC 时间（不显示UTC后缀）
+            const options = { hour: '2-digit', minute: '2-digit', hour12: false };
+            if (includeSeconds) {
+                options.second = '2-digit';
+            }
+            return date.toLocaleTimeString('en-US', { ...options, timeZone: 'UTC' });
+        } else {
+            // 显示本地时间
+            const options = { hour: '2-digit', minute: '2-digit', hour12: false };
+            if (includeSeconds) {
+                options.second = '2-digit';
+            }
+            return date.toLocaleTimeString('zh-CN', options);
+        }
+    };
+
+    // 日期格式化函数
+    const formatDate = (time) => {
+        if (!time) return "未知时间";
+        const date = new Date(time);
+        if (useUTC) {
+            // 显示 UTC 日期
+            return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', timeZone: 'UTC' });
+        } else {
+            // 显示本地日期
+            return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+        }
+    };
 
     let html = `
         <table border="1" style="border-collapse: collapse; width: 100%; text-align: center;">
@@ -1167,28 +1232,26 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
 
     groupedPasses.forEach((pass, index) => {
-        const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
-        const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const entrydate = formatDate(pass.entry?.time);
+        const entryTime = formatTime(pass.entry?.time, true);
         const entryAzimuth = typeof pass.entry?.azimuth === "number" ? `${pass.entry.azimuth.toFixed(2)}°` : "未知";
-        
-        const entryHour = new Date(pass.entry.time).getHours();
 
-
-            const now = new Date();
-    const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
-
-
+        const now = new Date();
+        const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
 
         // 获取当地的日出和日落时间
         const latitude = parseFloat(localStorage.getItem('latitude'));
         const longitude = parseFloat(localStorage.getItem('longitude'));
-        const sunTimes = SunCalc.getTimes(pass.entry.time, latitude, longitude);
+
+        // 确保 pass.entry.time 是 Date 对象用于背景色计算
+        const entryDateObj = new Date(pass.entry?.time);
+        const sunTimes = SunCalc.getTimes(entryDateObj, latitude, longitude);
         const sunrise = sunTimes.sunrise;
         const sunset = sunTimes.sunset;
 
         // 判断 entryTime 是否在白天或夜晚
         let rowClass = "";
-        if (pass.entry.time >= sunrise && pass.entry.time <= sunset) {
+        if (entryDateObj >= sunrise && entryDateObj <= sunset) {
             rowClass = "day";  // 白天
         } else {
             rowClass = "night";  // 夜晚
@@ -1209,11 +1272,11 @@ function formatGroupedPassesToHTML(groupedPasses) {
             addManualInputButton('N/A');
         });
 
-        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const highestTime = formatTime(pass.highest?.time, true);
         const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
         const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
 
-        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const exitTime = formatTime(pass.exit?.time, true);
         const exitAzimuth = typeof pass.exit?.azimuth === "number" ? `${pass.exit.azimuth.toFixed(2)}°` : "未知";
 
         // Generate a placeholder for the canvas
@@ -1313,12 +1376,49 @@ function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
         return `<p>${translations[currentLang].noPassesInfo}</p>`;
     } else {
         // Show the "notesInfo" div again if there are grouped passes
-   
+
         document.getElementById("notesInfo").style.display = "block";
-        
+
         // Continue with the regular pass formatting
         // Add your logic for formatting passes here, if any
     }
+
+    // 获取 UTC 勾选状态
+    const useUTC = document.getElementById('utcFilter').checked;
+
+    // 时间格式化函数
+    const formatTime = (time, includeSeconds = false) => {
+        if (!time) return "未知时间";
+        const date = new Date(time);
+        if (useUTC) {
+            // 显示 UTC 时间（不显示UTC后缀）
+            const options = { hour: '2-digit', minute: '2-digit', hour12: false };
+            if (includeSeconds) {
+                options.second = '2-digit';
+            }
+            return date.toLocaleTimeString('en-US', { ...options, timeZone: 'UTC' });
+        } else {
+            // 显示本地时间
+            const options = { hour: '2-digit', minute: '2-digit', hour12: false };
+            if (includeSeconds) {
+                options.second = '2-digit';
+            }
+            return date.toLocaleTimeString('zh-CN', options);
+        }
+    };
+
+    // 日期格式化函数
+    const formatDate = (time) => {
+        if (!time) return "未知时间";
+        const date = new Date(time);
+        if (useUTC) {
+            // 显示 UTC 日期
+            return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', timeZone: 'UTC' });
+        } else {
+            // 显示本地日期
+            return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+        }
+    };
 
 
     let allPasses = [];
@@ -1331,15 +1431,11 @@ function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
             <thead>
                 <tr>
 
-                    <th rowspan="2">${translations[currentLang].tableHeaders.date}</th>
-                    <th rowspan="2">${translations[currentLang].tableHeaders.start}</th>
-                    <th rowspan="2">${translations[currentLang].tableHeaders.satellite}</th>  <!-- 新增卫星名称列 -->
-                    <th colspan="2">${translations[currentLang].tableHeaders.highest}</th>
-                    <th rowspan="2">${translations[currentLang].tableHeaders.end}</th>
-                </tr>
-                <tr>
-                    <th>${translations[currentLang].tableHeaders.time}</th>
-                    <th>${translations[currentLang].tableHeaders.elevation}</th>
+                    <th>${translations[currentLang].tableHeaders.date}</th>
+                    <th>${translations[currentLang].tableHeaders.start}</th>
+                    <th>${translations[currentLang].tableHeaders.satellite}</th>
+                    <th>${translations[currentLang].tableHeaders.highest}</th>
+                    <th>${translations[currentLang].tableHeaders.end}</th>
                 </tr>
             </thead>
             <tbody>
@@ -1396,28 +1492,31 @@ const satelliteName = item.satelliteName;
         const shortenedSatelliteName = satelliteName.replace(/\s+/g, '').slice(0, 5) + (satelliteName.length > 5 ? '...' : '');
         const pass = item.pass;
 
-        const entrydate = pass.entry?.time ? new Date(pass.entry.time).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) : "未知时间";
-        const entryTime = pass.entry?.time ? new Date(pass.entry.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : "未知时间";
-        
+        const entrydate = formatDate(pass.entry?.time);
+        const entryTime = formatTime(pass.entry?.time, false);
+
         const now = new Date();
         const isCurrent = pass.entry.time && pass.exit.time && now >= pass.entry.time && now <= pass.exit.time;
 
         const latitude = parseFloat(localStorage.getItem('latitude'));
         const longitude = parseFloat(localStorage.getItem('longitude'));
-        const sunTimes = SunCalc.getTimes(pass.entry.time, latitude, longitude);
+
+        // 确保 pass.entry.time 是 Date 对象用于背景色计算
+        const entryDateObj = new Date(pass.entry?.time);
+        const sunTimes = SunCalc.getTimes(entryDateObj, latitude, longitude);
         const sunrise = sunTimes.sunrise;
         const sunset = sunTimes.sunset;
 
         let rowClass = "";
-        if (pass.entry.time >= sunrise && pass.entry.time <= sunset) {
+        if (entryDateObj >= sunrise && entryDateObj <= sunset) {
             rowClass = "day";  // 白天
         } else {
             rowClass = "night";  // 夜晚
         }
 
-        const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
+        const highestTime = formatTime(pass.highest?.time, true);
         const highestElevation = typeof pass.highest?.elevation === "number" ? `${pass.highest.elevation.toFixed(2)}°` : "未知";
-        const exitTime = pass.exit?.time ? new Date(pass.exit.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit'}) : "未知时间";
+        const exitTime = formatTime(pass.exit?.time, false);
 
         // Generate a placeholder for the SVG
         const chartId = `chart-${index}`;
@@ -1446,7 +1545,6 @@ const satelliteName = item.satelliteName;
                     </a>
                 </td>
                 <td style="font-size: 50%; color: #ffffbc; font-weight: bold;">${satelliteName}</td> <!-- 设置字体大小为50% -->
-                <td>${highestTime}</td>
                 <td ${firstCellStyle}>
   <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
     ${highestElevation}
@@ -1468,8 +1566,6 @@ const satelliteName = item.satelliteName;
                     </a>
                 </td>
                 <td style="font-size: 50%; color: #ffffbc; font-weight: bold;">${satelliteName}</td> <!-- 设置字体大小为50% -->
-
-                <td>${highestTime}</td>
                 <td ${firstCellStyle}>
   <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
     ${highestElevation}
