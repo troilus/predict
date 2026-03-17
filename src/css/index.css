@@ -324,7 +324,7 @@ tbody th, tbody td {
     text-decoration: underline;
     cursor: pointer;
     font-size: 11px;
-    margin-left: 8px;
+    margin-left: 0px;
     padding: 0;
 }
 

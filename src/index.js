@@ -1377,6 +1377,13 @@ allPasses.sort((a, b) => {
     return a.sortKey - b.sortKey;  // 通过时间戳进行比较，按时间排序
 });
 
+// 获取星期几的缩写
+const getWeekdayAbbr = (date) => {
+    if (!date) return '';
+    const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return weekdays[new Date(date).getDay()];
+};
+
 
 
 
@@ -1451,9 +1458,10 @@ const satelliteName = item.satelliteName;
         `;
         } else {
             // If it's a new entrydate, show the date and store it for future comparison
+            const weekdayAbbr = getWeekdayAbbr(pass.entry?.time);
         html += `
             <tr class="${rowClass}">
-                            <td>${entrydate}</td>
+                            <td>${entrydate}<span style="font-size: 0.5em;">${weekdayAbbr}</span></td>
                 <td>
                     <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">
                         ${entryTime}
