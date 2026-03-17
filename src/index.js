@@ -238,13 +238,27 @@ if ( currentNotesInfo.includes('${locatormg}')) {
 
 
 
-            document.getElementById('addressinfo').textContent = translations[currentLang].locationDefault;
             localStorage.removeItem('selectedSatelliteName');
             localStorage.removeItem('calculated');
             localStorage.removeItem('selectedSatelliteTLE1');
             localStorage.removeItem('selectedSatelliteTLE2');
             localStorage.removeItem('selectedorbit');
             localStorage.removeItem('freqinfo');
+
+            // 检查 localStorage 中是否已有位置信息
+            const cachedLat = localStorage.getItem('latitude');
+            const cachedLon = localStorage.getItem('longitude');
+            const cachedAlt = localStorage.getItem('altitude');
+
+            if (cachedLat && cachedLon) {
+                // 如果有缓存的位置信息，先显示一个默认提示
+                const latitudefix = parseFloat(cachedLat).toFixed(2);
+                const longitudefix = parseFloat(cachedLon).toFixed(2);
+                document.getElementById('addressinfo').textContent = `📍${latitudefix}, ${longitudefix} 📅TLE: 加载中...`;
+            } else {
+                // 如果没有缓存，显示默认值
+                document.getElementById('addressinfo').textContent = translations[currentLang].locationDefault;
+            }
 
 
 
@@ -253,6 +267,23 @@ if ( currentNotesInfo.includes('${locatormg}')) {
             // Get tleversion asynchronously
             gettleversion().then(tleversion => {
 
+                // 检查 localStorage 中是否已有位置信息
+                const cachedLat = localStorage.getItem('latitude');
+                const cachedLon = localStorage.getItem('longitude');
+                const cachedAlt = localStorage.getItem('altitude');
+
+                if (cachedLat && cachedLon) {
+                    // 如果有缓存的位置信息，显示它
+                    const latitudefix = parseFloat(cachedLat).toFixed(2);
+                    const longitudefix = parseFloat(cachedLon).toFixed(2);
+                    const locationText = translations[currentLang].location
+                        .replace('${latitude}', latitudefix)
+                        .replace('${longitude}', longitudefix)
+                        .replace('${gettleversion}', tleversion);
+                    calculateMaidenhead(parseFloat(cachedLat), parseFloat(cachedLon), locationText);
+                    // 添加手动输入按钮
+                    addManualInputButton(tleversion);
+                }
 
           if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
@@ -278,17 +309,28 @@ if ( currentNotesInfo.includes('${locatormg}')) {
         .replace('${longitude}', longitudefix)
         .replace('${gettleversion}', tleversion);
         calculateMaidenhead(latitude, longitude,locationText);
-        
 
-
-
-    
+                // 定位成功后也添加手动输入按钮
+                addManualInputButton(tleversion);
                 }, function(error) {
-                    // 修改点1: 当定位失败时，显示提示和手动输入按钮
-                    showManualLocationPrompt(tleversion);
+                    // 定位失败时，检查 localStorage 中是否已有位置信息
+                    const cachedLat = localStorage.getItem('latitude');
+                    const cachedLon = localStorage.getItem('longitude');
+
+                    if (cachedLat && cachedLon) {
+                        // 如果有缓存的位置信息，保持显示（不显示错误提示）
+                        // 不需要做任何事情，因为前面已经显示过了
+                    } else {
+                        // 如果没有缓存，显示错误提示
+                        showManualLocationPrompt(tleversion);
+                    }
+                    // 定位失败后也添加手动输入按钮
+                    addManualInputButton(tleversion);
                 });
             } else {
                 document.getElementById('addressinfo').textContent = '浏览器不支持地理定位。';
+                // 浏览器不支持地理定位时，也添加手动输入按钮
+                addManualInputButton(tleversion);
             }
 
 
@@ -369,9 +411,23 @@ function requestLocationUpdate() {
                     .replace('${longitude}', longitudefix)  
                     .replace('${gettleversion}', tleversion);  
                 calculateMaidenhead(latitude, longitude, locationText);  
-            }, function(error) {  
-                // 定位失败也调用手动输入提示
-                showManualLocationPrompt(tleversion);
+                
+                // 定位成功后也添加手动输入按钮
+                addManualInputButton(tleversion);
+            }, function(error) {
+                // 定位失败时，检查 localStorage 中是否已有位置信息
+                const cachedLat = localStorage.getItem('latitude');
+                const cachedLon = localStorage.getItem('longitude');
+
+                if (cachedLat && cachedLon) {
+                    // 如果有缓存的位置信息，保持显示（不显示错误提示）
+                    // 不需要做任何事情
+                } else {
+                    // 如果没有缓存，显示错误提示
+                    showManualLocationPrompt(tleversion);
+                }
+                // 定位失败后也添加手动输入按钮
+                addManualInputButton(tleversion);
             });  
         }  
     });  
@@ -380,8 +436,20 @@ function requestLocationUpdate() {
 // 修改点2: 新增函数，用于显示手动输入提示并处理网格坐标
 function showManualLocationPrompt(tleversion) {
     const notesDiv = document.getElementById('notesInfo');
+    notesDiv.innerHTML = translations[currentLang].nolocation;
+}
+
+// 新增函数：添加手动输入按钮（始终显示）
+function addManualInputButton(tleversion) {
+    const notesDiv = document.getElementById('notesInfo');
+    
+    // 检查是否已经添加了手动输入按钮，避免重复添加
+    if (notesDiv.querySelector('.manual-button')) {
+        return;
+    }
+    
     const manualButton = document.createElement('button');
-    manualButton.textContent = currentLang === 'zh' ? '手动输入' : 'Manual';
+    manualButton.textContent = currentLang === 'zh' ? '📍手动输入定位' : '📍Manual Location';
     manualButton.className = 'manual-button';
     manualButton.onclick = function() {
         const grid = prompt(currentLang === 'zh' ? '请输入6位梅登黑德网格坐标 (例如: OM89av)' : 'Enter 6-character Maidenhead grid (e.g: OM89av)');
@@ -402,6 +470,8 @@ function showManualLocationPrompt(tleversion) {
                     .replace('${gettleversion}', tleversion);
                 calculateMaidenhead(latitude, longitude, locationText);
                 notesDiv.innerHTML = translations[currentLang].notesInfo; // 恢复提示信息
+                // 重新添加手动输入按钮
+                addManualInputButton(tleversion);
             } else {
                 alert(currentLang === 'zh' ? '无效的网格坐标' : 'Invalid grid');
             }
@@ -409,8 +479,12 @@ function showManualLocationPrompt(tleversion) {
             alert(currentLang === 'zh' ? '格式错误，应为6位字符 (例如: OM89av)' : 'Invalid format, use 6 chars (e.g: OM89av)');
         }
     };
-    notesDiv.innerHTML = translations[currentLang].nolocation + ' ';
-    notesDiv.appendChild(manualButton);
+    
+    // 在原有内容后添加按钮
+    const buttonWrapper = document.createElement('div');
+    buttonWrapper.style.marginTop = '2px';
+    buttonWrapper.appendChild(manualButton);
+    notesDiv.appendChild(buttonWrapper);
 }
 
 // 修改点3: 新增函数，将6位网格坐标转换为经纬度（网格中心）
@@ -1127,6 +1201,13 @@ function formatGroupedPassesToHTML(groupedPasses) {
 
         lang=currentLang
         document.getElementById('notesInfo').innerHTML = translations[lang].notesInfo; // 更新 notesInfo 内容
+        
+        // 重新添加手动输入按钮
+        gettleversion().then(tleversion => {
+            addManualInputButton(tleversion);
+        }).catch(() => {
+            addManualInputButton('N/A');
+        });
 
         const highestTime = pass.highest?.time ? new Date(pass.highest.time).toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : "未知时间";
         const highestAzimuth = typeof pass.highest?.azimuth === "number" ? `${pass.highest.azimuth.toFixed(2)}°` : "未知";
@@ -1283,6 +1364,13 @@ function formatGroupedPassesToHTMLfavorite(allGroupedPasses) {
     });
         lang=currentLang
 document.getElementById('notesInfo').innerHTML = translations[lang].notesInfo; // 更新 notesInfo 内容
+
+// 重新添加手动输入按钮
+gettleversion().then(tleversion => {
+    addManualInputButton(tleversion);
+}).catch(() => {
+    addManualInputButton('N/A');
+});
 
 // 按照 sortKey 对所有 passes 进行排序
 allPasses.sort((a, b) => {

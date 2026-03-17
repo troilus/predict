@@ -32,14 +32,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
             -webkit-font-smoothing: antialiased;
         }
 
 #made {
-    
-    bottom: 20px; /* 距离底部20px */
-    left: 0;
-    right: 0;
+    margin-top: auto;
+    padding-top: 20px;
     font-size: 14px;
     text-align: center;
     line-height: 1.5; /* 增加行间距 */
@@ -83,7 +82,6 @@ justify-content: center;
             align-items: center;
 justify-content: center;
             width: 100%;
-                        margin-bottom: 10px;
                         font-size: 11px;
         }
 
@@ -326,7 +324,43 @@ tbody th, tbody td {
     text-decoration: underline;
     cursor: pointer;
     font-size: 11px;
-    margin-left: 5px;
+    margin-left: 8px;
     padding: 0;
+}
+
+/* 定位信息样式 */
+#addressinfo {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+/* 提示信息样式 */
+#notesInfo {
+    font-weight: bold;
+    padding-bottom: 5px;
+    font-size: 11px;
+    min-height: 20px;
+}
+
+/* 过境信息样式 */
+#passInfo {
+    width: 100%;
+    text-align: center;
+    margin-top: 5px;
+}
+
+/* 确保手动输入按钮在新行显示 */
+#notesInfo .manual-button {
+    display: inline-block;
+}
+
+/* 按钮包装器样式 */
+#notesInfo > div {
+    margin-top: 2px;
+}
+
+/* 当notesInfo有按钮时，确保它有足够的高度 */
+#notesInfo:has(.manual-button) {
+    display: block;
 }
 
