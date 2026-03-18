@@ -15,6 +15,10 @@
 		A1000011000000000000001 /* SatelliteCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000012000000000000001 /* SatelliteCalculator.swift */; };
 		A1000013000000000000001 /* Satellite.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000014000000000000001 /* Satellite.swift */; };
 		A1000015000000000000001 /* PassPrediction.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016000000000000001 /* PassPrediction.swift */; };
+		A1000017000000000000001 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000018000000000000001 /* LocationManager.swift */; };
+		A1000019000000000000001 /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020000000000000001 /* LanguageManager.swift */; };
+		A1000021000000000000001 /* FavoritesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022000000000000001 /* FavoritesManager.swift */; };
+		A1000023000000000000001 /* TrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026000000000000001 /* TrackingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,10 +31,14 @@
 		A1000012000000000000001 /* SatelliteCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatelliteCalculator.swift; sourceTree = "<group>"; };
 		A1000014000000000000001 /* Satellite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Satellite.swift; sourceTree = "<group>"; };
 		A1000016000000000000001 /* PassPrediction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassPrediction.swift; sourceTree = "<group>"; };
+		A1000018000000000000001 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		A1000020000000000000001 /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
+		A1000022000000000000001 /* FavoritesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesManager.swift; sourceTree = "<group>"; };
+		A1000026000000000000001 /* TrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A1000020000000000000001 /* Frameworks */ = {
+		A1000029000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -53,12 +61,16 @@
 			children = (
 				A1000002000000000000001 /* ORBITApp.swift */,
 				A1000004000000000000001 /* ContentView.swift */,
+				A1000006000000000000001 /* Assets.xcassets */,
 				A1000010000000000000001 /* TLEData.swift */,
 				A1000012000000000000001 /* SatelliteCalculator.swift */,
 				A1000014000000000000001 /* Satellite.swift */,
 				A1000016000000000000001 /* PassPrediction.swift */,
-				A1000006000000000000001 /* Assets.xcassets */,
-				A1000024000000000000001 /* Preview Content */,
+				A1000018000000000000001 /* LocationManager.swift */,
+				A1000020000000000000001 /* LanguageManager.swift */,
+				A1000022000000000000001 /* FavoritesManager.swift */,
+				A1000026000000000000001 /* TrackingView.swift */,
+				A1000025000000000000001 /* Preview Content */,
 			);
 			path = ORBIT;
 			sourceTree = "<group>";
@@ -84,10 +96,10 @@
 /* Begin PBXNativeTarget section */
 		A1000025000000000000001 /* ORBIT */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A1000026000000000000001 /* Build configuration list for PBXNativeTarget "ORBIT" */;
+			buildConfigurationList = A1000031000000000000001 /* Build configuration list for PBXNativeTarget "ORBIT" */;
 			buildPhases = (
 				A1000027000000000000001 /* Sources */,
-				A1000020000000000000001 /* Frameworks */,
+				A1000029000000000000001 /* Frameworks */,
 				A1000028000000000000001 /* Resources */,
 			);
 			buildRules = (
@@ -157,6 +169,10 @@
 				A1000011000000000000001 /* SatelliteCalculator.swift in Sources */,
 				A1000013000000000000001 /* Satellite.swift in Sources */,
 				A1000015000000000000001 /* PassPrediction.swift in Sources */,
+				A1000017000000000000001 /* LocationManager.swift in Sources */,
+				A1000019000000000000001 /* LanguageManager.swift in Sources */,
+				A1000021000000000000001 /* FavoritesManager.swift in Sources */,
+				A1000023000000000000001 /* TrackingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,7 +373,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A1000026000000000000001 /* Build configuration list for PBXNativeTarget "ORBIT" */ = {
+		A1000031000000000000001 /* Build configuration list for PBXNativeTarget "ORBIT" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A1000033000000000000001 /* Debug */,
