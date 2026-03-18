@@ -15,7 +15,10 @@ class SettingsManager: ObservableObject {
     private let utcTimeKey = "settings_utc_time"
     
     init() {
-        loadSettings()
+        // Delay loading to avoid SwiftUI update issues during initialization
+        DispatchQueue.main.async {
+            self.loadSettings()
+        }
     }
     
     func loadSettings() {

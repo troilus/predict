@@ -9,7 +9,10 @@ class FavoritesManager: ObservableObject {
     private let favoritesKey = "favorite_satellites"
 
     init() {
-        loadFavorites()
+        // Delay loading to avoid SwiftUI update issues during initialization
+        DispatchQueue.main.async {
+            self.loadFavorites()
+        }
     }
 
     // MARK: - Load Favorites

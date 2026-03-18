@@ -16,7 +16,10 @@ class TLEDataManager: ObservableObject {
     private let transmittersURL = "https://sat.xanyi.eu.org/satdata/transmitters.json"
 
     init() {
-        loadSatellites()
+        // Delay loading to avoid issues during initialization
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.loadSatellites()
+        }
     }
 
     // MARK: - Load TLE Data

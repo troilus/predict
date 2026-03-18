@@ -4,10 +4,10 @@ struct ContentView: View {
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var tleDataManager: TLEDataManager
     @EnvironmentObject var languageManager: LanguageManager
+    @EnvironmentObject var settingsManager: SettingsManager
 
     @StateObject private var passPredictionManager = PassPredictionManager()
     @StateObject private var favoritesManager = FavoritesManager()
-    @StateObject private var settingsManager = SettingsManager()
 
     @State private var searchText = ""
     @State private var selectedSatellite: Satellite?
