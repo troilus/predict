@@ -6,9 +6,14 @@ class TLEDataManager: ObservableObject {
     @Published var satellites: [Satellite] = []
     @Published var isLoading = false
     @Published var error: String?
+    @Published var isUpdatingTLE = false
+    @Published var isUpdatingTransmitters = false
+    @Published var tleDownloadProgress = ""
+    @Published var transmittersDownloadProgress = ""
+    @Published var tleVersion = ""
 
-    private let tleDataURL = "https://r4uab.ru/satonline.txt"
-    private let transmittersURL = "https://db.satnogs.org/api/transmitters/"
+    private let tleDataURL = "https://sat.xanyi.eu.org/satdata/satonline.txt"
+    private let transmittersURL = "https://sat.xanyi.eu.org/satdata/transmitters.json"
 
     init() {
         loadSatellites()
@@ -156,6 +161,154 @@ class TLEDataManager: ObservableObject {
             satellite.name.lowercased().contains(lowercasedQuery) ||
             satellite.catalogNumber?.contains(lowercasedQuery) ?? false
         }
+    }
+
+    // MARK: - Update TLE Data
+    
+    func updateTLE() {
+        isUpdatingTLE = true
+        tleDownloadProgress = ""
+        
+        guard let url = URL(string: tleDataURL) else {
+            DispatchQueue.main.async {
+                self.error = "Invalid URL"
+                self.isUpdatingTLE = false
+            }
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                DispatchQueue.main.async {
+                    self.error = error.localizedDescription
+                    self.isUpdatingTLE = false
+                }
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                DispatchQueue.main.async {
+                    self.error = "Failed to download TLE data"
+                    self.isUpdatingTLE = false
+                }
+                return
+            }
+            
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    self.error = "No data received"
+                    self.isUpdatingTLE = false
+                }
+                return
+            }
+            
+            // Calculate progress
+            let downloadedKB = Double(data.count) / 1024.0
+            let totalSize = httpResponse.expectedContentLength > 0 ? Double(httpResponse.expectedContentLength) / 1024.0 : downloadedKB
+            let progressText = String(format: "%.1f KB / %.1f KB", downloadedKB, totalSize)
+            
+            guard let text = String(data: data, encoding: .utf8) else {
+                DispatchQueue.main.async {
+                    self.error = "Failed to parse TLE data"
+                    self.isUpdatingTLE = false
+                }
+                return
+            }
+            
+            // Extract TLE version from first line
+            let lines = text.components(separatedBy: .newlines)
+            if let firstLine = lines.first, firstLine.count >= 32 {
+                let epoch = String(firstLine[18..<32])
+                self.tleVersion = epoch
+            }
+            
+            let satellites = self.parseTLEData(text: text)
+            
+            DispatchQueue.main.async {
+                self.satellites = satellites
+                self.saveToCache(satellites)
+                self.tleDownloadProgress = progressText
+                self.isUpdatingTLE = false
+            }
+        }
+        
+        task.resume()
+    }
+    
+    // MARK: - Update Transmitters Data
+    
+    func updateTransmitters() {
+        isUpdatingTransmitters = true
+        transmittersDownloadProgress = ""
+        
+        guard let url = URL(string: transmittersURL) else {
+            DispatchQueue.main.async {
+                self.error = "Invalid URL"
+                self.isUpdatingTransmitters = false
+            }
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                DispatchQueue.main.async {
+                    self.error = error.localizedDescription
+                    self.isUpdatingTransmitters = false
+                }
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                DispatchQueue.main.async {
+                    self.error = "Failed to download transmitters data"
+                    self.isUpdatingTransmitters = false
+                }
+                return
+            }
+            
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    self.error = "No data received"
+                    self.isUpdatingTransmitters = false
+                }
+                return
+            }
+            
+            // Calculate progress
+            let downloadedKB = Double(data.count) / 1024.0
+            let totalSize = httpResponse.expectedContentLength > 0 ? Double(httpResponse.expectedContentLength) / 1024.0 : downloadedKB
+            let progressText = String(format: "%.1f KB / %.1f KB", downloadedKB, totalSize)
+            
+            // Save transmitters data to cache
+            self.saveTransmittersToCache(data)
+            
+            DispatchQueue.main.async {
+                self.transmittersDownloadProgress = progressText
+                self.isUpdatingTransmitters = false
+            }
+        }
+        
+        task.resume()
+    }
+    
+    private func saveTransmittersToCache(_ data: Data) {
+        let fileManager = FileManager.default
+        let cacheDir = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let fileURL = cacheDir.appendingPathComponent("transmitters.json")
+        
+        try? data.write(to: fileURL)
     }
 
     // MARK: - Popular Satellites

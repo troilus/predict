@@ -7,16 +7,13 @@ struct ContentView: View {
 
     @StateObject private var passPredictionManager = PassPredictionManager()
     @StateObject private var favoritesManager = FavoritesManager()
+    @StateObject private var settingsManager = SettingsManager()
 
     @State private var searchText = ""
     @State private var selectedSatellite: Satellite?
     @State private var showingTrackingView = false
     @State private var showingFavorites = false
-
-    @State private var daysFilter = 3
-    @State private var elevationFilter = 15
-    @State private var useNightTimeOnly = false
-    @State private var useUTC = false
+    @State private var showingSettings = false
 
     @State private var showingLanguageSelector = false
 
@@ -42,9 +39,6 @@ struct ContentView: View {
 
                     // Popular Satellites
                     popularSatellitesSection
-
-                    // Filters
-                    filtersView
 
                     // Buttons
                     actionButtons
@@ -78,6 +72,13 @@ struct ContentView: View {
                 .environmentObject(tleDataManager)
                 .environmentObject(locationManager)
                 .environmentObject(languageManager)
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView(
+                settingsManager: settingsManager,
+                tleDataManager: tleDataManager,
+                languageManager: languageManager
+            )
         }
         .actionSheet(isPresented: $showingLanguageSelector) {
             ActionSheet(
@@ -125,6 +126,14 @@ struct ContentView: View {
             }) {
                 Image(systemName: "star.fill")
                     .foregroundColor(.yellow)
+                    .font(.title3)
+            }
+
+            Button(action: {
+                showingSettings = true
+            }) {
+                Image(systemName: "gearshape.fill")
+                    .foregroundColor(.secondary)
                     .font(.title3)
             }
         }
@@ -188,73 +197,15 @@ struct ContentView: View {
         .padding(.vertical, 8)
     }
 
-    // MARK: - Filters
-
-    private var filtersView: some View {
-        VStack(spacing: 12) {
-            // Days Filter
-            HStack {
-                Text(Localization.localizedString(for: "days_label", language: languageManager.currentLanguage))
-                    .font(.subheadline)
-
-                Picker("", selection: $daysFilter) {
-                    ForEach([1, 3, 5, 10, 15], id: \.self) { days in
-                        Text("\(days)").tag(days)
-                    }
-                }
-                .pickerStyle(SegmentedPickerStyle())
-
-                Spacer()
-            }
-
-            // Elevation Filter
-            HStack {
-                Text(Localization.localizedString(for: "elevation_label", language: languageManager.currentLanguage))
-                    .font(.subheadline)
-
-                Picker("", selection: $elevationFilter) {
-                    ForEach([0, 10, 15, 20, 25, 30, 35, 40, 45], id: \.self) { elevation in
-                        Text("\(elevation)°").tag(elevation)
-                    }
-                }
-                .pickerStyle(MenuPickerStyle())
-
-                Spacer()
-            }
-
-            // Toggle Filters
-            HStack {
-                Toggle(
-                    Localization.localizedString(for: "time_filter_label", language: languageManager.currentLanguage),
-                    isOn: $useNightTimeOnly
-                )
-
-                Spacer()
-
-                Toggle(
-                    Localization.localizedString(for: "utc_filter_label", language: languageManager.currentLanguage),
-                    isOn: $useUTC
-                )
-            }
-            .font(.subheadline)
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.secondary.opacity(0.05))
-        )
-        .padding(.horizontal)
-    }
-
     // MARK: - Action Buttons
 
     private var actionButtons: some View {
         HStack(spacing: 12) {
             Button(action: {
                 if let satellite = selectedSatellite {
-                    passPredictionManager.daysToPredict = daysFilter
-                    passPredictionManager.minElevation = Double(elevationFilter)
-                    passPredictionManager.useNightTimeOnly = useNightTimeOnly
+                    passPredictionManager.daysToPredict = settingsManager.days
+                    passPredictionManager.minElevation = Double(settingsManager.elevationThreshold)
+                    passPredictionManager.useNightTimeOnly = settingsManager.timeFilter
                     passPredictionManager.predictPasses(
                         for: satellite,
                         at: locationManager.coordinates ?? (39.9042, 116.4074, 50.0)

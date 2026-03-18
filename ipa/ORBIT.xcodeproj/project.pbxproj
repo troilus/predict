@@ -19,6 +19,8 @@
 		1000010019000000000001 /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000010020000000000001 /* LanguageManager.swift */; };
 		1000010021000000000001 /* FavoritesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000010022000000000001 /* FavoritesManager.swift */; };
 		1000010023000000000001 /* TrackingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000010024000000000001 /* TrackingView.swift */; };
+		1000010025000000000001 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000010026000000000001 /* SettingsManager.swift */; };
+		1000010027000000000001 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1000010028000000000001 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +37,8 @@
 		1000010020000000000001 /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		1000010022000000000001 /* FavoritesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesManager.swift; sourceTree = "<group>"; };
 		1000010024000000000001 /* TrackingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingView.swift; sourceTree = "<group>"; };
+		1000010026000000000001 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		1000010028000000000001 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +74,8 @@
 				1000010020000000000001 /* LanguageManager.swift */,
 				1000010022000000000001 /* FavoritesManager.swift */,
 				1000010024000000000001 /* TrackingView.swift */,
+				1000010026000000000001 /* SettingsManager.swift */,
+				1000010028000000000001 /* SettingsView.swift */,
 				1000010029000000000001 /* Preview Content */,
 			);
 			path = ORBIT;
@@ -172,6 +178,8 @@
 				1000010019000000000001 /* LanguageManager.swift in Sources */,
 				1000010021000000000001 /* FavoritesManager.swift in Sources */,
 				1000010023000000000001 /* TrackingView.swift in Sources */,
+				1000010025000000000001 /* SettingsManager.swift in Sources */,
+				1000010027000000000001 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
