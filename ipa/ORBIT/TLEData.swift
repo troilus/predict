@@ -16,11 +16,15 @@ class TLEDataManager: ObservableObject {
     private let transmittersURL = "https://sat.xanyi.eu.org/satdata/transmitters.json"
 
     init() {
-        // 不在初始化时自动加载，等待用户手动更新
-        // 在后台线程中尝试加载缓存，避免阻塞主线程
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            self?.loadFromCache()
-        }
+        // 不在初始化时自动加载
+        satellites = []
+        isLoading = false
+        error = nil
+        isUpdatingTLE = false
+        isUpdatingTransmitters = false
+        tleDownloadProgress = ""
+        transmittersDownloadProgress = ""
+        tleVersion = ""
     }
 
     // MARK: - Load TLE Data

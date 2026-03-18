@@ -9,17 +9,8 @@ class FavoritesManager: ObservableObject {
     private let favoritesKey = "favorite_satellites"
 
     init() {
-        // 不在初始化时自动加载，延迟到后台线程
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            if let self = self {
-                if let data = UserDefaults.standard.data(forKey: self.favoritesKey),
-                   let favorites = try? JSONDecoder().decode([Satellite].self, from: data) {
-                    DispatchQueue.main.async {
-                        self.favorites = favorites
-                    }
-                }
-            }
-        }
+        // 不在初始化时自动加载
+        favorites = []
     }
 
     // MARK: - Load Favorites

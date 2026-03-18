@@ -12,21 +12,30 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     override init() {
         super.init()
-        setupLocationManager()
+        // 不在初始化时设置位置管理器
+        // locationManager 将在需要时设置
     }
-
+    
     private func setupLocationManager() {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         // 不在初始化时请求权限，等待用户主动操作
     }
 
-    func requestLocation() {
-        locationManager.requestLocation()
+func requestLocationPermission() {
+        if locationManager.delegate == nil {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        }
+        locationManager.requestWhenInUseAuthorization()
     }
 
-    func requestLocationPermission() {
-        locationManager.requestWhenInUseAuthorization()
+    func requestLocation() {
+        if locationManager.delegate == nil {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        }
+        locationManager.requestLocation()
     }
 
     // MARK: - CLLocationManagerDelegate

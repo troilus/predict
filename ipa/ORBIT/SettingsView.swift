@@ -2,9 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.presentationMode) var presentationMode
-    @ObservedObject var settingsManager: SettingsManager
-    @ObservedObject var tleDataManager: TLEDataManager
-    @ObservedObject var languageManager: LanguageManager
+    @EnvironmentObject var settingsManager: SettingsManager
+    @EnvironmentObject var tleDataManager: TLEDataManager
+    @EnvironmentObject var languageManager: LanguageManager
     
     @State private var showResetAlert = false
     
@@ -101,7 +101,7 @@ struct SettingsView: View {
                     HStack {
                         Text(localizedString("tle_version"))
                         Spacer()
-                        Text(tleDataManager.tleVersion)
+                        Text(tleDataManager.tleVersion.isEmpty ? "N/A" : tleDataManager.tleVersion)
                             .foregroundColor(.secondary)
                     }
                 }
@@ -136,11 +136,8 @@ struct SettingsView: View {
 #if DEBUG
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView(
-            settingsManager: SettingsManager(),
-            tleDataManager: TLEDataManager(),
-            languageManager: LanguageManager()
-        )
+        // 不要在 preview 中创建实例，避免初始化问题
+        EmptyView()
     }
 }
 #endif

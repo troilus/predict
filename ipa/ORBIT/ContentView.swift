@@ -74,11 +74,10 @@ struct ContentView: View {
                 .environmentObject(languageManager)
         }
         .sheet(isPresented: $showingSettings) {
-            SettingsView(
-                settingsManager: settingsManager,
-                tleDataManager: tleDataManager,
-                languageManager: languageManager
-            )
+            SettingsView()
+                .environmentObject(settingsManager)
+                .environmentObject(tleDataManager)
+                .environmentObject(languageManager)
         }
         .actionSheet(isPresented: $showingLanguageSelector) {
             ActionSheet(

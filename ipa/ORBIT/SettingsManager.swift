@@ -15,22 +15,11 @@ class SettingsManager: ObservableObject {
     private let utcTimeKey = "settings_utc_time"
     
     init() {
-        // 不在初始化时自动加载，延迟到后台线程
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            if let self = self {
-                let savedDays = UserDefaults.standard.integer(forKey: self.daysKey)
-                let savedElevation = UserDefaults.standard.integer(forKey: self.elevationThresholdKey)
-                let savedTimeFilter = UserDefaults.standard.bool(forKey: self.timeFilterKey)
-                let savedUTC = UserDefaults.standard.bool(forKey: self.utcTimeKey)
-                
-                DispatchQueue.main.async {
-                    self.days = savedDays == 0 ? 3 : savedDays
-                    self.elevationThreshold = savedElevation == 0 ? 15 : savedElevation
-                    self.timeFilter = savedTimeFilter
-                    self.utcTime = savedUTC
-                }
-            }
-        }
+        // 不在初始化时自动加载
+        days = 3
+        elevationThreshold = 15
+        timeFilter = false
+        utcTime = false
     }
     
     func loadSettings() {
