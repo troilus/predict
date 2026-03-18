@@ -54,7 +54,6 @@ jobs:
 
     - name: Archive App (Unsigned)
       working-directory: ipa
-      if: github.event_name == 'workflow_dispatch'
       run: |
         # Archive the app without code signing
         xcodebuild archive \
@@ -71,7 +70,6 @@ jobs:
 
     - name: Export IPA (Unsigned)
       working-directory: ipa
-      if: github.event_name == 'workflow_dispatch'
       run: |
         # Export IPA without code signing
         xcodebuild -exportArchive \
@@ -89,52 +87,10 @@ jobs:
 
     - name: Upload IPA
       uses: actions/upload-artifact@v4
-      if: github.event_name == 'workflow_dispatch'
       with:
         name: ORBIT-IPA
         path: ipa/build/IPA/*.ipa
         if-no-files-found: warn
-
-    - name: Generate Release Notes
-      if: github.event_name == 'workflow_dispatch'
-      run: |
-        cat > RELEASE_NOTES.md << 'EOF'
-        # ORBIT iOS App (Unsigned)
-
-        卫星过境预测和实时跟踪应用
-
-        ## 功能特性
-        - 🛰️ 卫星过境预测
-        - 📍 实时卫星跟踪
-        - 🌍 多语言支持（中英文）
-        - 🧭 罗盘辅助对星
-        - ⭐ 收藏常用卫星
-        - 📅 日历提醒
-
-        ## 支持的 iOS 版本
-        iOS 15.0 及以上
-
-        ## 注意事项
-        ⚠️ 此版本为未签名构建，仅用于测试和开发目的。
-        要在真机上安装，需要：
-        1. 使用 Xcode 重新签名并安装
-        2. 或使用第三方工具（如 AltStore、SideStore）进行签名
-
-        ## 构建信息
-        - 构建时间: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-        - 提交: ${{ github.sha }}
-        - 分支: ${{ github.ref_name }}
-        - 签名状态: 未签名 (Unsigned)
-        EOF
-
-        cat RELEASE_NOTES.md
-
-    - name: Upload Release Notes
-      uses: actions/upload-artifact@v4
-      if: github.event_name == 'workflow_dispatch'
-      with:
-        name: Release-Notes
-        path: RELEASE_NOTES.md
 
     - name: Build Summary
       run: |
@@ -149,4 +105,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
         echo "- ORBIT-Archive (.xcarchive)" >> $GITHUB_STEP_SUMMARY
-        echo "- ORBIT-IPA (.ipa) [Unsigned, Manual Trigger Only]" >> $GITHUB_STEP_SUMMARY
+        echo "- ORBIT-IPA (.ipa) [Unsigned]" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ⬇️ Download" >> $GITHUB_STEP_SUMMARY
+        echo "Scroll down to **Artifacts** section to download the IPA file" >> $GITHUB_STEP_SUMMARY
