@@ -43,6 +43,18 @@ struct PassInfo: Identifiable, Codable {
     let maxElevationLongitude: Double
     let duration: TimeInterval
 
+    enum CodingKeys: String, CodingKey {
+        case satelliteName
+        case startTime
+        case endTime
+        case maxElevationTime
+        case maxElevation
+        case maxElevationAzimuth
+        case maxElevationLatitude
+        case maxElevationLongitude
+        case duration
+    }
+
     var durationFormatted: String {
         let minutes = Int(duration / 60)
         let seconds = Int(duration.truncatingRemainder(dividingBy: 60))

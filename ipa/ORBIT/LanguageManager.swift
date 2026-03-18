@@ -35,8 +35,8 @@ class LanguageManager: ObservableObject {
            let language = Language(rawValue: savedLanguage) {
             currentLanguage = language
         } else {
-            // Detect system language
-            let systemLanguage = Locale.current.language.languageCode?.identifier ?? "en"
+            // Detect system language (iOS 15 compatible)
+            let systemLanguage = Locale.current.languageCode ?? Locale.current.identifier
             if systemLanguage.hasPrefix("zh") {
                 currentLanguage = .chinese
             } else {

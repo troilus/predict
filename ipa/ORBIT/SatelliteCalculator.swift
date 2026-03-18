@@ -60,12 +60,12 @@ class SatelliteCalculator {
 
         let nddotStr = String(line1[44..<52])
         let nddotExp = Int(String(line1[51..<52])) ?? 0
-        var nddot = Double(String(nddotStr.replacingOccurrences(of: ".", with: ""))) ?? 0.0
+        let nddot = Double(String(nddotStr.replacingOccurrences(of: ".", with: ""))) ?? 0.0
         satrec.nddot = nddot * pow(10.0, Double(nddotExp))
 
         let bstarStr = String(line1[53..<61])
         let bstarExp = Int(String(line1[59..<60])) ?? 0
-        var bstar = Double(String(bstarStr.replacingOccurrences(of: ".", with: ""))) ?? 0.0
+        let bstar = Double(String(bstarStr.replacingOccurrences(of: ".", with: ""))) ?? 0.0
         satrec.bstar = bstar * pow(10.0, Double(bstarExp))
 
         // Line 2
@@ -128,8 +128,6 @@ class SatelliteCalculator {
         }
 
         // True anomaly
-        let sinE = sin(E)
-        let cosE = cos(E)
         let nu = 2.0 * atan2(sqrt(1.0 + e) * sin(E / 2.0), sqrt(1.0 - e) * cos(E / 2.0))
 
         // Radius
@@ -198,8 +196,6 @@ class SatelliteCalculator {
         // Convert observer position to ECI
         let sinLat = sin(observerGd.latitude)
         let cosLat = cos(observerGd.latitude)
-        let sinLon = sin(observerGd.longitude)
-        let cosLon = cos(observerGd.longitude)
 
         let theta = gmst + observerGd.longitude
 
