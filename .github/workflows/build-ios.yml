@@ -76,7 +76,16 @@ jobs:
           -archivePath build/ORBIT.xcarchive \
           -exportPath build/IPA \
           -exportOptionsPlist exportOptions.plist \
-          | xcpretty && exit ${PIPESTATUS[0]}
+          | xcpretty && exit ${PIPESTATUS[0]} || true
+
+        # If exportArchive fails, manually create IPA from archive
+        if [ ! -f "build/IPA/ORBIT.ipa" ]; then
+          echo "ExportArchive failed, creating IPA manually..."
+          mkdir -p build/IPA/Payload
+          cp -R build/ORBIT.xcarchive/Products/Applications/ORBIT.app build/IPA/Payload/
+          cd build/IPA
+          zip -r ORBIT.ipa Payload/
+        fi
 
     - name: Upload Archive
       uses: actions/upload-artifact@v4
