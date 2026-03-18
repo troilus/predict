@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 
 // MARK: - Favorites Manager
 class FavoritesManager: ObservableObject {

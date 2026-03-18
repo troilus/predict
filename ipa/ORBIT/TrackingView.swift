@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import CoreMotion
 import Combine
 
 struct TrackingView: View {

@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 
 // MARK: - Language Manager
 class LanguageManager: ObservableObject {
@@ -47,7 +48,7 @@ class LanguageManager: ObservableObject {
 
 // MARK: - Localization Strings
 struct Localization {
-    static let strings: [Language: [String: String]] = [
+    static let strings: [LanguageManager.Language: [String: String]] = [
         .chinese: [
             "app_title": "🌎ORBIT",
             "search_placeholder": "🔎搜索卫星...",
@@ -196,7 +197,7 @@ struct Localization {
         ]
     ]
 
-    static func localizedString(for key: String, language: Language) -> String {
+    static func localizedString(for key: String, language: LanguageManager.Language) -> String {
         return strings[language]?[key] ?? key
     }
 }
