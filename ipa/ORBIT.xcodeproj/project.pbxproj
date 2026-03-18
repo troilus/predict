@@ -42,7 +42,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		1000010025000000000001 /* Frameworks */ = {
+		1000010029000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -52,20 +52,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		1000010026000000000001 = {
+		1000010030000000000001 = {
 			isa = PBXGroup;
 			children = (
-				1000010027000000000001 /* ORBIT */,
-				1000010028000000000001 /* Products */,
+				1000010031000000000001 /* ORBIT */,
+				1000010032000000000001 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		1000010027000000000001 /* ORBIT */ = {
+		1000010031000000000001 /* ORBIT */ = {
 			isa = PBXGroup;
 			children = (
 				1000010002000000000001 /* ORBITApp.swift */,
 				1000010004000000000001 /* ContentView.swift */,
-				1000010006000000000001 /* Assets.xcassets */,
 				1000010010000000000001 /* TLEData.swift */,
 				1000010012000000000001 /* SatelliteCalculator.swift */,
 				1000010014000000000001 /* Satellite.swift */,
@@ -76,12 +75,13 @@
 				1000010024000000000001 /* TrackingView.swift */,
 				1000010026000000000001 /* SettingsManager.swift */,
 				1000010028000000000001 /* SettingsView.swift */,
-				1000010029000000000001 /* Preview Content */,
+				1000010006000000000001 /* Assets.xcassets */,
+				1000010033000000000001 /* Preview Content */,
 			);
 			path = ORBIT;
 			sourceTree = "<group>";
 		};
-		1000010028000000000001 /* Products */ = {
+		1000010032000000000001 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				1000010000000000000001 /* ORBIT.app */,
@@ -89,7 +89,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1000010029000000000001 /* Preview Content */ = {
+		1000010033000000000001 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
 				1000010008000000000001 /* Preview Assets.xcassets */,
@@ -100,13 +100,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1000010030000000000001 /* ORBIT */ = {
+		1000010034000000000001 /* ORBIT */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1000010031000000000001 /* Build configuration list for PBXNativeTarget "ORBIT" */;
+			buildConfigurationList = 1000010035000000000001 /* Build configuration list for PBXNativeTarget "ORBIT" */;
 			buildPhases = (
-				1000010032000000000001 /* Sources */,
-				1000010025000000000001 /* Frameworks */,
-				1000010033000000000001 /* Resources */,
+				1000010036000000000001 /* Sources */,
+				1000010029000000000001 /* Frameworks */,
+				1000010037000000000001 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -120,19 +120,19 @@
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		1000010034000000000001 /* Project object */ = {
+		1000010038000000000001 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
-					1000010030000000000001 = {
+					1000010034000000000001 = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
-			buildConfigurationList = 1000010035000000000001 /* Build configuration list for PBXProject "ORBIT" */;
+			buildConfigurationList = 1000010039000000000001 /* Build configuration list for PBXProject "ORBIT" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -141,18 +141,18 @@
 				Base,
 				zh-Hans,
 			);
-			mainGroup = 1000010026000000000001;
-			productRefGroup = 1000010028000000000001 /* Products */;
+			mainGroup = 1000010030000000000001;
+			productRefGroup = 1000010032000000000001 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1000010030000000000001 /* ORBIT */,
+				1000010034000000000001 /* ORBIT */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		1000010033000000000001 /* Resources */ = {
+		1000010037000000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -164,7 +164,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		1000010032000000000001 /* Sources */ = {
+		1000010036000000000001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -186,7 +186,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		1000010036000000000001 /* Debug */ = {
+		1000010040000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -249,7 +249,7 @@
 			};
 			name = Debug;
 		};
-		1000010037000000000001 /* Release */ = {
+		1000010041000000000001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -305,7 +305,7 @@
 			};
 			name = Release;
 		};
-		1000010038000000000001 /* Debug */ = {
+		1000010042000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -341,7 +341,7 @@
 			};
 			name = Debug;
 		};
-		1000010039000000000001 /* Release */ = {
+		1000010043000000000001 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -380,25 +380,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1000010031000000000001 /* Build configuration list for PBXNativeTarget "ORBIT" */ = {
+		1000010035000000000001 /* Build configuration list for PBXNativeTarget "ORBIT" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1000010038000000000001 /* Debug */,
-				1000010039000000000001 /* Release */,
+				1000010042000000000001 /* Debug */,
+				1000010043000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1000010035000000000001 /* Build configuration list for PBXProject "ORBIT" */ = {
+		1000010039000000000001 /* Build configuration list for PBXProject "ORBIT" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1000010036000000000001 /* Debug */,
-				1000010037000000000001 /* Release */,
+				1000010040000000000001 /* Debug */,
+				1000010041000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 1000010034000000000001 /* Project object */;
+	rootObject = 1000010038000000000001 /* Project object */;
 }
