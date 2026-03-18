@@ -45,9 +45,16 @@ class PassPredictionManager: ObservableObject {
     }
 
     private func calculatePasses(satellite: Satellite, latitude: Double, longitude: Double, altitude: Double) throws -> [PassInfo] {
+        // 检查 TLE 数据是否有效
+        guard satellite.tle.count >= 2 else {
+            throw NSError(domain: "PassPrediction", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid TLE data"])
+        }
+        
         var passes: [PassInfo] = []
         let startTime = Date()
-        let endTime = Calendar.current.date(byAdding: .day, value: daysToPredict, to: startTime)!
+        guard let endTime = Calendar.current.date(byAdding: .day, value: daysToPredict, to: startTime) else {
+            throw NSError(domain: "PassPrediction", code: -2, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate end time"])
+        }
 
         // Create satellite record
         let satrec = calculator.twoline2satrec(tleLine1: satellite.tle[0], tleLine2: satellite.tle[1])
@@ -63,10 +70,10 @@ class PassPredictionManager: ObservableObject {
         var passMaxElevationLon: Double = 0
 
         while currentTime < endTime {
-            let positionAndVelocity = calculator.propagate(
+            guard let positionAndVelocity = try? calculator.propagate(
                 satrec: satrec,
                 date: currentTime
-            )
+            ) else { break }
 
             let gmst = calculator.gmst(date: currentTime)
             let positionGd = calculator.eciToGeodetic(
@@ -116,36 +123,48 @@ class PassPredictionManager: ObservableObject {
                     inPass = false
 
                     // Filter by night time if enabled
-                    if useNightTimeOnly {
+                    if useNightTimeOnly, let passMaxElevationTime = passMaxElevationTime {
                         let sunPosition = calculator.calculateSunPosition(
                             latitude: latitude,
                             longitude: longitude,
-                            date: passMaxElevationTime!
+                            date: passMaxElevationTime
                         )
                         if sunPosition.altitude > 0 {
                             // Sun is up, skip this pass
-                            currentTime = Calendar.current.date(byAdding: .minute, value: 5, to: currentTime)!
+                            if let nextTime = Calendar.current.date(byAdding: .minute, value: 5, to: currentTime) {
+                                currentTime = nextTime
+                            } else {
+                                break
+                            }
                             continue
                         }
                     }
 
+                    guard let passStart = passStart,
+                          let passMaxElevationTime = passMaxElevationTime,
+                          let nextTime = Calendar.current.date(byAdding: .minute, value: 5, to: currentTime) else { continue }
+
                     let pass = PassInfo(
                         satelliteName: satellite.name,
-                        startTime: passStart!,
+                        startTime: passStart,
                         endTime: currentTime,
-                        maxElevationTime: passMaxElevationTime!,
+                        maxElevationTime: passMaxElevationTime,
                         maxElevation: passMaxElevation,
                         maxElevationAzimuth: passMaxElevationAzimuth,
                         maxElevationLatitude: passMaxElevationLat,
                         maxElevationLongitude: passMaxElevationLon,
-                        duration: currentTime.timeIntervalSince(passStart!)
+                        duration: currentTime.timeIntervalSince(passStart)
                     )
                     passes.append(pass)
                 }
             }
 
             // Move to next sample point
-            currentTime = Calendar.current.date(byAdding: .minute, value: 5, to: currentTime)!
+            if let nextTime = Calendar.current.date(byAdding: .minute, value: 5, to: currentTime) {
+                currentTime = nextTime
+            } else {
+                break
+            }
         }
 
         return passes

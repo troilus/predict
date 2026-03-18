@@ -203,6 +203,9 @@ struct ContentView: View {
         HStack(spacing: 12) {
             Button(action: {
                 if let satellite = selectedSatellite {
+                    // 检查 TLE 数据是否有效
+                    guard satellite.tle.count >= 2 else { return }
+                    
                     passPredictionManager.daysToPredict = settingsManager.days
                     passPredictionManager.minElevation = Double(settingsManager.elevationThreshold)
                     passPredictionManager.useNightTimeOnly = settingsManager.timeFilter
@@ -273,6 +276,9 @@ struct ContentView: View {
                     Spacer()
 
                     Button(action: {
+                        // 先请求权限
+                        locationManager.requestLocationPermission()
+                        // 然后请求位置
                         locationManager.requestLocation()
                     }) {
                         Text(Localization.localizedString(for: "retry", language: languageManager.currentLanguage))

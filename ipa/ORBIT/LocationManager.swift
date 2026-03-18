@@ -18,16 +18,15 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private func setupLocationManager() {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestWhenInUseAuthorization()
-        
-        // Auto request location after a short delay to allow permission handling
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.requestLocation()
-        }
+        // 不在初始化时请求权限，等待用户主动操作
     }
 
     func requestLocation() {
         locationManager.requestLocation()
+    }
+
+    func requestLocationPermission() {
+        locationManager.requestWhenInUseAuthorization()
     }
 
     // MARK: - CLLocationManagerDelegate

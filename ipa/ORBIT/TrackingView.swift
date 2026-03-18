@@ -393,6 +393,9 @@ class TrackingManager: ObservableObject {
     var cancellables = Set<AnyCancellable>()
 
     func startTracking(satellite: Satellite, location: (latitude: Double, longitude: Double, altitude: Double)) {
+        // 检查 TLE 数据是否有效
+        guard satellite.tle.count >= 2 else { return }
+        
         // Start motion manager for compass
         motionManager = MotionManager()
         motionManager?.startUpdates { heading in
@@ -416,6 +419,9 @@ class TrackingManager: ObservableObject {
     }
 
     private func updatePosition(satellite: Satellite, location: (latitude: Double, longitude: Double, altitude: Double)) {
+        // 检查 TLE 数据是否有效
+        guard satellite.tle.count >= 2 else { return }
+        
         let satrec = calculator.twoline2satrec(tleLine1: satellite.tle[0], tleLine2: satellite.tle[1])
         let positionAndVelocity = calculator.propagate(satrec: satrec, date: Date())
 

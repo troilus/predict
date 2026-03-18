@@ -16,9 +16,10 @@ class TLEDataManager: ObservableObject {
     private let transmittersURL = "https://sat.xanyi.eu.org/satdata/transmitters.json"
 
     init() {
-        // Delay loading to avoid issues during initialization
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.loadSatellites()
+        // 不在初始化时自动加载，等待用户手动更新
+        // 在后台线程中尝试加载缓存，避免阻塞主线程
+        DispatchQueue.global(qos: .utility).async { [weak self] in
+            self?.loadFromCache()
         }
     }
 
@@ -148,7 +149,11 @@ class TLEDataManager: ObservableObject {
         do {
             let data = try Data(contentsOf: cacheURL())
             let decoder = JSONDecoder()
-            return try decoder.decode([Satellite].self, from: data)
+            let satellites = try decoder.decode([Satellite].self, from: data)
+            DispatchQueue.main.async {
+                self.satellites = satellites
+            }
+            return satellites
         } catch {
             return nil
         }
