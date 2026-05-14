@@ -364,3 +364,38 @@ tbody th, tbody td {
     display: block;
 }
 
+/* 跟踪弹窗（iframe modal） */
+.tracking-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+}
+
+.tracking-modal-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 44px;
+  padding: 0 12px;
+  background: #1c1c1e;
+}
+
+#tracking-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  padding: 4px 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#tracking-iframe {
+  width: 100%;
+  height: calc(100% - 44px);
+  border: none;
+}
+

@@ -1316,7 +1316,7 @@ if (entrydate === prevEntryDate) {
             <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
             <td>${highestTime}</td>
 <td ${firstCellStyle}>
-  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+  <a href="javascript:void(0)" onclick="openTrackingModal(${index + 1})" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
     ${highestElevation}
     ${chartHTML}
   </a>
@@ -1333,7 +1333,7 @@ if (entrydate === prevEntryDate) {
             <td>  <a href="javascript:void(0)" onclick="downloadICS('${eventTitle}', '${eventDate.toISOString()}', '${startTime}', '${endTime}')" style="color: #ffffbc;">${entryTime}  </a></td>
             <td>${highestTime}</td>
 <td ${firstCellStyle}>
-  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+  <a href="javascript:void(0)" onclick="openTrackingModal(${index + 1})" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
     ${highestElevation}
     ${chartHTML}
   </a>
@@ -1552,7 +1552,7 @@ const satelliteName = item.satelliteName;
                 </td>
                 <td style="font-size: 50%; color: #ffffbc; font-weight: bold;">${satelliteName}</td> <!-- 设置字体大小为50% -->
                 <td ${firstCellStyle}>
-  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+  <a href="javascript:void(0)" onclick="openTrackingModal(${index + 1})" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
     ${highestElevation}
     ${chartHTML}
   </a>
@@ -1573,7 +1573,7 @@ const satelliteName = item.satelliteName;
                 </td>
                 <td style="font-size: 50%; color: #ffffbc; font-weight: bold;">${satelliteName}</td> <!-- 设置字体大小为50% -->
                 <td ${firstCellStyle}>
-  <a href="point.html?index=${index + 1}" target="_blank" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
+  <a href="javascript:void(0)" onclick="openTrackingModal(${index + 1})" style="color: #ffffbc; display: flex; align-items: center; justify-content: center;">
     ${highestElevation}
     ${chartHTML}
   </a>
@@ -1749,6 +1749,15 @@ function drawTrajectorySVG(svgContainer, selectedPass, scaleFactor = 0.17) {
 
 
 
+function openTrackingModal(index) {
+  if (!localStorage.getItem('latitude')) {
+    alert(currentLang === 'zh' ? '请先获取位置信息' : 'Please get location first');
+    return;
+  }
+  document.getElementById('tracking-iframe').src = 'point.html?index=' + index;
+  document.getElementById('tracking-modal').style.display = 'block';
+}
+
 document.addEventListener('click', function(event) {
     const searchInput = document.getElementById('searchInput');
     const dropdown = document.getElementById('satelliteDropdown');
@@ -1757,6 +1766,13 @@ document.addEventListener('click', function(event) {
     if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
         dropdown.style.display = 'none'; // 隐藏下拉菜单
     }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('tracking-close-btn').addEventListener('click', function() {
+    document.getElementById('tracking-modal').style.display = 'none';
+    document.getElementById('tracking-iframe').src = '';
+  });
 });
 
 //判断白天黑夜
