@@ -65,6 +65,7 @@ struct FavoritesView: View {
     @EnvironmentObject var tleDataManager: TLEDataManager
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var languageManager: LanguageManager
+    @Environment(\.colorScheme) var colorScheme
 
     @StateObject private var passPredictionManager = PassPredictionManager()
     @State private var selectedFavorite: Satellite?
@@ -134,14 +135,6 @@ struct FavoritesView: View {
             }
             .navigationBarHidden(true)
         }
-    }
-
-    private var colorScheme: ColorScheme {
-        #if os(iOS)
-        return UITraitCollection.current.userInterfaceStyle == .dark ? .dark : .light
-        #else
-        return .light
-        #endif
     }
 
     private func showPasses(for satellite: Satellite) {

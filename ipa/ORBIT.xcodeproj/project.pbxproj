@@ -318,7 +318,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限进行AR对星辅助";
-				INFOPLIST_KEY_NSColocationWhenInUseUsageDescription = "需要获取您的位置来计算卫星过境时间";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "需要获取您的位置来计算卫星过境时间";
+				INFOPLIST_KEY_NSMotionUsageDescription = "需要访问运动传感器来使用罗盘功能";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -354,7 +355,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "需要相机权限进行AR对星辅助";
-				INFOPLIST_KEY_NSColocationWhenInUseUsageDescription = "需要获取您的位置来计算卫星过境时间";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "需要获取您的位置来计算卫星过境时间";
+				INFOPLIST_KEY_NSMotionUsageDescription = "需要访问运动传感器来使用罗盘功能";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

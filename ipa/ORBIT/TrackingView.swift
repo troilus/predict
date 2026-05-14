@@ -9,6 +9,7 @@ struct TrackingView: View {
 
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var languageManager: LanguageManager
+    @Environment(\.colorScheme) var colorScheme
 
     @StateObject private var trackingManager = TrackingManager()
 
@@ -50,14 +51,6 @@ struct TrackingView: View {
         .onDisappear {
             stopTracking()
         }
-    }
-
-    private var colorScheme: ColorScheme {
-        #if os(iOS)
-        return UITraitCollection.current.userInterfaceStyle == .dark ? .dark : .light
-        #else
-        return .light
-        #endif
     }
 
     // MARK: - Header View

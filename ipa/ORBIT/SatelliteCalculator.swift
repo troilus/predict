@@ -245,9 +245,11 @@ class SatelliteCalculator {
     private func julianDate(from date: Date) -> Double {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
-        let year = components.year!
-        let month = components.month!
-        let day = components.day!
+        guard let year = components.year,
+              let month = components.month,
+              let day = components.day else {
+            return 2451545.0 // fallback to J2000.0
+        }
         let hour = Double(components.hour ?? 0)
         let minute = Double(components.minute ?? 0)
         let second = Double(components.second ?? 0)

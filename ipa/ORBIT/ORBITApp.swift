@@ -14,6 +14,10 @@ struct ORBITApp: App {
                 .environmentObject(tleDataManager)
                 .environmentObject(languageManager)
                 .environmentObject(settingsManager)
+                .task {
+                    settingsManager.loadSettings()
+                    tleDataManager.loadSatellites()
+                }
         }
     }
 }

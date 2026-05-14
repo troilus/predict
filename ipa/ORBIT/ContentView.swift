@@ -5,6 +5,7 @@ struct ContentView: View {
     @EnvironmentObject var tleDataManager: TLEDataManager
     @EnvironmentObject var languageManager: LanguageManager
     @EnvironmentObject var settingsManager: SettingsManager
+    @Environment(\.colorScheme) var colorScheme
 
     @StateObject private var passPredictionManager = PassPredictionManager()
     @StateObject private var favoritesManager = FavoritesManager()
@@ -57,6 +58,9 @@ struct ContentView: View {
             }
             .navigationBarHidden(true)
         }
+        .task {
+            favoritesManager.loadFavorites()
+        }
         .sheet(isPresented: $showingTrackingView) {
             if let satellite = selectedSatellite,
                let location = locationManager.coordinates {
@@ -89,15 +93,6 @@ struct ContentView: View {
                 } + [.cancel()]
             )
         }
-    }
-
-    private var colorScheme: ColorScheme {
-        // Check system color scheme
-        #if os(iOS)
-        return UITraitCollection.current.userInterfaceStyle == .dark ? .dark : .light
-        #else
-        return .light
-        #endif
     }
 
     // MARK: - Header View

@@ -358,6 +358,7 @@ class TLEDataManager: ObservableObject {
 // MARK: - String Extension
 extension String {
     subscript(_ range: Range<Int>) -> String {
+        guard range.lowerBound >= 0, range.upperBound <= count else { return "" }
         let start = index(startIndex, offsetBy: range.lowerBound)
         let end = index(startIndex, offsetBy: range.upperBound)
         return String(self[start..<end])
