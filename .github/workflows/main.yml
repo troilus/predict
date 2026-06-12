@@ -17,7 +17,7 @@ jobs:
       # 下载satonline.txt
       - name: Download satonline.txt
         run: |
-          # curl -k -o satdata/satonline.txt https://r4uab.ru/satonline.txt
+      # curl -k -o satdata/satonline.txt https://r4uab.ru/satonline.txt
           curl -k -o satdata/satonline.txt https://satgs.ru/satonline.txt
 
       # 修改ASRTU-1名称  
