@@ -11,6 +11,8 @@
                 utcFilterLabel: "UTC时间",
                 notesInfo: "ℹ️点击仰角: 实时对星<br>⏰点击开始时间: 加入日历提醒",
                 placeholder: "🔎搜索卫星...",
+                loadingSatellites: "⏳卫星列表加载中...",
+                loadFailed: "⚠卫星列表加载失败，请刷新重试",
                 calculatePass:"显示选中",
                                  noTLE:"⚠无TLE信息",
                                  unabletocalc:"⚠请选择卫星并确认已定位",
@@ -46,6 +48,8 @@
                             utcFilterLabel: "UTC Time",
                             notesInfo: "ℹ️Click the El to view the orbit page<br>⏰Click the Date to add the event to calendar",
                             placeholder: "🔎Search satellites...",
+                            loadingSatellites: "⏳Loading satellites...",
+                            loadFailed: "⚠Failed to load satellites, please refresh",
                              calculatePass:"Show selected",
                                              noTLE:"⚠TLE not found",
                                               unabletocalc:"⚠Please select a satellite and confirm that the location has been determined",
@@ -89,7 +93,11 @@ localStorage.setItem('lang', currentLang);
         // 更新 placeholder 内容
 function updatePlaceholder() {
     const searchInput = document.getElementById('searchInput');
-    searchInput.placeholder = translations[currentLang].placeholder;
+    if (searchInput.disabled) {
+        searchInput.placeholder = translations[currentLang].loadingSatellites;
+    } else {
+        searchInput.placeholder = translations[currentLang].placeholder;
+    }
 }
 
 
@@ -352,10 +360,18 @@ if ( currentNotesInfo.includes('${locatormg}')) {
                     satellites = parseSatellitesData(data);
 
                     localStorage.setItem('satellites', JSON.stringify(satellites));
+
+                    const searchInput = document.getElementById('searchInput');
+                    searchInput.disabled = false;
+                    updatePlaceholder();
+
                     populateDropdown(satellites);
                 })
                 .catch(error => {
                     console.error('无法加载文件:', error);
+                    const searchInput = document.getElementById('searchInput');
+                    searchInput.disabled = true;
+                    searchInput.placeholder = translations[currentLang].loadFailed;
                 });
 
 

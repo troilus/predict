@@ -241,6 +241,11 @@ justify-content: center;
             box-sizing: border-box;
         }
 
+        #searchInput:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .checkbox-container {
             display: flex;
             align-items: center;
