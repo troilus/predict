@@ -883,8 +883,120 @@ function populateDropdown(satellites) {
             }
         });
 //计算单个选中卫星3天
-function calculatePasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
-    localStorage.setItem('calculated', '1');
+const PASS_COARSE_STEP = 30 * 1000;
+const PASS_FILL_STEP = 10 * 1000;
+
+function buildPassSample(satrec, observerGd, date) {
+    const positionAndVelocity = satellite.propagate(satrec, date);
+    if (!positionAndVelocity || !positionAndVelocity.position ||
+        Number.isNaN(positionAndVelocity.position.x)) return null;
+    const lookAngles = satellite.ecfToLookAngles(
+        observerGd,
+        satellite.eciToEcf(positionAndVelocity.position, satellite.gstime(date))
+    );
+    if (!lookAngles) return null;
+    return {
+        time: date,
+        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
+        elevation: satellite.radiansToDegrees(lookAngles.elevation)
+    };
+}
+
+function elevationAt(satrec, observerGd, date) {
+    const sample = buildPassSample(satrec, observerGd, date);
+    return sample ? sample.elevation : -1;
+}
+
+// 二分求仰角升起点：tBelow 在地平线下，tAbove 在地平线上
+function bisectRise(satrec, observerGd, tBelow, tAbove) {
+    let lo = tBelow.getTime();
+    let hi = tAbove.getTime();
+    while (hi - lo > 100) {
+        const mid = (lo + hi) / 2;
+        if (elevationAt(satrec, observerGd, new Date(mid)) > 0) {
+            hi = mid;
+        } else {
+            lo = mid;
+        }
+    }
+    return new Date(hi);
+}
+
+// 二分求仰角落下点：tAbove 在地平线上，tBelow 在地平线下
+function bisectSet(satrec, observerGd, tAbove, tBelow) {
+    let lo = tAbove.getTime();
+    let hi = tBelow.getTime();
+    while (hi - lo > 100) {
+        const mid = (lo + hi) / 2;
+        if (elevationAt(satrec, observerGd, new Date(mid)) > 0) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    return new Date(lo);
+}
+
+// 黄金分割搜索窗口内仰角最高点
+function findApex(satrec, observerGd, tLow, tHigh) {
+    const phi = 0.6180339887498949;
+    let lo = tLow.getTime();
+    let hi = tHigh.getTime();
+    let c = hi - phi * (hi - lo);
+    let d = lo + phi * (hi - lo);
+    let fc = elevationAt(satrec, observerGd, new Date(c));
+    let fd = elevationAt(satrec, observerGd, new Date(d));
+    for (let i = 0; i < 40 && hi - lo > 500; i++) {
+        if (fc >= fd) {
+            hi = d; d = c; fd = fc;
+            c = hi - phi * (hi - lo);
+            fc = elevationAt(satrec, observerGd, new Date(c));
+        } else {
+            lo = c; c = d; fc = fd;
+            d = lo + phi * (hi - lo);
+            fd = elevationAt(satrec, observerGd, new Date(d));
+        }
+    }
+    return buildPassSample(satrec, observerGd, new Date(fc > fd ? c : d));
+}
+
+function appendPassSamples(passes, satrec, observerGd, entryTime, exitTime, filterNightTime) {
+    const durationMs = exitTime.getTime() - entryTime.getTime();
+    const fillCap = filterNightTime ? 30 * 1000 : 600 * 1000;
+    const fillStep = Math.min(fillCap, Math.max(PASS_FILL_STEP, durationMs / 150));
+    let bestIndex = -1;
+
+    for (let t = entryTime.getTime(); t <= exitTime.getTime(); t += fillStep) {
+        const sample = buildPassSample(satrec, observerGd, new Date(t));
+        if (!sample) continue;
+        if (filterNightTime) {
+            const hour = sample.time.getHours();
+            if (hour < 19 || hour >= 24) continue;
+        }
+        passes.push(sample);
+        if (bestIndex === -1 || sample.elevation > passes[bestIndex].elevation) bestIndex = passes.length - 1;
+    }
+
+    if (bestIndex !== -1) {
+        const bestTime = passes[bestIndex].time.getTime();
+        const lo = Math.max(entryTime.getTime(), bestTime - fillStep);
+        const hi = Math.min(exitTime.getTime(), bestTime + fillStep);
+        const apex = findApex(satrec, observerGd, new Date(lo), new Date(hi));
+        const apexHour = apex ? apex.time.getHours() : 0;
+        if (apex && (!filterNightTime || (apexHour >= 19 && apexHour < 24))) {
+            let insertAt = passes.length;
+            for (let k = bestIndex; k < passes.length; k++) {
+                if (passes[k].time.getTime() >= apex.time.getTime()) {
+                    insertAt = k;
+                    break;
+                }
+            }
+            passes.splice(insertAt, 0, apex);
+        }
+    }
+}
+
+function scanPasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
     const passes = [];
     const observerGd = {
         latitude: satellite.degreesToRadians(latitude),
@@ -892,46 +1004,37 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
         height: altitude
     };
     const days = parseFloat(document.getElementById('days').value);
-    const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
-    const timeStep = 1 * 1000; // 1秒步长（单位: 毫秒）
+    const startTimeMs = currentTime.getTime() - 60 * 60 * 1000;
+    const endTimeMs = currentTime.getTime() + days * 24 * 60 * 60 * 1000;
 
-    for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
-        const passTime = new Date(time);
+    let windowStart = null;
 
-        const positionAndVelocity = satellite.propagate(satrec, passTime);
-        if (positionAndVelocity && positionAndVelocity.position) {
-            const gmst = satellite.gstime(passTime);
-
-            const lookAngles = satellite.ecfToLookAngles(
-                observerGd,
-                satellite.eciToEcf(positionAndVelocity.position, gmst)
-            );
-
-            if (lookAngles) {
-                const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
-
-                // 仰角大于 0 度的记录添加到 passes
-                if (elevationDegrees > 0) {
-                    const pass = {
-                        time: passTime,
-                        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
-                        elevation: elevationDegrees,
-                    };
-
-                    if (filterNightTime) {
-                        const passHour = passTime.getHours();
-                        if (passHour < 19 || passHour >= 24) {
-                            continue; // 跳过夜间范围外的记录
-                        }
-                    }
-
-                    passes.push(pass);
-                }
+    for (let t = startTimeMs; t <= endTimeMs; t += PASS_COARSE_STEP) {
+        const date = new Date(t);
+        if (elevationAt(satrec, observerGd, date) > 0) {
+            if (windowStart === null) {
+                windowStart = (t === startTimeMs)
+                    ? date
+                    : bisectRise(satrec, observerGd, new Date(t - PASS_COARSE_STEP), date);
             }
+        } else if (windowStart !== null) {
+            appendPassSamples(passes, satrec, observerGd, windowStart,
+                bisectSet(satrec, observerGd, new Date(t - PASS_COARSE_STEP), date),
+                filterNightTime);
+            windowStart = null;
         }
     }
 
+    if (windowStart !== null) {
+        appendPassSamples(passes, satrec, observerGd, windowStart, new Date(endTimeMs), filterNightTime);
+    }
+
     return passes;
+}
+
+function calculatePasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
+    localStorage.setItem('calculated', '1');
+    return scanPasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime);
 }
 //计算单个选中卫星3天结束
 
@@ -939,55 +1042,7 @@ function calculatePasses(satrec, latitude, longitude, altitude, currentTime, fil
 
 function calculatePassesfavorite(satrec, latitude, longitude, altitude, currentTime, filterNightTime) {
     localStorage.setItem('calculated', '2');
-    const passes = [];
-    const observerGd = {
-        latitude: satellite.degreesToRadians(latitude),
-        longitude: satellite.degreesToRadians(longitude),
-        height: altitude
-    };
-
-    const days = parseFloat(document.getElementById('days').value);
-
-    const endTime = new Date(currentTime.getTime() + days * 24 * 60 * 60 * 1000);
-    const timeStep = 1 * 1000; // 1秒步长（单位: 毫秒）
-
-    for (let time = currentTime.getTime() - 60 * 60 * 1000; time <= endTime.getTime(); time += timeStep) {
-        const passTime = new Date(time);
-
-        const positionAndVelocity = satellite.propagate(satrec, passTime);
-        if (positionAndVelocity && positionAndVelocity.position) {
-            const gmst = satellite.gstime(passTime);
-
-            const lookAngles = satellite.ecfToLookAngles(
-                observerGd,
-                satellite.eciToEcf(positionAndVelocity.position, gmst)
-            );
-
-            if (lookAngles) {
-                const elevationDegrees = satellite.radiansToDegrees(lookAngles.elevation);
-
-                // 仰角大于 0 度的记录添加到 passes
-                if (elevationDegrees > 0) {
-                    const pass = {
-                        time: passTime,
-                        azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
-                        elevation: elevationDegrees,
-                    };
-
-                    if (filterNightTime) {
-                        const passHour = passTime.getHours();
-                        if (passHour < 19 || passHour >= 24) {
-                            continue; // 跳过夜间范围外的记录
-                        }
-                    }
-
-                    passes.push(pass);
-                }
-            }
-        }
-    }
-
-    return passes;
+    return scanPasses(satrec, latitude, longitude, altitude, currentTime, filterNightTime);
 }
 
 

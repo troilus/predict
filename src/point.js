@@ -398,7 +398,7 @@ function drawTrajectory(ctx, selectedPass, satrec, observerGd) {
     const startTime = new Date(selectedPass.entryTime);
     const endTime = new Date(selectedPass.exitTime);
 
-   const steps = 1000;
+   const steps = 120;
     const timeStep = (endTime - startTime) / steps;
 
 
@@ -524,7 +524,7 @@ function drawTrajectorySVG(svgContainer, selectedPass, satrec, observerGd) {
     const startTime = new Date(selectedPass.entryTime);
     const endTime = new Date(selectedPass.exitTime);
 
-    const steps = 1000;
+    const steps = 120;
     const timeStep = (endTime - startTime) / steps;
 
     const trajectoryPoints = [];
