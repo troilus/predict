@@ -693,7 +693,8 @@ function populateDropdown(satellites) {
         dropdown.innerHTML = ''; // 清空列表
         filteredSatellites.forEach(satellite => {
             const div = document.createElement('div');
-            div.textContent = satellite.name;
+            const noradId = satellite.tle[1].split(' ')[1];
+            div.textContent = `${satellite.name}[${noradId}]`;
             div.classList.add('dropdown-item');
             div.addEventListener('click', function () {
                 searchInput.value = satellite.name; // 将选择的值填入输入框
