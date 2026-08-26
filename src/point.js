@@ -1635,6 +1635,7 @@ window.goatcounter = {
 
 // 计时器相关变量
 let timerInterval = null;
+let timerStartTime = 0;
 let timerSeconds = 0;
 let isTimerRunning = false;
 
@@ -1660,12 +1661,12 @@ function startTimer() {
     clearInterval(timerInterval);
   }
   
+  timerStartTime = Date.now();
   timerSeconds = 0;
   isTimerRunning = true;
   timerBtn.textContent = '000'; // 初始显示000
   
   timerInterval = setInterval(function() {
-    timerSeconds++;
     updateTimerDisplay();
   }, 1000);
 }
@@ -1684,6 +1685,7 @@ function resetTimer() {
 
 // 更新计时器显示 - 修改为只显示秒数，三位数格式
 function updateTimerDisplay() {
+  timerSeconds = Math.floor((Date.now() - timerStartTime) / 1000);
   // 确保秒数不超过999，如果需要更长的时间可以调整
   const displaySeconds = timerSeconds % 1000; // 如果超过999秒，从0重新开始
   const formattedTime = displaySeconds.toString().padStart(3, '0');
@@ -1692,6 +1694,13 @@ function updateTimerDisplay() {
   // 如果需要无限计时（不重置到000），可以使用以下代码：
   // timerBtn.textContent = timerSeconds.toString().padStart(3, '0');
 }
+
+// 页面重新可见时立即校准计时显示（后台标签页定时器会被节流）
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && isTimerRunning) {
+    updateTimerDisplay();
+  }
+});
 
 // 页面卸载时清理计时器
 window.addEventListener('beforeunload', function() {
