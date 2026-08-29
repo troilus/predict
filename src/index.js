@@ -346,18 +346,13 @@ if ( currentNotesInfo.includes('${locatormg}')) {
 
 
             //fetch('https://c0rs.xanyi.eu.org/?https://r4uab.ru/satonline.txt')
-            fetch('/satdata/satonline.txt')
-                .then(response => {
-
-
-                    if (!response.ok) {
-                        throw new Error('网络响应失败');
-                    }
-
-                    return response.text();
-                })
-                .then(data => {
-                    satellites = parseSatellitesData(data);
+            Promise.all([
+                fetch('/satdata/satonline.txt').then(r => r.text()),
+                fetch('/satdata/custom.txt').then(r => r.text()).catch(() => '')
+            ]).then(([satonlineData, customData]) => {
+                    const mainSatellites = parseSatellitesData(satonlineData);
+                    const customSatellites = parseSatellitesData(customData);
+                    satellites = [...mainSatellites.filter(s => !customSatellites.find(t => t.name === s.name)), ...customSatellites];
 
                     localStorage.setItem('satellites', JSON.stringify(satellites));
 
