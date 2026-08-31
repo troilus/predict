@@ -1,6 +1,15 @@
-    //刻度
+     //刻度
      // 声明一个全局变量，用于在实时多普勒计算中判断频偏方向
       let previousdistancedoppler = null;
+
+      // Doppler chart overlay state
+      let dopplerSamples = [];
+      let dopplerChartVisible = false;
+      let dopplerPassDuration = 0;
+      let dopplerHighestT = 0;
+      let dopplerEntryTime = null;
+      let dopplerDownlinkLow = 0;
+      let dopplerUplinkLow = null;
     //const compassBackground = document.getElementById('compass-background');
     //背景改SVG const compassCtx = compassBackground.getContext('2d');
     const compassCircle = document.querySelector(".compass-circle");
@@ -1280,6 +1289,239 @@ mediaRecorder.onstop = function() {
 
 //多普勒功能
 
+// Pre-compute Doppler samples for the entire pass (for chart overlay)
+function computeDopplerSamples(downlink_low, uplink_low) {
+    const satelliteData = JSON.parse(localStorage.getItem('selectedorbit'));
+    const satellites = JSON.parse(localStorage.getItem('satellites'));
+    const urlParams = new URLSearchParams(window.location.search);
+    const index = urlParams.get('index');
+    const selectedPass = satelliteData[index - 1];
+    const entryTime = new Date(selectedPass.entryTime);
+    const exitTime = new Date(selectedPass.exitTime);
+    const highestTime = new Date(selectedPass.highestTime);
+
+    const satelliteName = selectedPass.satelliteName;
+    const satellited = satellites.find(s => s.name === satelliteName);
+    const satrec = satellite.twoline2satrec(satellited.tle[0], satellited.tle[1]);
+
+    const observerGd = {
+        latitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('latitude'))),
+        longitude: satellite.degreesToRadians(parseFloat(localStorage.getItem('longitude'))),
+        height: parseFloat(localStorage.getItem('altitude')) / 1000
+    };
+    const observerEcf = satellite.geodeticToEcf(observerGd);
+
+    dopplerEntryTime = entryTime;
+    dopplerPassDuration = (exitTime - entryTime) / 1000;
+    dopplerHighestT = (highestTime - entryTime) / 1000;
+    dopplerDownlinkLow = parseFloat(downlink_low);
+    dopplerUplinkLow = (uplink_low && uplink_low !== 'null') ? parseFloat(uplink_low) : null;
+
+    const step = Math.max(0.5, dopplerPassDuration / 300);
+    dopplerSamples = [];
+    let prevRange = null;
+
+    for (let t = 0; t <= dopplerPassDuration; t += step) {
+        const date = new Date(entryTime.getTime() + t * 1000);
+        const pv = satellite.propagate(satrec, date);
+        if (!pv || !pv.position || isNaN(pv.position.x)) continue;
+
+        const gmst = satellite.gstime(date);
+        const posEcf = satellite.eciToEcf(pv.position, gmst);
+        const velEcf = satellite.eciToEcf(pv.velocity, gmst);
+        const df = satellite.dopplerFactor(observerEcf, posEcf, velEcf);
+
+        const dx = posEcf.x - observerEcf.x;
+        const dy = posEcf.y - observerEcf.y;
+        const dz = posEcf.z - observerEcf.z;
+        const range = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        let sign = -1;
+        if (prevRange !== null) {
+            sign = range > prevRange ? 1 : -1;
+        }
+
+        const dnOff = (df - 1) * downlink_low * (-sign) * 1000;
+        const dnFreq = downlink_low + (df - 1) * downlink_low * (-sign);
+        const rawDnOff = (df - 1) * downlink_low / 1000;
+
+        let upOff = null, upFreq = null, rawUpOff = null;
+        if (dopplerUplinkLow) {
+            upOff = (df - 1) * dopplerUplinkLow * sign * 1000;
+            upFreq = dopplerUplinkLow + (df - 1) * dopplerUplinkLow * sign;
+            rawUpOff = (df - 1) * dopplerUplinkLow / 1000;
+        }
+
+        dopplerSamples.push({ t: t, upOff: upOff, dnOff: dnOff, upFreq: upFreq, dnFreq: dnFreq, range: range, rawDnOff: rawDnOff, rawUpOff: rawUpOff });
+        prevRange = range;
+    }
+}
+
+// Draw the Doppler chart (inline, compact sparkline)
+function drawDopplerChart(currentT) {
+    if (!dopplerSamples.length) return;
+    var canvas = document.getElementById('doppler-chart-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = 100 * dpr;
+    ctx.scale(dpr, dpr);
+    var W = rect.width, H = 100;
+    var pad = { l: 10, r: 10, t: 10, b: 16 };
+    var cW = W - pad.l - pad.r;
+    var cH = H - pad.t - pad.b;
+    var sysFont = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+    var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var lineColor = isDark ? '#56c6c6' : '#2e71d1';
+    var markerColor = isDark ? '#fff' : '#333';
+    var freqLabelColor = isDark ? '#fff' : '#333';
+    var subLabelColor = isDark ? '#aaa' : '#666';
+    var tickColor = isDark ? '#555' : '#bbb';
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Compute Y-axis range from sign-corrected offsets
+    var minO = Infinity, maxO = -Infinity;
+    for (var i = 0; i < dopplerSamples.length; i++) {
+        var s = dopplerSamples[i];
+        if (s.dnOff < minO) minO = s.dnOff;
+        if (s.dnOff > maxO) maxO = s.dnOff;
+        if (s.upOff !== null) {
+            if (s.upOff < minO) minO = s.upOff;
+            if (s.upOff > maxO) maxO = s.upOff;
+        }
+    }
+    var m = Math.max(Math.abs(minO), Math.abs(maxO)) * 0.15;
+    var minOff = minO - m;
+    var maxOff = maxO + m;
+    if (minOff === maxOff) { minOff -= 1; maxOff += 1; }
+
+    function toX(t) { return pad.l + (t / dopplerPassDuration) * cW; }
+    function toY(f) { return pad.t + ((maxOff - f) / (maxOff - minOff)) * cH; }
+
+    // X axis: 5 ticks at 0, 1/4, 1/2, 3/4, 4/4
+    ctx.strokeStyle = tickColor;
+    ctx.lineWidth = 1;
+    for (var i = 0; i <= 4; i++) {
+        var t = (dopplerPassDuration / 4) * i;
+        var x = toX(t);
+        ctx.beginPath();
+        ctx.moveTo(x, pad.t);
+        ctx.lineTo(x, H - pad.b);
+        ctx.stroke();
+        ctx.fillStyle = tickColor;
+        ctx.font = '8px ' + sysFont;
+        ctx.textAlign = 'center';
+        ctx.fillText(t.toFixed(0), x, H - pad.b + 10);
+    }
+
+    // Downlink curve (blue solid)
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    for (var i = 0; i < dopplerSamples.length; i++) {
+        var x = toX(dopplerSamples[i].t);
+        var y = toY(dopplerSamples[i].dnOff);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Uplink curve (blue solid), only if available
+    if (dopplerUplinkLow) {
+        ctx.beginPath();
+        for (var i = 0; i < dopplerSamples.length; i++) {
+            if (dopplerSamples[i].upOff === null) continue;
+            var x = toX(dopplerSamples[i].t);
+            var y = toY(dopplerSamples[i].upOff);
+            if (i === 0 || dopplerSamples[i - 1].upOff === null) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    // Current position marker
+    if (currentT !== null && currentT !== undefined && currentT >= 0 && currentT <= dopplerPassDuration) {
+        var best = dopplerSamples[0];
+        var bestD = Math.abs(currentT - best.t);
+        for (var i = 1; i < dopplerSamples.length; i++) {
+            var d = Math.abs(currentT - dopplerSamples[i].t);
+            if (d < bestD) { bestD = d; best = dopplerSamples[i]; }
+        }
+        var cx = toX(currentT);
+        var labelRight = cx < W / 2;
+        var ldx = labelRight ? 8 : -8;
+        var lalign = labelRight ? 'left' : 'right';
+
+        // Vertical line
+        ctx.strokeStyle = markerColor;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(cx, pad.t);
+        ctx.lineTo(cx, H - pad.b);
+        ctx.stroke();
+
+        // Downlink dot
+        var cyDn = toY(best.dnOff);
+        ctx.fillStyle = lineColor;
+        ctx.beginPath();
+        ctx.arc(cx, cyDn, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Downlink labels (show calculated frequency)
+        var dnCalcMHz = ((dopplerDownlinkLow + best.rawDnOff * 1000) / 1000000).toFixed(3);
+        ctx.fillStyle = freqLabelColor;
+        ctx.font = '9px ' + sysFont;
+        ctx.textAlign = lalign;
+        ctx.fillText('\u{1F53B}' + dnCalcMHz + ' MHz', cx + ldx, cyDn - 3);
+
+        // Rate of change for downlink (using raw offset)
+        var idx = dopplerSamples.indexOf(best);
+        var dnRate = 0;
+        if (idx < dopplerSamples.length - 1) {
+            var dt = dopplerSamples[idx + 1].t - best.t;
+            if (dt > 0) dnRate = (dopplerSamples[idx + 1].rawDnOff - best.rawDnOff) / dt;
+        } else if (idx > 0) {
+            var dt = best.t - dopplerSamples[idx - 1].t;
+            if (dt > 0) dnRate = (best.rawDnOff - dopplerSamples[idx - 1].rawDnOff) / dt;
+        }
+        var dnRateStr = (dnRate >= 0 ? '+' : '') + dnRate.toFixed(2);
+        ctx.fillStyle = subLabelColor;
+        ctx.fillText(dnRateStr + ' kHz/s', cx + ldx, cyDn + 8);
+
+        // Uplink dot and labels
+        if (dopplerUplinkLow && best.upOff !== null) {
+            var cyUp = toY(best.upOff);
+            ctx.fillStyle = lineColor;
+            ctx.beginPath();
+            ctx.arc(cx, cyUp, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            var upCalcMHz = ((dopplerUplinkLow + best.rawUpOff * 1000) / 1000000).toFixed(3);
+            ctx.fillStyle = freqLabelColor;
+            ctx.font = '9px ' + sysFont;
+            ctx.textAlign = lalign;
+            ctx.fillText('\u{1F53A}' + upCalcMHz + ' MHz', cx + ldx, cyUp - 3);
+
+            var upRate = 0;
+            if (idx < dopplerSamples.length - 1 && dopplerSamples[idx + 1].upOff !== null) {
+                var dt = dopplerSamples[idx + 1].t - best.t;
+                if (dt > 0) upRate = (dopplerSamples[idx + 1].rawUpOff - best.rawUpOff) / dt;
+            } else if (idx > 0 && dopplerSamples[idx - 1].upOff !== null) {
+                var dt = best.t - dopplerSamples[idx - 1].t;
+                if (dt > 0) upRate = (best.rawUpOff - dopplerSamples[idx - 1].rawUpOff) / dt;
+            }
+            var upRateStr = (upRate >= 0 ? '+' : '') + upRate.toFixed(2);
+            ctx.fillStyle = subLabelColor;
+            ctx.fillText(upRateStr + ' kHz/s', cx + ldx, cyUp + 8);
+        }
+    }
+}
+
 // Function to start tracking Doppler frequency
 function startTrackingDoppler(downlink_low, uplink_low, description) {
 
@@ -1291,7 +1533,8 @@ function startTrackingDoppler(downlink_low, uplink_low, description) {
         clearInterval(window.dopplerInterval);
     }
 
-
+    // Pre-compute Doppler samples for the chart overlay
+    computeDopplerSamples(downlink_low, uplink_low);
 
     // Set interval to update Doppler every second (1000ms)
     window.dopplerInterval = setInterval(() => {
@@ -1507,19 +1750,38 @@ if (futureTime >= entryTime && futureTime <= highestTime) {
     const robot72 = calculateSSTVReference(72);
     const pd120 = calculateSSTVReference(127);
     const MartinM1 = calculateSSTVReference(114);
-// 添加 SSTV 相关信息
-    dopplerInfo += `🖼Robot36: ${robot36.referenceFreq} MHz，FDR:${robot36.maxDeviation} kHz<br>`;
-    dopplerInfo += `🖼Robot72: ${robot72.referenceFreq} MHz，FDR:${robot72.maxDeviation} kHz<br>`;
-    dopplerInfo += `🖼PD120: ${pd120.referenceFreq} MHz，FDR:${pd120.maxDeviation} kHz<br>`;
-    dopplerInfo += `🖼MartinM1: ${MartinM1.referenceFreq} MHz，FDR:${MartinM1.maxDeviation} kHz<br>`;
+    window._sstvData = { robot36: robot36, robot72: robot72, pd120: pd120, martinM1: MartinM1 };
+    var sstvMode = localStorage.getItem('sstvMode') || 'robot36';
+    var sstvMap = {
+        robot36: { label: 'Robot36', data: robot36 },
+        robot72: { label: 'Robot72', data: robot72 },
+        pd120: { label: 'PD120', data: pd120 },
+        martinM1: { label: 'MartinM1', data: MartinM1 }
+    };
+    var cur = sstvMap[sstvMode] || sstvMap.robot36;
+    // Only rebuild select if it doesn't exist yet
+    if (!document.getElementById('sstv-select')) {
+        document.getElementById('sstv-info').innerHTML = '<div style="margin:2px 0;"><select id="sstv-select" onchange="onSstvModeChange(this.value)" style="font-size:12px;border:1px solid #ddd;border-radius:4px;padding:1px 2px;"><option value="robot36" '+(sstvMode==='robot36'?'selected':'')+'>Robot36</option><option value="robot72" '+(sstvMode==='robot72'?'selected':'')+'>Robot72</option><option value="pd120" '+(sstvMode==='pd120'?'selected':'')+'>PD120</option><option value="martinM1" '+(sstvMode==='martinM1'?'selected':'')+'>MartinM1</option></select> <span id="sstv-value"></span></div>';
     }
+    document.getElementById('sstv-value').textContent = cur.data.referenceFreq + ' MHz FDR:' + cur.data.maxDeviation + ' kHz';
+    } else {
+        document.getElementById('sstv-info').innerHTML = '';
+    }
+
+    // Chart toggle button
+    var chartLabel = currentLang == 'zh' ? '图示化' : 'Chart';
+    dopplerInfo += `<span class="doppler-chart-toggle" onclick="toggleDopplerChart()">${chartLabel}</span>`;
 
     dopplerInfo += `</span>`;
 
     // 更新页面内容
     document.getElementById('doppler-info').innerHTML = dopplerInfo;
 
-
+    // Update chart overlay if visible
+    if (dopplerChartVisible && dopplerEntryTime) {
+        var elapsed = (now - dopplerEntryTime) / 1000;
+        drawDopplerChart(elapsed);
+    }
 
 }
 
@@ -1708,3 +1970,24 @@ window.addEventListener('beforeunload', function() {
     clearInterval(timerInterval);
   }
 });
+
+// Doppler chart inline toggle
+function toggleDopplerChart() {
+    var canvas = document.getElementById('doppler-chart-canvas');
+    dopplerChartVisible = !dopplerChartVisible;
+    canvas.style.display = dopplerChartVisible ? 'block' : 'none';
+    if (dopplerChartVisible && dopplerEntryTime) {
+        var now = new Date();
+        var elapsed = (now - dopplerEntryTime) / 1000;
+        drawDopplerChart(elapsed);
+    }
+}
+
+// SSTV mode dropdown change handler
+function onSstvModeChange(mode) {
+    localStorage.setItem('sstvMode', mode);
+    var data = window._sstvData && window._sstvData[mode];
+    if (data) {
+        document.getElementById('sstv-value').textContent = ' ' + data.referenceFreq + ' MHz FDR:' + data.maxDeviation + ' kHz';
+    }
+}
